@@ -1,10 +1,10 @@
 # WP-PostViews
-Contributors: GamerZ  
-Donate link: http://lesterchan.net/site/donation/  
-Tags: views, hits, counter, postviews  
-Requires at least: 2.8  
-Tested up to: 3.5  
-Stable tag: trunk  
+Contributors: GamerZ
+Donate link: http://lesterchan.net/site/donation/
+Tags: views, hits, counter, postviews
+Requires at least: 2.8
+Tested up to: 3.5
+Stable tag: trunk
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -35,12 +35,15 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.63 (07-05-2013)
+* NEW: Added nonce To PostViews Options Admin Page
+
 ### Version 1.62 (29-11-2012)
-* Add "Views" Column To Manage Pages In WP-Admin
-* Add Sortable "Views" Column To Manage Posts/Pages In WP-Admin
+* NEW: Add "Views" Column To Manage Pages In WP-Admin
+* NEW: Add Sortable "Views" Column To Manage Posts/Pages In WP-Admin
 
 ### Version 1.61 (21-05-2012)
-* Move AJAX Request to wp-admin/admin-ajax.php
+* FIXED: Move AJAX Request to wp-admin/admin-ajax.php
 
 ### Version 1.60 (18-02-2011)
 * NEW: Added Views Count To Edit Posts Screen
