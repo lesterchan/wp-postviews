@@ -1,10 +1,10 @@
 # WP-PostViews
-Contributors: GamerZ  
-Donate link: http://lesterchan.net/site/donation/  
-Tags: views, hits, counter, postviews  
-Requires at least: 2.8  
-Tested up to: 3.5  
-Stable tag: trunk  
+Contributors: GamerZ
+Donate link: http://lesterchan.net/site/donation/
+Tags: views, hits, counter, postviews
+Requires at least: 2.8
+Tested up to: 3.5
+Stable tag: trunk
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -35,6 +35,9 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.64 (07-05-2013)
+* NEW: Using Enqueue Script For WP_CACHE Enabled Sites. Props Crowd Favourite
+
 ### Version 1.63 (07-05-2013)
 * NEW: Added nonce To PostViews Options Admin Page
 
