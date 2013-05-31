@@ -160,7 +160,7 @@ function should_views_be_displayed($views_options = null) {
 
 
 ### Function: Display The Post Views
-function the_views($display = true, $prefix = '', $postfix = '', $always = true) {
+function the_views($display = true, $prefix = '', $postfix = '', $always = false) {
 	$post_views = intval(post_custom('views'));
 	$views_options = get_option('views_options');
 	if ($always || should_views_be_displayed($views_options)) {
