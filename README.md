@@ -35,6 +35,9 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.65 (02-06-2013)
+* FIXED: Views not showing in WP-Admin if "Display Options" is not set to "Display to everyone"
+
 ### Version 1.64 (31-05-2013)
 * NEW: Using Enqueue Script For WP_CACHE Enabled Sites. Props Crowd Favourite
 * FIXED: Viewcounter always display eventhough "display to registered users only" is set
