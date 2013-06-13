@@ -56,8 +56,8 @@ function process_postviews() {
 		if(is_single() || is_page()) {
 			$id = intval($post->ID);
 			$views_options = get_option('views_options');
-			$post_views = get_post_custom($id);
-			$post_views = intval($post_views['views'][0]);
+			if ( ! $post_views = get_post_meta( $post->ID, 'views', true ) )
+				$post_views = 0;
 			$should_count = false;
 			switch(intval($views_options['count'])) {
 				case 0:
