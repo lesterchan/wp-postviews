@@ -35,6 +35,10 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.66
+* NEW: Add China search engines bots
+* FIXED: Notices and better way to get views from meta. Props daankortenbach.
+
 ### Version 1.65 (02-06-2013)
 * FIXED: Views not showing in WP-Admin if "Display Options" is not set to "Display to everyone"
 
@@ -238,6 +242,6 @@ N/A
 * Default: get_most_viewed_category(1, 'both', 10);
 
 ### To Sort Most/Least Viewed Posts
-* You can use: `<?php query_posts('v_sortby=views&amp;v_orderby=desc') ?>`
-* Or pass in the variables to the URL: `http://yoursite.com/?v_sortby=views&amp;v_orderby=desc`
-* You can replace desc with asc if you want the least viewed posts.
+* You can use: `<?php query_posts( array( 'meta_key' => 'views', 'orderby' => 'meta_value_num', 'order' => 'DESC' ) ); ?>`
+* Or pass in the variables to the URL: `http://yoursite.com/?v_sortby=views&v_orderby=desc`
+* You can replace DESC  with ASC if you want the least viewed posts.
