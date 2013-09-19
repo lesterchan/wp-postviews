@@ -218,7 +218,12 @@ if(!function_exists('get_least_viewed')) {
 		$temp = '';
 		$output = '';
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -260,7 +265,12 @@ if(!function_exists('get_most_viewed')) {
 		$temp = '';
 		$output = '';
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -307,7 +317,12 @@ if(!function_exists('get_least_viewed_category')) {
 			$category_sql = "$wpdb->term_taxonomy.term_id = $category_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -354,7 +369,12 @@ if(!function_exists('get_most_viewed_category')) {
 			$category_sql = "$wpdb->term_taxonomy.term_id = $category_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -401,7 +421,12 @@ if(!function_exists('get_most_viewed_tag')) {
 			$tag_sql = "$wpdb->term_taxonomy.term_id = $tag_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
@@ -448,7 +473,12 @@ if(!function_exists('get_least_viewed_tag')) {
 			$tag_sql = "$wpdb->term_taxonomy.term_id = $tag_id";
 		}
 		if(!empty($mode) && $mode != 'both') {
-			$where = "post_type = '$mode'";
+			if(is_array($mode)) {
+				$mode = implode("','",$mode);
+				$where = "post_type IN ('".$mode."')";
+			} else {
+				$where = "post_type = '$mode'";
+			}
 		} else {
 			$where = '1=1';
 		}
