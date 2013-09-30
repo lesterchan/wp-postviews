@@ -35,6 +35,9 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.67
+* FIXED: No longer needing add_post_meta() if update_post_meta() fails.
+
 ### Version 1.66
 * NEW: Add China isearch engines bots
 * NEW: Ability to pass in an array of post types for get_most/least_*() functions. Props Leo Plaw.

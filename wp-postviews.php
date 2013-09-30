@@ -116,9 +116,7 @@ function process_postviews() {
 				}
 			}
 			if($should_count && (!defined('WP_CACHE') || !WP_CACHE)) {
-				if(!update_post_meta($id, 'views', ($post_views+1))) {
-					add_post_meta($id, 'views', 1, true);
-				}
+				update_post_meta($id, 'views', ($post_views + 1));
 			}
 		}
 	}
@@ -723,9 +721,7 @@ function increment_views() {
 		if($post_id > 0 && defined('WP_CACHE') && WP_CACHE) {
 			$post_views = get_post_custom($post_id);
 			$post_views = intval($post_views['views'][0]);
-			if(!update_post_meta($post_id, 'views', ($post_views + 1))) {
-				add_post_meta($post_id, 'views', 1, true);
-			}
+			update_post_meta($post_id, 'views', ($post_views + 1));
 			echo ($post_views + 1);
 		}
 	}
