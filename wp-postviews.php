@@ -240,6 +240,8 @@ if(!function_exists('get_least_viewed')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -287,6 +289,8 @@ if(!function_exists('get_most_viewed')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -339,6 +343,8 @@ if(!function_exists('get_least_viewed_category')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -391,6 +397,8 @@ if(!function_exists('get_most_viewed_category')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -443,6 +451,8 @@ if(!function_exists('get_most_viewed_tag')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {
@@ -495,6 +505,8 @@ if(!function_exists('get_least_viewed_tag')) {
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
 				$temp = str_replace("%POST_URL%", get_permalink($post), $temp);
+				$temp = str_replace("%POST_DATE%", get_the_time(get_option('date_format'), $post), $temp);
+				$temp = str_replace("%POST_TIME%", get_the_time(get_option('time_format'), $post), $temp);
 				$output .= $temp;
 			}
 		} else {

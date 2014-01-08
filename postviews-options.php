@@ -176,6 +176,8 @@ switch($mode) {
 				<?php _e('Allowed Variables:', 'wp-postviews'); ?><br />
 				- %VIEW_COUNT%<br />
 				- %POST_TITLE%<br />
+				- %POST_DATE%<br />
+				- %POST_TIME%<br />
 				- %POST_EXCERPT%<br />
 				- %POST_CONTENT%<br />
 				- %POST_URL%<br /><br />

@@ -3,7 +3,7 @@ Contributors: GamerZ
 Donate link: http://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 2.8  
-Tested up to: 3.6  
+Tested up to: 3.8  
 Stable tag: trunk  
 
 Enables you to display how many times a post/page had been viewed.
@@ -35,13 +35,12 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
-### Version 1.67
-* FIXED: No longer needing add_post_meta() if update_post_meta() fails.
-
 ### Version 1.66
+* NEW: Add %POST_DATE% and %POST_TIME% to template variables
 * NEW: Add China isearch engines bots
 * NEW: Ability to pass in an array of post types for get_most/least_*() functions. Props Leo Plaw.
 * FIXED: Notices and better way to get views from meta. Props daankortenbach.
+* FIXED: No longer needing add_post_meta() if update_post_meta() fails.
 
 ### Version 1.65 (02-06-2013)
 * FIXED: Views not showing in WP-Admin if "Display Options" is not set to "Display to everyone"
