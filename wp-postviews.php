@@ -746,7 +746,7 @@ add_filter('manage_posts_columns', 'add_postviews_column');
 add_action('manage_pages_custom_column', 'add_postviews_column_content');
 add_filter('manage_pages_columns', 'add_postviews_column');
 function add_postviews_column($defaults) {
-    $defaults['views'] = 'Views';
+    $defaults['views'] = __( 'Views', 'wp-postviews' );
     return $defaults;
 }
 
