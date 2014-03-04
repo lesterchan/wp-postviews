@@ -2,7 +2,7 @@
 /*
 Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
-Description: Enables you to display how many times a post/page had been viewed. Modified by <a href="http://DPotter.net/Technical/" title="David's Technical Musings">David Potter</a> to include options for when and where to display view counts.
+Description: Enables you to display how many times a post/page had been viewed.
 Version: 1.66
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
@@ -11,7 +11,7 @@ Text Domain: wp-postviews
 
 
 /*
-	Copyright 2013  Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2014  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@ Text Domain: wp-postviews
 
 
 ### Create Text Domain For Translations
-add_action('init', 'postviews_textdomain');
+add_action( 'plugins_loaded', 'postviews_textdomain' );
 function postviews_textdomain() {
-	load_plugin_textdomain('wp-postviews', false, 'wp-postviews');
+	load_plugin_textdomain( 'wp-postviews', false, dirname( plugin_basename( __FILE__ ) ) );
 }
 
 
@@ -886,31 +886,48 @@ function sort_postviews($query) {
 
 
 ### Function: Init WP-PostViews Widget
-add_action('widgets_init', 'widget_views_init');
+add_action( 'widgets_init', 'widget_views_init' );
 function widget_views_init() {
-	postviews_textdomain();
-	register_widget('WP_Widget_PostViews');
+	register_widget( 'WP_Widget_PostViews' );
 }
 
 
 ### Function: Post Views Options
-add_action('activate_wp-postviews/wp-postviews.php', 'views_init');
-function views_init() {
-	postviews_textdomain();
+register_activation_hook( __FILE__, 'views_activation' );
+function views_activation( $network_wide ) {
 	// Add Options
-	$views_options = array();
-	$views_options['count'] = 1;
-	$views_options['exclude_bots'] = 0;
-	$views_options['display_home'] = 0;
-	$views_options['display_single'] = 0;
-	$views_options['display_page'] = 0;
-	$views_options['display_archive'] = 0;
-	$views_options['display_search'] = 0;
-	$views_options['display_other'] = 0;
-	$views_options['template'] = __('%VIEW_COUNT% views', 'wp-postviews');
-	$views_options['most_viewed_template'] = '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% '.__('views', 'wp-postviews').'</li>';
-	add_option('views_options', $views_options, 'Post Views Options');
-	// Version 1.50 Upgrade
-	delete_option('widget_views_most_viewed');
+	$option_name = 'views_options';
+	$option = array(
+		  'count'                   => 1
+		, 'exclude_bots'            => 0
+		, 'display_home'            => 0
+		, 'display_single'          => 0
+		, 'display_page'            => 0
+		, 'display_archive'         => 0
+		, 'display_search'          => 0
+		, 'display_other'           => 0
+		, 'template'                => __('%VIEW_COUNT% views', 'wp-postviews')
+		, 'most_viewed_template'    => '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% '.__('views', 'wp-postviews').'</li>'
+	);
+
+	if ( is_multisite() && $network_wide )
+	{
+		$ms_sites = wp_get_sites();
+
+		if( 0 < sizeof( $ms_sites ) )
+		{
+			foreach ( $ms_sites as $ms_site )
+			{
+				switch_to_blog( $ms_site['blog_id'] );
+				add_option( $option_name, $option );
+			}
+		}
+
+		restore_current_blog();
+	}
+	else
+	{
+		add_option( $option_name, $option );
+	}
 }
 ?>
