@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.66
+Version: 1.67
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-postviews
@@ -46,35 +46,36 @@ function postviews_menu() {
 
 
 ### Function: Calculate Post Views
-add_action('wp_head', 'process_postviews');
+add_action( 'wp_head', 'process_postviews' );
 function process_postviews() {
 	global $user_ID, $post;
-	if(is_int($post)) {
-		$post = get_post($post);
+	if( is_int( $post ) ) {
+		$post = get_post( $post );
 	}
-	if(!wp_is_post_revision($post)) {
-		if(is_single() || is_page()) {
-			$id = intval($post->ID);
-			$views_options = get_option('views_options');
-			if ( ! $post_views = get_post_meta( $post->ID, 'views', true ) )
+	if( !wp_is_post_revision( $post ) ) {
+		if( is_single() || is_page() ) {
+			$id = intval( $post->ID );
+			$views_options = get_option( 'views_options' );
+			if ( !$post_views = get_post_meta( $post->ID, 'views', true ) ) {
 				$post_views = 0;
+			}
 			$should_count = false;
-			switch(intval($views_options['count'])) {
+			switch( intval( $views_options['count'] ) ) {
 				case 0:
 					$should_count = true;
 					break;
 				case 1:
-					if(empty($_COOKIE[USER_COOKIE]) && intval($user_ID) == 0) {
+					if(empty( $_COOKIE[USER_COOKIE] ) && intval( $user_ID ) === 0) {
 						$should_count = true;
 					}
 					break;
 				case 2:
-					if(intval($user_ID) > 0) {
+					if( intval( $user_ID ) > 0 ) {
 						$should_count = true;
 					}
 					break;
 			}
-			if(intval($views_options['exclude_bots']) == 1) {
+			if( intval( $views_options['exclude_bots'] ) === 1 ) {
 				$bots = array
 				(
 					  'Google Bot' => 'googlebot'
@@ -108,15 +109,15 @@ function process_postviews() {
 					, 'Yandex' => 'yandex'
 				);
 				$useragent = $_SERVER['HTTP_USER_AGENT'];
-				foreach ($bots as $name => $lookfor) {
-					if (stristr($useragent, $lookfor) !== false) {
+				foreach ( $bots as $name => $lookfor ) {
+					if ( stristr( $useragent, $lookfor ) !== false ) {
 						$should_count = false;
 						break;
 					}
 				}
 			}
-			if($should_count && (!defined('WP_CACHE') || !WP_CACHE)) {
-				update_post_meta($id, 'views', ($post_views + 1));
+			if( $should_count && ( ( isset( $views_options['use_ajax'] ) && intval( $views_options['use_ajax'] ) === 0 ) || ( !defined( 'WP_CACHE' ) || !WP_CACHE ) ) ) {
+				update_post_meta( $id, 'views', ( $post_views + 1 ) );
 			}
 		}
 	}
@@ -127,28 +128,35 @@ function process_postviews() {
 add_action('wp_enqueue_scripts', 'wp_postview_cache_count_enqueue');
 function wp_postview_cache_count_enqueue() {
 	global $user_ID, $post;
-	if (!wp_is_post_revision($post) && (is_single() || is_page())) {
-		$views_options = get_option('views_options');
+
+	if( !defined( 'WP_CACHE' ) || !WP_CACHE )
+		return;
+
+	$views_options = get_option( 'views_options' );
+
+	if( isset( $views_options['use_ajax'] ) && intval( $views_options['use_ajax'] ) === 0 )
+		return;
+
+	if ( !wp_is_post_revision( $post ) && ( is_single() || is_page() ) ) {
 		$should_count = false;
-		switch(intval($views_options['count'])) {
+		switch( intval( $views_options['count'] ) ) {
 			case 0:
 				$should_count = true;
 				break;
 			case 1:
-				if (empty($_COOKIE[USER_COOKIE]) && intval($user_ID) == 0) {
+				if ( empty( $_COOKIE[USER_COOKIE] ) && intval( $user_ID ) === 0) {
 					$should_count = true;
 				}
 				break;
 			case 2:
-				if (intval($user_ID) > 0) {
+				if ( intval( $user_ID ) > 0 ) {
 					$should_count = true;
 				}
 				break;
 		}
-		if ($should_count && defined('WP_CACHE') && WP_CACHE) {
-			// Enqueue and localize script here
-			wp_enqueue_script('wp-postviews-cache', plugins_url('postviews-cache.js', __FILE__), array('jquery'), '1.64', true);
-			wp_localize_script('wp-postviews-cache', 'viewsCacheL10n', array('admin_ajax_url' => admin_url('admin-ajax.php', (is_ssl() ? 'https' : 'http')), 'post_id' => intval($post->ID)));
+		if ( $should_count ) {
+			wp_enqueue_script( 'wp-postviews-cache', plugins_url( 'postviews-cache.js', __FILE__ ), array( 'jquery' ), '1.67', true );
+			wp_localize_script( 'wp-postviews-cache', 'viewsCacheL10n', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php', ( is_ssl() ? 'https' : 'http' ) ), 'post_id' => intval( $post->ID ) ) );
 		}
 	}
 }
@@ -723,21 +731,28 @@ function postviews_page_most_stats($content) {
 
 
 ### Function: Increment Post Views
-add_action('wp_ajax_postviews', 'increment_views');
-add_action('wp_ajax_nopriv_postviews', 'increment_views');
+add_action( 'wp_ajax_postviews', 'increment_views' );
+add_action( 'wp_ajax_nopriv_postviews', 'increment_views' );
 function increment_views() {
-	global $wpdb;
-	if(!empty($_GET['postviews_id']))
-	{
-		$post_id = intval($_GET['postviews_id']);
-		if($post_id > 0 && defined('WP_CACHE') && WP_CACHE) {
-			$post_views = get_post_custom($post_id);
-			$post_views = intval($post_views['views'][0]);
-			update_post_meta($post_id, 'views', ($post_views + 1));
-			echo ($post_views + 1);
-		}
+	if( empty( $_GET['postviews_id'] ) )
+		return;
+
+	if( !defined( 'WP_CACHE' ) || !WP_CACHE )
+		return;
+
+	$views_options = get_option( 'views_options' );
+
+	if( isset( $views_options['use_ajax'] ) && intval( $views_options['use_ajax'] ) === 0 )
+		return;
+
+	$post_id = intval( $_GET['postviews_id'] );
+	if( $post_id > 0 ) {
+		$post_views = get_post_custom( $post_id );
+		$post_views = intval( $post_views['views'][0] );
+		update_post_meta( $post_id, 'views', ( $post_views + 1 ) );
+		echo ( $post_views + 1 );
+		exit();
 	}
-	exit();
 }
 
 ### Function Show Post Views Column in WP-Admin
@@ -833,7 +848,6 @@ function sort_postviews($query) {
 
 	// DIsplay Widget Control Form
 	function form($instance) {
-		global $wpdb;
 		$instance = wp_parse_args((array) $instance, array('title' => __('Views', 'wp-postviews'), 'type' => 'most_viewed', 'mode' => 'both', 'limit' => 10, 'chars' => 200, 'cat_ids' => '0'));
 		$title = esc_attr($instance['title']);
 		$type = esc_attr($instance['type']);
@@ -906,6 +920,7 @@ function views_activation( $network_wide ) {
 		, 'display_archive'         => 0
 		, 'display_search'          => 0
 		, 'display_other'           => 0
+		, 'use_ajax'                => 1
 		, 'template'                => __('%VIEW_COUNT% views', 'wp-postviews')
 		, 'most_viewed_template'    => '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% '.__('views', 'wp-postviews').'</li>'
 	);
