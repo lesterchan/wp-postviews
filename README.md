@@ -4,7 +4,7 @@ Donate link: http://lesterchan.net/site/donation/
 Tags: views, hits, counter, postviews  
 Requires at least: 3.0  
 Tested up to: 3.9
-Stable tag: 1.67   
+Stable tag: 1.68  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -26,6 +26,9 @@ Enables you to display how many times a post/page had been viewed.
 * I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.68
+* NEW: Allow custom post type to be chosen under the widget
+
 ### Version 1.67
 * NEW: Allow user to not use AJAX to update the views even though WP_CACHE is true
 
