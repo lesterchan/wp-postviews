@@ -951,4 +951,8 @@ function views_activation( $network_wide ) {
 		add_option( $option_name, $option );
 	}
 }
-?>
+
+### Function: Parse Http POST
+function wppostview_parse_http_post($key) {
+	return !empty($_POST[$key]) ? $_POST[$key] : null;
+}
