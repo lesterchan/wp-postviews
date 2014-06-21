@@ -10,17 +10,17 @@ $text = '';
 if(!empty($_POST['Submit'] )) {
 	check_admin_referer( 'wp-postviews_options' );
 	$views_options = array(
-		  'count'                   => intval( $_POST['views_count'] )
-		, 'exclude_bots'            => intval( $_POST['views_exclude_bots'] )
-		, 'display_home'            => intval( $_POST['views_display_home'] )
-		, 'display_single'          => intval( $_POST['views_display_single'] )
-		, 'display_page'            => intval( $_POST['views_display_page'] )
-		, 'display_archive'         => intval( $_POST['views_display_archive'] )
-		, 'display_search'          => intval( $_POST['views_display_search'] )
-		, 'display_other'           => intval( $_POST['views_display_other'] )
-		, 'use_ajax'                => intval( $_POST['views_use_ajax'] )
-		, 'template'                => trim( $_POST['views_template_template'] )
-		, 'most_viewed_template'    => trim( $_POST['views_template_most_viewed'] )
+		  'count'                   => intval( wppostview_parse_http_post('views_count') )
+		, 'exclude_bots'            => intval( wppostview_parse_http_post('views_exclude_bots') )
+		, 'display_home'            => intval( wppostview_parse_http_post('views_display_home') )
+		, 'display_single'          => intval( wppostview_parse_http_post('views_display_single') )
+		, 'display_page'            => intval( wppostview_parse_http_post('views_display_page') )
+		, 'display_archive'         => intval( wppostview_parse_http_post('views_display_archive') )
+		, 'display_search'          => intval( wppostview_parse_http_post('views_display_search') )
+		, 'display_other'           => intval( wppostview_parse_http_post('views_display_other') )
+		, 'use_ajax'                => intval( wppostview_parse_http_post('views_use_ajax') )
+		, 'template'                => trim( wppostview_parse_http_post('views_template_template') )
+		, 'most_viewed_template'    => trim( wppostview_parse_http_post('views_template_most_viewed') )
 	);
 	$update_views_queries = array();
 	$update_views_text = array();
