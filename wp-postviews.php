@@ -804,14 +804,13 @@ function sort_postviews($query) {
 
 	// Display Widget
 	function widget($args, $instance) {
-		extract($args);
 		$title = apply_filters('widget_title', esc_attr($instance['title']));
 		$type = esc_attr($instance['type']);
 		$mode = esc_attr($instance['mode']);
 		$limit = intval($instance['limit']);
 		$chars = intval($instance['chars']);
 		$cat_ids = explode(',', esc_attr($instance['cat_ids']));
-		echo $before_widget.$before_title.$title.$after_title;
+		echo $args['before_widget'] . $args['before_title'] . $title . $args['after_title'];
 		echo '<ul>'."\n";
 		switch($type) {
 			case 'least_viewed':
@@ -828,7 +827,7 @@ function sort_postviews($query) {
 				break;
 		}
 		echo '</ul>'."\n";
-		echo $after_widget;
+		echo  $args['after_widget'];
 	}
 
 	// When Widget Control Form Is Posted
@@ -952,7 +951,7 @@ function views_activation( $network_wide ) {
 	}
 }
 
-### Function: Parse Http POST
-function wppostview_parse_http_post($key) {
+### Function: Parse View Options
+function views_options_parse($key) {
 	return !empty($_POST[$key]) ? $_POST[$key] : null;
 }
