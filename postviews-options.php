@@ -144,7 +144,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 			</td>
 		</tr>
 		<tr>
-			<td valign="top"><strong><?php _e( 'Singe Posts:', 'wp-postviews' ); ?></strong></td>
+			<td valign="top"><strong><?php _e( 'Single Posts:', 'wp-postviews' ); ?></strong></td>
 			<td>
 				<select name="views_display_single" size="1">
 					<option value="0"<?php selected( '0', $views_options['display_single'] ); ?>><?php _e( 'Display to everyone', 'wp-postviews' ); ?></option>
