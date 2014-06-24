@@ -27,6 +27,7 @@ Enables you to display how many times a post/page had been viewed.
 
 ## Changelog
 ### Version 1.68
+* NEW: Added action hook 'postviews_increment_views' and 'postviews_increment_views_ajax'
 * NEW: Allow custom post type to be chosen under the widget
 
 ### Version 1.67
