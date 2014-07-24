@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/lesterchan/wp-postviews.svg?branch=master)](https://travis-ci.org/lesterchan/wp-postviews)
 # WP-PostViews
 Contributors: GamerZ  
 Donate link: http://lesterchan.net/site/donation/  
@@ -11,11 +10,14 @@ Enables you to display how many times a post/page had been viewed.
 
 ## Description
 
+### Build Status
+[![Build Status](https://travis-ci.org/lesterchan/wp-postviews.svg?branch=master)](https://travis-ci.org/lesterchan/wp-postviews)
+
 ### Development
-* [https://github.com/lesterchan/wp-postviews/](https://github.com/lesterchan/wp-postviews/ "https://github.com/lesterchan/wp-postviews/")
+[https://github.com/lesterchan/wp-postviews/](https://github.com/lesterchan/wp-postviews/ "https://github.com/lesterchan/wp-postviews/")
 
 ### Translations
-* [http://dev.wp-plugins.org/browser/wp-postviews/i18n/](http://dev.wp-plugins.org/browser/wp-postviews/i18n/ "http://dev.wp-plugins.org/browser/wp-postviews/i18n/")
+[http://dev.wp-plugins.org/browser/wp-postviews/i18n/](http://dev.wp-plugins.org/browser/wp-postviews/i18n/ "http://dev.wp-plugins.org/browser/wp-postviews/i18n/")
 
 ### Credits
 * WP-Cache/WP-SuperCache Compatibility By [Thaya Kareeson](http://omninoggin.com/ "Thaya Kareeson")
@@ -24,7 +26,7 @@ Enables you to display how many times a post/page had been viewed.
 * Options To Display Views On Certain Places by [David Potter](http://dpotter.net/Technical/ "David Potter")
 
 ### Donations
-* I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
+I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
 ### Version 1.68
