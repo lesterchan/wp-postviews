@@ -100,6 +100,8 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 					</p>
 				</td>
 			</tr>
+		<?php else: ?>
+			<input type="hidden" name="views_use_ajax" value="0" />
 		<?php endif; ?>
 		<tr>
 			<td valign="top">
