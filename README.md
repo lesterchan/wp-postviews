@@ -3,7 +3,7 @@ Contributors: GamerZ
 Donate link: http://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 3.0  
-Tested up to: 3.9
+Tested up to: 4.0
 Stable tag: 1.68  
 
 Enables you to display how many times a post/page had been viewed.
@@ -20,10 +20,7 @@ Enables you to display how many times a post/page had been viewed.
 [http://dev.wp-plugins.org/browser/wp-postviews/i18n/](http://dev.wp-plugins.org/browser/wp-postviews/i18n/ "http://dev.wp-plugins.org/browser/wp-postviews/i18n/")
 
 ### Credits
-* WP-Cache/WP-SuperCache Compatibility By [Thaya Kareeson](http://omninoggin.com/ "Thaya Kareeson")
-* __ngetext() by [Anna Ozeritskaya](http://hweia.ru/ "Anna Ozeritskaya")
-* Right To Left Language Support by [Kambiz R. Khojasteh](http://persian-programming.com/ "Kambiz R. Khojasteh")
-* Options To Display Views On Certain Places by [David Potter](http://dpotter.net/Technical/ "David Potter")
+* Plugin icon by [Iconmoon](http://www.icomoon.io) from [Flaticon](http://www.flaticon.com)
 
 ### Donations
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
