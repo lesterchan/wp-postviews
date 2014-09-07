@@ -153,6 +153,7 @@ N/A
 ## Screenshots
 
 1. PostViews
+2. Admin - PostViews Options
 
 ## Frequently Asked Questions
 
