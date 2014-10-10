@@ -203,7 +203,7 @@ function the_views($display = true, $prefix = '', $postfix = '', $always = false
 	$post_views = intval( get_post_meta( get_the_ID(), 'views', true ) );
 	$views_options = get_option('views_options');
 	if ($always || should_views_be_displayed($views_options)) {
-		$output = $prefix.str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $views_options['template']).$postfix;
+		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) ).$postfix;
 		if($display) {
 			echo apply_filters('the_views', $output);
 		} else {
@@ -223,8 +223,9 @@ function views_shortcode( $atts ) {
 	if( $id === 0) {
 		$id = get_the_ID();
 	}
-	$views_options = get_option('views_options');
-	$output = str_replace( '%VIEW_COUNT%', number_format_i18n( get_post_meta( $id, 'views', true ) ), $views_options['template'] );
+	$views_options = get_option( 'views_options' );
+	$post_views = intval( get_post_meta( $id, 'views', true ) );
+	$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) );
 
 	return apply_filters( 'the_views', $output );
 }
@@ -259,6 +260,7 @@ if(!function_exists('get_least_viewed')) {
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
+				$temp = str_replace("%VIEW_COUNT_ROUNDED%", postviews_round_number( $post_views ), $temp);
 				$temp = str_replace("%POST_TITLE%", $post_title, $temp);
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
@@ -307,7 +309,8 @@ if(!function_exists('get_most_viewed')) {
 				}
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
-				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
+				$temp = str_replace("%VIEW_COUNT%", number_format_i18n( $post_views ), $temp);
+				$temp = str_replace("%VIEW_COUNT_ROUNDED%", postviews_round_number( $post_views ), $temp);
 				$temp = str_replace("%POST_TITLE%", $post_title, $temp);
 				$temp = str_replace("%POST_EXCERPT%", $post_excerpt, $temp);
 				$temp = str_replace("%POST_CONTENT%", $post->post_content, $temp);
@@ -805,6 +808,18 @@ function sort_postviews($query) {
 		$query->set('meta_key', 'views');
 		$query->set('orderby', 'meta_value_num');
 	}
+}
+
+### Function: Round Numbers To K (Thousand), M (Million) or B (Billion)
+function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
+	if( $number < $min_value ) {
+		return number_format_i18n( $number );
+	}
+	$alphabets = array( 1000000000 => 'B', 1000000 => 'M', 1000 => 'K' );
+	foreach( $alphabets as $key => $value )
+		if( $number >= $key ) {
+			return round( $number / $key, $decimal ) . '' . $value;
+		}
 }
 
 

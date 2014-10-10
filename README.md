@@ -28,6 +28,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 ## Changelog
 ### Version 1.69
 * NEW: Shortcode `[views]` or [views id="POST_ID"]` to embed view count into post
+* NEW: Added template variable `%VIEW_COUNT_ROUNDED%` to support rounded view count like 10.1k or 11.2M
 
 ### Version 1.68
 * NEW: Added action hook 'postviews_increment_views' and 'postviews_increment_views_ajax'
