@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.68
+Version: 1.69
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-postviews
@@ -200,7 +200,7 @@ function should_views_be_displayed($views_options = null) {
 
 ### Function: Display The Post Views
 function the_views($display = true, $prefix = '', $postfix = '', $always = false) {
-	$post_views = intval(post_custom('views'));
+	$post_views = intval( get_post_meta( get_the_ID(), 'views', true ) );
 	$views_options = get_option('views_options');
 	if ($always || should_views_be_displayed($views_options)) {
 		$output = $prefix.str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $views_options['template']).$postfix;
@@ -213,6 +213,20 @@ function the_views($display = true, $prefix = '', $postfix = '', $always = false
 	elseif (!$display) {
 		return '';
 	}
+}
+
+### Function: Short Code For Inserting Views Into Posts
+add_shortcode( 'views', 'views_shortcode' );
+function views_shortcode( $atts ) {
+	$attributes = shortcode_atts( array( 'id' => 0 ), $atts );
+	$id = intval( $attributes['id'] );
+	if( $id === 0) {
+		$id = get_the_ID();
+	}
+	$views_options = get_option('views_options');
+	$output = str_replace( '%VIEW_COUNT%', number_format_i18n( get_post_meta( $id, 'views', true ) ), $views_options['template'] );
+
+	return apply_filters( 'the_views', $output );
 }
 
 

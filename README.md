@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: http://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 3.0  
-Tested up to: 4.0  
-Stable tag: 1.68  
+Tested up to: 4.1  
+Stable tag: 1.69  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -26,6 +26,9 @@ Enables you to display how many times a post/page had been viewed.
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.69
+* NEW: Shortcode `[views]` or [views id="POST_ID"]` to embed view count into post
+
 ### Version 1.68
 * NEW: Added action hook 'postviews_increment_views' and 'postviews_increment_views_ajax'
 * NEW: Allow custom post type to be chosen under the widget
@@ -138,6 +141,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 2. You may place it in archive.php, single.php, post.php or page.php also.
 3. Find: `<?php while (have_posts()) : the_post(); ?>`
 4. Add Anywhere Below It (The Place You Want The Views To Show): `<?php if(function_exists('the_views')) { the_views(); } ?>`
+5. Or you can use the shortcode `[views]` or `[views id="1"]` (where 1 is the post ID) in a post
 
 ## Upgrading
 
