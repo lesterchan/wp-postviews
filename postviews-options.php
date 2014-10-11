@@ -30,12 +30,12 @@ if(!empty($_POST['Submit'] )) {
 
 	foreach( $update_views_queries as $update_views_query ) {
 		if( $update_views_query ) {
-			$text .= '<font style="color: green;">' . $update_views_text[$i] . ' ' . __( 'Updated', 'wp-postviews' ) . '</font><br />';
+			$text .= '<p style="color: green;">' . $update_views_text[$i] . ' ' . __( 'Updated', 'wp-postviews' ) . '</p>';
 		}
 		$i++;
 	}
 	if( empty( $text ) ) {
-		$text = '<font style="color: red;">' . __( 'No Post Views Option Updated', 'wp-postviews' ) . '</font>';
+		$text = '<p style="color: red;">' . __( 'No Post Views Option Updated', 'wp-postviews' ) . '</p>';
 	}
 }
 
