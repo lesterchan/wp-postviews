@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.69
+Version: 1.70
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-postviews
@@ -11,7 +11,7 @@ Text Domain: wp-postviews
 
 
 /*
-	Copyright 2014  Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2015  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -672,14 +672,12 @@ function views_sorting($local_wp_query) {
 
 
 ### Function: Plug Into WP-Stats
-add_action('wp','postviews_wp_stats');
+add_action( 'plugins_loaded', 'postviews_wp_stats' );
 function postviews_wp_stats() {
-	if(function_exists('stats_page')) {
-		add_filter('wp_stats_page_admin_plugins', 'postviews_page_admin_general_stats');
-		add_filter('wp_stats_page_admin_most', 'postviews_page_admin_most_stats');
-		add_filter('wp_stats_page_plugins', 'postviews_page_general_stats');
-		add_filter('wp_stats_page_most', 'postviews_page_most_stats');
-	}
+	add_filter( 'wp_stats_page_admin_plugins', 'postviews_page_admin_general_stats' );
+	add_filter( 'wp_stats_page_admin_most', 'postviews_page_admin_most_stats' );
+	add_filter( 'wp_stats_page_plugins', 'postviews_page_general_stats' );
+	add_filter( 'wp_stats_page_most', 'postviews_page_most_stats' );
 }
 
 

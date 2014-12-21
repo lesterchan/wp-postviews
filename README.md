@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: http://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 3.0  
-Tested up to: 4.1  
-Stable tag: 1.69  
+Tested up to: 4.2  
+Stable tag: 1.70  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -26,6 +26,9 @@ Enables you to display how many times a post/page had been viewed.
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.70
+* FIXED: Integration with WP-Stats
+
 ### Version 1.69
 * NEW: Shortcode `[views]` or [views id="POST_ID"]` to embed view count into post
 * NEW: Added template variable `%VIEW_COUNT_ROUNDED%` to support rounded view count like 10.1k or 11.2M
