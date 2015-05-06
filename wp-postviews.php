@@ -635,16 +635,6 @@ function add_views_fields($post_ID) {
 }
 
 
-### Function: Delete Views Custom Fields
-add_action('delete_post', 'delete_views_fields');
-function delete_views_fields($post_ID) {
-	global $wpdb;
-	if(!wp_is_post_revision($post_ID)) {
-		delete_post_meta($post_ID, 'views');
-	}
-}
-
-
 ### Function: Views Public Variables
 add_filter('query_vars', 'views_variables');
 function views_variables($public_query_vars) {
