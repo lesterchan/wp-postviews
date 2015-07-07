@@ -814,9 +814,9 @@ function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
 ### Class: WP-PostViews Widget
  class WP_Widget_PostViews extends WP_Widget {
 	// Constructor
-	function WP_Widget_PostViews() {
+	function __construct() {
 		$widget_ops = array('description' => __('WP-PostViews views statistics', 'wp-postviews'));
-		$this->WP_Widget('views', __('Views', 'wp-postviews'), $widget_ops);
+		parent::__construct('views', __('Views', 'wp-postviews'), $widget_ops);
 	}
 
 	// Display Widget
