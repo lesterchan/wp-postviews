@@ -964,7 +964,7 @@ function views_activation( $network_wide ) {
 	$option = array(
 		  'count'                   => 1
 		, 'exclude_bots'            => 0
-        , 'exclude_repeats'         => 0
+		, 'exclude_repeats'         => 0
 		, 'display_home'            => 0
 		, 'display_single'          => 0
 		, 'display_page'            => 0
