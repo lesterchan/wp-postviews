@@ -12,7 +12,7 @@ if(!empty($_POST['Submit'] )) {
 	$views_options = array(
 		  'count'                   => intval( views_options_parse('views_count') )
 		, 'exclude_bots'            => intval( views_options_parse('views_exclude_bots') )
-        , 'exclude_repeats'         => intval( views_options_parse('views_exclude_repeats') )
+		, 'exclude_repeats'         => intval( views_options_parse('views_exclude_repeats') )
 		, 'display_home'            => intval( views_options_parse('views_display_home') )
 		, 'display_single'          => intval( views_options_parse('views_display_single') )
 		, 'display_page'            => intval( views_options_parse('views_display_page') )
@@ -88,15 +88,15 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 				</select>
 			</td>
 		</tr>
-        <tr>
-            <td valign="top" width="30%"><strong><?php _e( 'Exclude Repeat Views:', 'wp-postviews' ); ?></strong></td>
-            <td valign="top">
-                <select name="views_exclude_repeats" size="1">
-                    <option value="0"<?php selected( '0', $views_options['exclude_repeats'] ); ?>><?php _e( 'No', 'wp-postviews' ); ?></option>
-                    <option value="1"<?php selected( '1', $views_options['exclude_repeats'] ); ?>><?php _e( 'Yes', 'wp-postviews' ); ?></option>
-                </select>
-            </td>
-        </tr>
+		<tr>
+			<td valign="top" width="30%"><strong><?php _e( 'Exclude Repeat Views:', 'wp-postviews' ); ?></strong></td>
+			<td valign="top">
+				<select name="views_exclude_repeats" size="1">
+					<option value="0"<?php selected( '0', $views_options['exclude_repeats'] ); ?>><?php _e( 'No', 'wp-postviews' ); ?></option>
+					<option value="1"<?php selected( '1', $views_options['exclude_repeats'] ); ?>><?php _e( 'Yes', 'wp-postviews' ); ?></option>
+				</select>
+			</td>
+		</tr>
 		<?php if( defined( 'WP_CACHE' ) && WP_CACHE ): ?>
 			<tr>
 				<td valign="top" width="30%"><strong><?php _e( 'Use AJAX To Update Views:', 'wp-postviews' ); ?></strong></td>
