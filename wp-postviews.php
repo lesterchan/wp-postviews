@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: WP-PostViews-thumbnail
+Plugin Name: WP-PostViews
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
 Version: 1.71
