@@ -258,10 +258,7 @@ if(!function_exists('get_least_viewed')) {
 					$post_title = snippet_text($post_title, $chars);
 				}
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
-				$thumbnail = '';
-				if(has_post_thumbnail()) {
-					$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
-				}
+				$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
 				$temp = str_replace("%VIEW_COUNT_ROUNDED%", postviews_round_number( $post_views ), $temp);
@@ -312,10 +309,7 @@ if(!function_exists('get_most_viewed')) {
 				if($chars > 0) {
 					$post_title = snippet_text($post_title, $chars);
 				}
-				$thumbnail = '';
-				if(has_post_thumbnail()) {
-					$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
-				}
+				$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n( $post_views ), $temp);
@@ -372,10 +366,7 @@ if(!function_exists('get_least_viewed_category')) {
 				if($chars > 0) {
 					$post_title = snippet_text($post_title, $chars);
 				}
-				$thumbnail = '';
-				if(has_post_thumbnail()) {
-					$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
-				}
+				$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
@@ -431,10 +422,7 @@ if(!function_exists('get_most_viewed_category')) {
 				if($chars > 0) {
 					$post_title = snippet_text($post_title, $chars);
 				}
-				$thumbnail = '';
-				if(has_post_thumbnail()) {
-					$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
-				}
+				$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
@@ -490,10 +478,7 @@ if(!function_exists('get_most_viewed_tag')) {
 				if($chars > 0) {
 					$post_title = snippet_text($post_title, $chars);
 				}
-				$thumbnail = '';
-				if(has_post_thumbnail()) {
-					$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
-				}
+				$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
@@ -549,10 +534,7 @@ if(!function_exists('get_least_viewed_tag')) {
 				if($chars > 0) {
 					$post_title = snippet_text($post_title, $chars);
 				}
-				$thumbnail = '';
-				if(has_post_thumbnail()) {
-					$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
-				}
+				$thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
 				$post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
 				$temp = stripslashes($views_options['most_viewed_template']);
 				$temp = str_replace("%VIEW_COUNT%", number_format_i18n($post_views), $temp);
