@@ -271,18 +271,20 @@ N/A
 1. Use: `<div id="postviews_lscwp"></div>` to replace `<?php if(function_exists('the_views')) { the_views(); } ?>`.
   * NOTE: The id can be changed, but the div id and the ajax function must match.
 2. Replace the ajax query in `wp-content/plugins/wp-postviews/postviews-cache.js` with
-```
-jQuery.ajax({
-    type:"GET",
-    url:viewsCacheL10n.admin_ajax_url,
-    data:"postviews_id="+viewsCacheL10n.post_id+"&action=postviews",
-    cache:!1,
-    success:function(data) {
-        if(data) {
-            jQuery('#postviews_lscwp').html(data+' views');
-        }
-    }
-});
-```
+
+    ```
+    jQuery.ajax({
+        type:"GET",
+        url:viewsCacheL10n.admin_ajax_url,
+        data:"postviews_id="+viewsCacheL10n.post_id+"&action=postviews",
+        cache:!1,
+        success:function(data) {
+            if(data) {
+                jQuery('#postviews_lscwp').html(data+' views');
+            }
+       }
+    });
+    ```
+
 3. Purge the cache to use the updated pages.
 
