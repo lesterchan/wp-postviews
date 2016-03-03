@@ -285,3 +285,4 @@ jQuery.ajax({
 });
 ```
 3. Purge the cache to use the updated pages.
+
