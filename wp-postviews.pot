@@ -139,7 +139,7 @@ msgid "Don't display on home page"
 msgstr ""
 
 #: postviews-options.php:201
-msgid "Singe Posts:"
+msgid "Single Posts:"
 msgstr ""
 
 #: postviews-options.php:206
@@ -319,7 +319,7 @@ msgid "Category IDs:"
 msgstr ""
 
 #: wp-postviews.php:765
-msgid "Seperate mutiple categories with commas."
+msgid "Separate mutiple categories with commas."
 msgstr ""
 
 #: wp-postviews.php:768
