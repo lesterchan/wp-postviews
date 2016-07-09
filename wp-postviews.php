@@ -110,7 +110,7 @@ function process_postviews() {
                 );
                 $useragent = $_SERVER['HTTP_USER_AGENT'];
                 foreach ( $bots as $name => $lookfor ) {
-                    if ( stristr( $useragent, $lookfor ) !== false ) {
+                    if ( isset($useragent) && ( stristr( $useragent, $lookfor ) !== false ) ) {
                         $should_count = false;
                         break;
                     }
