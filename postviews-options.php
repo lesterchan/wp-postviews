@@ -87,22 +87,18 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 				</select>
 			</td>
 		</tr>
-		<?php if( defined( 'WP_CACHE' ) && WP_CACHE ): ?>
-			<tr>
-				<td valign="top" width="30%"><strong><?php _e( 'Use AJAX To Update Views:', 'wp-postviews' ); ?></strong></td>
-				<td valign="top">
-					<select name="views_use_ajax" size="1">
-						<option value="0"<?php selected( '0', $views_options['use_ajax'] ); ?>><?php _e( 'No', 'wp-postviews' ); ?></option>
-						<option value="1"<?php selected( '1', $views_options['use_ajax'] ); ?>><?php _e( 'Yes', 'wp-postviews' ); ?></option>
-					</select>
-					<p>
-						<?php _e( 'You have caching enabled for your WordPress installation, by default WP-PostViews will use AJAX to update the view count. However in some cases, you might not want it.', 'wp-postviews' ); ?>
-					</p>
-				</td>
-			</tr>
-		<?php else: ?>
-			<input type="hidden" name="views_use_ajax" value="0" />
-		<?php endif; ?>
+		<tr>
+			<td valign="top" width="30%"><strong><?php _e( 'Use AJAX To Update Views:', 'wp-postviews' ); ?></strong></td>
+			<td valign="top">
+				<select name="views_use_ajax" size="1">
+					<option value="0"<?php selected( '0', $views_options['use_ajax'] ); ?>><?php _e( 'No', 'wp-postviews' ); ?></option>
+					<option value="1"<?php selected( '1', $views_options['use_ajax'] ); ?>><?php _e( 'Yes', 'wp-postviews' ); ?></option>
+				</select>
+				<p>
+					<?php _e( 'You have caching enabled for your WordPress installation, by default WP-PostViews will use AJAX to update the view count. However in some cases, you might not want it.', 'wp-postviews' ); ?>
+				</p>
+			</td>
+		</tr>
 		<tr>
 			<td valign="top">
 				<strong><?php _e( 'Views Template:', 'wp-postviews' ); ?></strong><br /><br />
