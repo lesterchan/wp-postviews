@@ -921,7 +921,7 @@ function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
         </p>
         <p>
             <label for="<?php echo $this->get_field_id('cat_ids'); ?>"><?php _e('Category IDs:', 'wp-postviews'); ?> <span style="color: red;">*</span> <input class="widefat" id="<?php echo $this->get_field_id('cat_ids'); ?>" name="<?php echo $this->get_field_name('cat_ids'); ?>" type="text" value="<?php echo $cat_ids; ?>" /></label><br />
-            <small><?php _e('Seperate mutiple categories with commas.', 'wp-postviews'); ?></small>
+            <small><?php _e('Separate mutiple categories with commas.', 'wp-postviews'); ?></small>
         </p>
         <p style="color: red;">
             <small><?php _e('* If you are not using any category statistics, you can ignore it.', 'wp-postviews'); ?></small>
