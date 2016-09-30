@@ -108,7 +108,7 @@ function process_postviews() {
                     , 'soso.com' => 'sosospider'
                     , 'Yandex' => 'yandex'
                 );
-                $useragent = $_SERVER['HTTP_USER_AGENT'];
+                $useragent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
                 foreach ( $bots as $name => $lookfor ) {
                     if ( isset($useragent) && ( stristr( $useragent, $lookfor ) !== false ) ) {
                         $should_count = false;
