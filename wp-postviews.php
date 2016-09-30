@@ -78,8 +78,7 @@ function process_postviews() {
             if( intval( $views_options['exclude_bots'] ) === 1 ) {
                 $bots = array
                 (
-                      'Google Bot' => 'googlebot'
-                    , 'Google Bot' => 'google'
+                    'Google Bot' => 'google'
                     , 'MSN' => 'msnbot'
                     , 'Alex' => 'ia_archiver'
                     , 'Lycos' => 'lycos'
@@ -110,7 +109,7 @@ function process_postviews() {
                 );
                 $useragent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
                 foreach ( $bots as $name => $lookfor ) {
-                    if ( isset($useragent) && ( stristr( $useragent, $lookfor ) !== false ) ) {
+                    if ( ! empty( $useragent ) && ( stristr( $useragent, $lookfor ) !== false ) ) {
                         $should_count = false;
                         break;
                     }
