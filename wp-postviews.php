@@ -259,7 +259,6 @@ if(!function_exists('get_least_viewed')) {
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $temp = stripslashes($views_options['most_viewed_template']);
-                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
@@ -269,6 +268,7 @@ if(!function_exists('get_least_viewed')) {
                 $temp = str_replace('%POST_DATE%', get_the_time(get_option('date_format'), $post), $temp);
                 $temp = str_replace('%POST_TIME%', get_the_time(get_option('time_format'), $post), $temp);
                 $temp = str_replace('%POST_THUMBNAIL%', $thumbnail, $temp);
+                $temp = str_replace('%POST_CATEGORY_ID%', $post->cat_id, $temp);
                 $output .= $temp;
             }
         } else {
@@ -312,7 +312,6 @@ if(!function_exists('get_most_viewed')) {
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $temp = stripslashes($views_options['most_viewed_template']);
-                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
@@ -322,6 +321,7 @@ if(!function_exists('get_most_viewed')) {
                 $temp = str_replace('%POST_DATE%', get_the_time(get_option('date_format'), $post), $temp);
                 $temp = str_replace('%POST_TIME%', get_the_time(get_option('time_format'), $post), $temp);
                 $temp = str_replace('%POST_THUMBNAIL%', $thumbnail, $temp);
+                $temp = str_replace('%POST_CATEGORY_ID%', $post->cat_id, $temp);
                 $output .= $temp;
             }
         } else {
@@ -370,7 +370,6 @@ if(!function_exists('get_least_viewed_category')) {
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $temp = stripslashes($views_options['most_viewed_template']);
-                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
                 $temp = str_replace('%POST_EXCERPT%', $post_excerpt, $temp);
@@ -379,6 +378,7 @@ if(!function_exists('get_least_viewed_category')) {
                 $temp = str_replace('%POST_DATE%', get_the_time(get_option('date_format'), $post), $temp);
                 $temp = str_replace('%POST_TIME%', get_the_time(get_option('time_format'), $post), $temp);
                 $temp = str_replace('%POST_THUMBNAIL%', $thumbnail, $temp);
+                $temp = str_replace('%POST_CATEGORY_ID%', $post->cat_id, $temp);
                 $output .= $temp;
             }
         } else {
@@ -427,7 +427,6 @@ if(!function_exists('get_most_viewed_category')) {
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $temp = stripslashes($views_options['most_viewed_template']);
-                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
                 $temp = str_replace('%POST_EXCERPT%', $post_excerpt, $temp);
@@ -436,6 +435,7 @@ if(!function_exists('get_most_viewed_category')) {
                 $temp = str_replace('%POST_DATE%', get_the_time(get_option('date_format'), $post), $temp);
                 $temp = str_replace('%POST_TIME%', get_the_time(get_option('time_format'), $post), $temp);
                 $temp = str_replace('%POST_THUMBNAIL%', $thumbnail, $temp);
+                $temp = str_replace('%POST_CATEGORY_ID%', $post->cat_id, $temp);
                 $output .= $temp;
             }
         } else {
@@ -484,7 +484,6 @@ if(!function_exists('get_most_viewed_tag')) {
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $temp = stripslashes($views_options['most_viewed_template']);
-                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
                 $temp = str_replace('%POST_EXCERPT%', $post_excerpt, $temp);
@@ -493,6 +492,7 @@ if(!function_exists('get_most_viewed_tag')) {
                 $temp = str_replace('%POST_DATE%', get_the_time(get_option('date_format'), $post), $temp);
                 $temp = str_replace('%POST_TIME%', get_the_time(get_option('time_format'), $post), $temp);
                 $temp = str_replace('%POST_THUMBNAIL%', $thumbnail, $temp);
+                $temp = str_replace('%POST_CATEGORY_ID%', $post->cat_id, $temp);
                 $output .= $temp;
             }
         } else {
@@ -541,7 +541,6 @@ if(!function_exists('get_least_viewed_tag')) {
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $temp = stripslashes($views_options['most_viewed_template']);
-                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
                 $temp = str_replace('%POST_EXCERPT%', $post_excerpt, $temp);
@@ -550,6 +549,7 @@ if(!function_exists('get_least_viewed_tag')) {
                 $temp = str_replace('%POST_DATE%', get_the_time(get_option('date_format'), $post), $temp);
                 $temp = str_replace('%POST_TIME%', get_the_time(get_option('time_format'), $post), $temp);
                 $temp = str_replace('%POST_THUMBNAIL%', $thumbnail, $temp);
+                $temp = str_replace('%POST_CATEGORY_ID%', $post->cat_id, $temp);
                 $output .= $temp;
             }
         } else {
