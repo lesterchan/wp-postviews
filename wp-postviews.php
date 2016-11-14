@@ -248,16 +248,8 @@ if(!function_exists('get_least_viewed')) {
         } else {
             $where = '1=1';
         }
-        //Getting stripslashed template cause we need it already and for not doing this operation up to $limit times.
-        $template=stripslashes($views_options['most_viewed_template']);
-        //Checking if we need to make an extended $wpdb query at all and getting results according to that check
-        $cat_info_needed=strpos($template,'%CAT_ID%');
-        if ($cat_info_needed) {
-            $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views, $wpdb->term_relationships.term_taxonomy_id AS cat_id FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID INNER JOIN $wpdb->term_relationships ON ($wpdb->posts.ID = $wpdb->term_relationships.object_id) INNER JOIN $wpdb->term_taxonomy ON ($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id) WHERE post_date < '".current_time('mysql')."' AND $wpdb->term_taxonomy.taxonomy = 'category' AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' GROUP BY $wpdb->posts.ID ORDER BY views ASC LIMIT $limit");
-        } else {
-            $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID WHERE post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' ORDER BY views ASC LIMIT $limit");
-        }
-        if($most_viewed) {
+       $most_viewed = $wpdb->get_results("SELECT DISTINCT p.*, (pm1.meta_value+0) AS views, IF((pm2.meta_value IS NULL) OR (pm2.meta_value = ''), tt.term_id, pm2.meta_value) AS cat_id FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID LEFT JOIN $wpdb->postmeta pm2 ON (pm2.post_id = p.ID AND pm2.meta_key='_yoast_wpseo_primary_category') INNER JOIN $wpdb->term_relationships tr ON (p.ID = tr.object_id) LEFT JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = 'category') WHERE post_date < '".current_time('mysql')."' AND $where AND  post_status = 'publish' AND pm1.meta_key = 'views' AND post_password = '' GROUP BY p.ID ORDER BY views ASC LIMIT $limit");
+       if($most_viewed) {
             foreach ($most_viewed as $post) {
                 $post_views = intval($post->views);
                 $post_title = get_the_title($post);
@@ -266,8 +258,8 @@ if(!function_exists('get_least_viewed')) {
                 }
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
-                $temp = $template;
-                if ($cat_info_needed) {$temp = str_replace('%CAT_ID%', $post->cat_id, $temp);}
+                $temp = stripslashes($views_options['most_viewed_template']);
+                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
@@ -309,15 +301,7 @@ if(!function_exists('get_most_viewed')) {
         } else {
             $where = '1=1';
         }
-        //Getting stripslashed template cause we need it already and for not doing this operation up to $limit times.
-        $template=stripslashes($views_options['most_viewed_template']);
-        //Checking if we need to make an extended $wpdb query at all and getting results according to that check
-        $cat_info_needed=strpos($template,'%CAT_ID%');
-        if ($cat_info_needed) {
-            $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views, $wpdb->term_relationships.term_taxonomy_id AS cat_id FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID INNER JOIN $wpdb->term_relationships ON ($wpdb->posts.ID = $wpdb->term_relationships.object_id) INNER JOIN $wpdb->term_taxonomy ON ($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id) WHERE post_date < '".current_time('mysql')."' AND $wpdb->term_taxonomy.taxonomy = 'category' AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' GROUP BY $wpdb->posts.ID ORDER BY views DESC LIMIT $limit");
-        } else {
-            $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID WHERE post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' ORDER BY views DESC LIMIT $limit");
-        }
+        $most_viewed = $wpdb->get_results("SELECT DISTINCT p.*, (pm1.meta_value+0) AS views, IF((pm2.meta_value IS NULL) OR (pm2.meta_value = ''), tt.term_id, pm2.meta_value) AS cat_id FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID LEFT JOIN $wpdb->postmeta pm2 ON (pm2.post_id = p.ID AND pm2.meta_key='_yoast_wpseo_primary_category') INNER JOIN $wpdb->term_relationships tr ON (p.ID = tr.object_id) LEFT JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = 'category') WHERE post_date < '".current_time('mysql')."' AND $where AND  post_status = 'publish' AND pm1.meta_key = 'views' AND post_password = '' GROUP BY p.ID ORDER BY views DESC LIMIT $limit");
         if($most_viewed) {
             foreach ($most_viewed as $post) {
                 $post_views = intval($post->views);
@@ -325,11 +309,11 @@ if(!function_exists('get_most_viewed')) {
                 if($chars > 0) {
                     $post_title = snippet_text($post_title, $chars);
                 }
-                $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
-                $temp = $template;
-                if ($cat_info_needed) {$temp = str_replace("%CAT_ID%", $post->cat_id, $temp);}
-                $temp = str_replace('%VIEW_COUNT%', number_format_i18n( $post_views ), $temp);
+                $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
+                $temp = stripslashes($views_options['most_viewed_template']);
+                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
+                $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
                 $temp = str_replace('%POST_EXCERPT%', $post_excerpt, $temp);
@@ -361,9 +345,9 @@ if(!function_exists('get_least_viewed_category')) {
         $temp = '';
         $output = '';
         if(is_array($category_id)) {
-            $category_sql = "$wpdb->term_taxonomy.term_id IN (".join(',', $category_id).')';
+            $category_sql = 'tt.term_id IN ('.join(',', $category_id).')';
         } else {
-            $category_sql = "$wpdb->term_taxonomy.term_id = $category_id";
+            $category_sql = "tt.term_id = $category_id";
         }
         if(!empty($mode) && $mode != 'both') {
             if(is_array($mode)) {
@@ -375,7 +359,7 @@ if(!function_exists('get_least_viewed_category')) {
         } else {
             $where = '1=1';
         }
-        $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views, $wpdb->term_relationships.term_taxonomy_id AS cat_id FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID INNER JOIN $wpdb->term_relationships ON ($wpdb->posts.ID = $wpdb->term_relationships.object_id) INNER JOIN $wpdb->term_taxonomy ON ($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id) WHERE post_date < '".current_time('mysql')."' AND $wpdb->term_taxonomy.taxonomy = 'category' AND $category_sql AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' GROUP BY $wpdb->posts.ID ORDER BY views ASC LIMIT $limit");
+        $most_viewed = $wpdb->get_results("SELECT DISTINCT p.*, (pm1.meta_value+0) AS views, IF((pm2.meta_value IS NULL) OR (pm2.meta_value = ''), tt.term_id, pm2.meta_value) AS cat_id FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID LEFT JOIN $wpdb->postmeta pm2 ON (pm2.post_id = p.ID AND pm2.meta_key='_yoast_wpseo_primary_category') INNER JOIN $wpdb->term_relationships tr ON (p.ID = tr.object_id) INNER JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = 'category' AND $category_sql) WHERE post_date < '".current_time('mysql')."' AND $where AND  post_status = 'publish' AND pm1.meta_key = 'views' AND post_password = '' GROUP BY p.ID ORDER BY views ASC LIMIT $limit");
         if($most_viewed) {
             foreach ($most_viewed as $post) {
                 $post_views = intval($post->views);
@@ -418,9 +402,9 @@ if(!function_exists('get_most_viewed_category')) {
         $temp = '';
         $output = '';
         if(is_array($category_id)) {
-            $category_sql = "$wpdb->term_taxonomy.term_id IN (".join(',', $category_id).')';
+            $category_sql = 'tt.term_id IN ('.join(',', $category_id).')';
         } else {
-            $category_sql = "$wpdb->term_taxonomy.term_id = $category_id";
+            $category_sql = "tt.term_id = $category_id";
         }
         if(!empty($mode) && $mode != 'both') {
             if(is_array($mode)) {
@@ -432,7 +416,7 @@ if(!function_exists('get_most_viewed_category')) {
         } else {
             $where = '1=1';
         }
-        $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views, $wpdb->term_relationships.term_taxonomy_id AS cat_id FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID INNER JOIN $wpdb->term_relationships ON ($wpdb->posts.ID = $wpdb->term_relationships.object_id) INNER JOIN $wpdb->term_taxonomy ON ($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id) WHERE post_date < '".current_time('mysql')."' AND $wpdb->term_taxonomy.taxonomy = 'category' AND $category_sql AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' GROUP BY $wpdb->posts.ID ORDER BY views DESC LIMIT $limit");
+        $most_viewed = $wpdb->get_results("SELECT DISTINCT p.*, (pm1.meta_value+0) AS views, IF((pm2.meta_value IS NULL) OR (pm2.meta_value = ''), tt.term_id, pm2.meta_value) AS cat_id FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID LEFT JOIN $wpdb->postmeta pm2 ON (pm2.post_id = p.ID AND pm2.meta_key='_yoast_wpseo_primary_category') INNER JOIN $wpdb->term_relationships tr ON (p.ID = tr.object_id) INNER JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = 'category' AND $category_sql) WHERE post_date < '".current_time('mysql')."' AND $where AND  post_status = 'publish' AND pm1.meta_key = 'views' AND post_password = '' GROUP BY p.ID ORDER BY views DESC LIMIT $limit");
         if($most_viewed) {
             foreach ($most_viewed as $post) {
                 $post_views = intval($post->views);
@@ -475,9 +459,9 @@ if(!function_exists('get_most_viewed_tag')) {
         $temp = '';
         $output = '';
         if(is_array($tag_id)) {
-            $tag_sql = "$wpdb->term_taxonomy.term_id IN (".join(',', $tag_id).')';
+            $tag_sql = 'tt.term_id IN ('.join(',', $tag_id).')';
         } else {
-            $tag_sql = "$wpdb->term_taxonomy.term_id = $tag_id";
+            $tag_sql = "tt.term_id = $tag_id";
         }
         if(!empty($mode) && $mode != 'both') {
             if(is_array($mode)) {
@@ -489,7 +473,7 @@ if(!function_exists('get_most_viewed_tag')) {
         } else {
             $where = '1=1';
         }
-        $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID INNER JOIN $wpdb->term_relationships ON ($wpdb->posts.ID = $wpdb->term_relationships.object_id) INNER JOIN $wpdb->term_taxonomy ON ($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id) WHERE post_date < '".current_time('mysql')."' AND $wpdb->term_taxonomy.taxonomy = 'post_tag' AND $tag_sql AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' ORDER BY views DESC LIMIT $limit");
+        $most_viewed = $wpdb->get_results("SELECT DISTINCT p.*, (pm1.meta_value+0) AS views, IF((pm2.meta_value IS NULL) OR (pm2.meta_value = ''), tt2.term_id, pm2.meta_value) AS cat_id FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID LEFT JOIN $wpdb->postmeta pm2 ON (pm2.post_id = p.ID AND pm2.meta_key='_yoast_wpseo_primary_category') INNER JOIN $wpdb->term_relationships tr ON (p.ID = tr.object_id) INNER JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = 'post_tag' AND $tag_sql) INNER JOIN $wpdb->term_relationships tr2 ON (p.ID = tr2.object_id) LEFT JOIN $wpdb->term_taxonomy tt2 ON (tr2.term_taxonomy_id = tt2.term_taxonomy_id AND tt2.taxonomy = 'category') WHERE post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND pm1.meta_key = 'views' AND post_password = '' GROUP BY p.ID ORDER BY views DESC LIMIT $limit");
         if($most_viewed) {
             foreach ($most_viewed as $post) {
                 $post_views = intval($post->views);
@@ -500,6 +484,7 @@ if(!function_exists('get_most_viewed_tag')) {
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $temp = stripslashes($views_options['most_viewed_template']);
+                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
                 $temp = str_replace('%POST_EXCERPT%', $post_excerpt, $temp);
@@ -531,9 +516,9 @@ if(!function_exists('get_least_viewed_tag')) {
         $temp = '';
         $output = '';
         if(is_array($tag_id)) {
-            $tag_sql = "$wpdb->term_taxonomy.term_id IN (".join(',', $tag_id).')';
+            $tag_sql = 'tt.term_id IN ('.join(',', $tag_id).')';
         } else {
-            $tag_sql = "$wpdb->term_taxonomy.term_id = $tag_id";
+            $tag_sql = "tt.term_id = $tag_id";
         }
         if(!empty($mode) && $mode != 'both') {
             if(is_array($mode)) {
@@ -545,7 +530,7 @@ if(!function_exists('get_least_viewed_tag')) {
         } else {
             $where = '1=1';
         }
-        $most_viewed = $wpdb->get_results("SELECT DISTINCT $wpdb->posts.*, (meta_value+0) AS views FROM $wpdb->posts LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID INNER JOIN $wpdb->term_relationships ON ($wpdb->posts.ID = $wpdb->term_relationships.object_id) INNER JOIN $wpdb->term_taxonomy ON ($wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id) WHERE post_date < '".current_time('mysql')."' AND $wpdb->term_taxonomy.taxonomy = 'post_tag' AND $tag_sql AND $where AND post_status = 'publish' AND meta_key = 'views' AND post_password = '' ORDER BY views ASC LIMIT $limit");
+        $most_viewed = $wpdb->get_results("SELECT DISTINCT p.*, (pm1.meta_value+0) AS views, IF((pm2.meta_value IS NULL) OR (pm2.meta_value = ''), tt2.term_id, pm2.meta_value) AS cat_id FROM $wpdb->posts p LEFT JOIN $wpdb->postmeta pm1 ON pm1.post_id = p.ID LEFT JOIN $wpdb->postmeta pm2 ON (pm2.post_id = p.ID AND pm2.meta_key='_yoast_wpseo_primary_category') INNER JOIN $wpdb->term_relationships tr ON (p.ID = tr.object_id) INNER JOIN $wpdb->term_taxonomy tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id AND tt.taxonomy = 'post_tag' AND $tag_sql) INNER JOIN $wpdb->term_relationships tr2 ON (p.ID = tr2.object_id) LEFT JOIN $wpdb->term_taxonomy tt2 ON (tr2.term_taxonomy_id = tt2.term_taxonomy_id AND tt2.taxonomy = 'category') WHERE post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND pm1.meta_key = 'views' AND post_password = '' GROUP BY p.ID ORDER BY views ASC LIMIT $limit");
         if($most_viewed) {
             foreach ($most_viewed as $post) {
                 $post_views = intval($post->views);
@@ -556,6 +541,7 @@ if(!function_exists('get_least_viewed_tag')) {
                 $thumbnail = get_the_post_thumbnail($post->ID,'thumbnail',true);
                 $post_excerpt = views_post_excerpt($post->post_excerpt, $post->post_content, $post->post_password, $chars);
                 $temp = stripslashes($views_options['most_viewed_template']);
+                $temp = str_replace('%CAT_ID%', $post->cat_id, $temp);
                 $temp = str_replace('%VIEW_COUNT%', number_format_i18n($post_views), $temp);
                 $temp = str_replace('%POST_TITLE%', $post_title, $temp);
                 $temp = str_replace('%POST_EXCERPT%', $post_excerpt, $temp);
