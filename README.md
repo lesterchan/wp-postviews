@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: http://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 3.0  
-Tested up to: 4.5  
-Stable tag: 1.73  
+Tested up to: 4.7    
+Stable tag: 1.74  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -26,6 +26,9 @@ Enables you to display how many times a post/page had been viewed.
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.74
+* NEW: Template variable %POST_CATEGORY_ID%. It returns Post's Category ID. If you are using Yoast SEO Plugin, it will return the priority Category ID. Props @FunFrog-BY
+
 ### Version 1.73
 * FIXED: In preview mode, don't count views
 
