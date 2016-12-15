@@ -4,7 +4,7 @@ Donate link: https://lesterchan.net/site/donation/
 Tags: views, hits, counter, postviews  
 Requires at least: 4.0  
 Tested up to: 4.7  
-Stable tag: 1.74  
+Stable tag: 1.75  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -26,6 +26,9 @@ Enables you to display how many times a post/page had been viewed.
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.75
+* NEW: Use WP_Query() for most/least viewed posts
+
 ### Version 1.74
 * NEW: Bump WordPress 4.7
 * NEW: Template variable %POST_CATEGORY_ID%. It returns Post's Category ID. If you are using Yoast SEO Plugin, it will return the priority Category ID. Props @FunFrog-BY
