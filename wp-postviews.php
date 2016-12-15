@@ -257,15 +257,15 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 				}
 
 				//Post primary category
-                $post_category_id = 0;
-                if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
-                if ($post_category_id==0) {             
-                    // Post First Category.
-                    $categories = get_the_category();
-                    if ( ! empty( $categories ) ) {
-                        $post_category_id = $categories[0]->term_id;
-                    }
-                }
+				$post_category_id = 0;
+				if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
+				if ($post_category_id==0) {             
+				    // Post First Category.
+				    $categories = get_the_category();
+				    if ( ! empty( $categories ) ) {
+					$post_category_id = $categories[0]->term_id;
+				    }
+				}
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
@@ -321,16 +321,16 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 					$post_title = snippet_text( $post_title, $chars );
 				}
                 
-                //Post primary category
-                $post_category_id = 0;
-                if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
-                if ($post_category_id==0) {             
-                    // Post First Category.
-                    $categories = get_the_category();
-                    if ( ! empty( $categories ) ) {
-                        $post_category_id = $categories[0]->term_id;
-                    }
-                }
+				//Post primary category
+				$post_category_id = 0;
+				if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
+				if ($post_category_id==0) {             
+				    // Post First Category.
+				    $categories = get_the_category();
+				    if ( ! empty( $categories ) ) {
+					$post_category_id = $categories[0]->term_id;
+				    }
+				}
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
@@ -388,15 +388,15 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 				}
 
 				//Post primary category
-                $post_category_id = 0;
-                if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
-                if ($post_category_id==0) {             
-                    // Post First Category.
-                    $categories = get_the_category();
-                    if ( ! empty( $categories ) ) {
-                        $post_category_id = $categories[0]->term_id;
-                    }
-                }
+				$post_category_id = 0;
+				if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
+				if ($post_category_id==0) {             
+				    // Post First Category.
+				    $categories = get_the_category();
+				    if ( ! empty( $categories ) ) {
+					$post_category_id = $categories[0]->term_id;
+				    }
+				}
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
@@ -454,15 +454,15 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 				}
 
 				//Post primary category
-                $post_category_id = 0;
-                if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
-                if ($post_category_id==0) {             
-                    // Post First Category.
-                    $categories = get_the_category();
-                    if ( ! empty( $categories ) ) {
-                        $post_category_id = $categories[0]->term_id;
-                    }
-                }
+				$post_category_id = 0;
+				if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
+				if ($post_category_id==0) {             
+				    // Post First Category.
+				    $categories = get_the_category();
+				    if ( ! empty( $categories ) ) {
+					$post_category_id = $categories[0]->term_id;
+				    }
+				}
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
@@ -519,15 +519,15 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 				}
 
 				//Post primary category
-                $post_category_id = 0;
-                if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
-                if ($post_category_id==0) {             
-                    // Post First Category.
-                    $categories = get_the_category();
-                    if ( ! empty( $categories ) ) {
-                        $post_category_id = $categories[0]->term_id;
-                    }
-                }
+				$post_category_id = 0;
+				if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
+				if ($post_category_id==0) {             
+				    // Post First Category.
+				    $categories = get_the_category();
+				    if ( ! empty( $categories ) ) {
+					$post_category_id = $categories[0]->term_id;
+				    }
+				}
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
@@ -585,15 +585,15 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 				}
 
 				//Post primary category
-                $post_category_id = 0;
-                if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
-                if ($post_category_id==0) {             
-                    // Post First Category.
-                    $categories = get_the_category();
-                    if ( ! empty( $categories ) ) {
-                        $post_category_id = $categories[0]->term_id;
-                    }
-                }
+				$post_category_id = 0;
+				if (function_exists('yoast_get_primary_term_id')) {$post_category_id=yoast_get_primary_term_id('category');}
+				if ($post_category_id==0) {             
+				    // Post First Category.
+				    $categories = get_the_category();
+				    if ( ! empty( $categories ) ) {
+					$post_category_id = $categories[0]->term_id;
+				    }
+				}
 
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
