@@ -2,20 +2,21 @@
 /*
  * Uninstall plugin
  */
+
 if ( !defined( 'WP_UNINSTALL_PLUGIN' ) )
 	exit ();
 
 if ( is_multisite() ) {
-	$ms_sites = wp_get_sites();
+	$ms_sites = function_exists( 'get_sites' ) ? get_sites() : wp_get_sites();
 
-	if( 0 < sizeof( $ms_sites ) ) {
+	if( 0 < count( $ms_sites ) ) {
 		foreach ( $ms_sites as $ms_site ) {
-			switch_to_blog( $ms_site['blog_id'] );
+			$blog_id = isset( $ms_site['blog_id'] ) ? $ms_site['blog_id'] : $ms_site->blog_id;
+			switch_to_blog( $blog_id );
 			uninstall();
+			restore_current_blog();
 		}
 	}
-
-	restore_current_blog();
 } else {
 	uninstall();
 }
@@ -25,7 +26,7 @@ function uninstall() {
 
 	$option_names = array( 'views_options', 'widget_views_most_viewed', 'widget_views' );
 
-	if( sizeof( $option_names ) > 0 ) {
+	if( count( $option_names ) > 0 ) {
 		foreach( $option_names as $option_name ) {
 			delete_option( $option_name );
 		}
