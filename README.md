@@ -92,8 +92,6 @@ N/A
 * The widget name is Views.
 
 ### To Display Least Viewed Posts
-* Use:
-
 ```php
 <?php if (function_exists('get_least_viewed')): ?>
 	<ul>
@@ -107,8 +105,6 @@ N/A
 * Default: get_least_viewed('both', 10);
 
 ### To Display Most Viewed Posts
-* Use:
-
 ```php
 <?php if (function_exists('get_most_viewed')): ?>
 	<ul>
@@ -122,8 +118,6 @@ N/A
 * Default: get_most_viewed('both', 10);
 
 ### To Display Least Viewed Posts By Tag
-* Use:
-
 ```php
 <?php if (function_exists('get_least_viewed_tag')): ?>
 	<ul>
@@ -138,8 +132,6 @@ N/A
 * Default: get_least_viewed_tag(1, 'both', 10);
 
 ### To Display Most Viewed Posts By Tag
-* Use:
-
 ```php
 <?php if (function_exists('get_most_viewed_tag')): ?>
 	<ul>
@@ -154,8 +146,6 @@ N/A
 * Default: get_most_viewed_tag(1, 'both', 10);
 
 ### To Display Least Viewed Posts For A Category
-* Use:
-
 ```php
 <?php if (function_exists('get_least_viewed_category')): ?>
 	<ul>
@@ -170,8 +160,6 @@ N/A
 * Default: get_least_viewed_category(1, 'both', 10);
 
 ### To Display Most Viewed Posts For A Category
-* Use:
-
 ```php
 <?php if (function_exists('get_most_viewed_category')): ?>
 	<ul>
