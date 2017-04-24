@@ -92,6 +92,7 @@ N/A
 * The widget name is Views.
 
 ### To Display Least Viewed Posts
+
 ```php
 <?php if (function_exists('get_least_viewed')): ?>
 	<ul>
@@ -99,12 +100,13 @@ N/A
 	</ul>
 <?php endif; ?>
 ```
-
+ 
 * The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The second value you pass in is the maximum number of post you want to get.
 * Default: get_least_viewed('both', 10);
 
 ### To Display Most Viewed Posts
+
 ```php
 <?php if (function_exists('get_most_viewed')): ?>
 	<ul>
@@ -112,12 +114,13 @@ N/A
 	</ul>
 <?php endif; ?>
 ```
-
+ 
 * The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The second value you pass in is the maximum number of post you want to get.
 * Default: get_most_viewed('both', 10);
 
 ### To Display Least Viewed Posts By Tag
+
 ```php
 <?php if (function_exists('get_least_viewed_tag')): ?>
 	<ul>
@@ -125,13 +128,14 @@ N/A
 	</ul>
 <?php endif; ?>
 ```
-
+ 
 * The first value you pass in is the tag id.
 * The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_least_viewed_tag(1, 'both', 10);
 
 ### To Display Most Viewed Posts By Tag
+
 ```php
 <?php if (function_exists('get_most_viewed_tag')): ?>
 	<ul>
@@ -139,13 +143,14 @@ N/A
 	</ul>
 <?php endif; ?>
 ```
-
+ 
 * The first value you pass in is the tag id.
 * The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_most_viewed_tag(1, 'both', 10);
 
 ### To Display Least Viewed Posts For A Category
+
 ```php
 <?php if (function_exists('get_least_viewed_category')): ?>
 	<ul>
@@ -153,13 +158,14 @@ N/A
 	</ul>
 <?php endif; ?>
 ```
-
+ 
 * The first value you pass in is the category id.
 * The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
 * Default: get_least_viewed_category(1, 'both', 10);
 
 ### To Display Most Viewed Posts For A Category
+
 ```php
 <?php if (function_exists('get_most_viewed_category')): ?>
 	<ul>
@@ -167,7 +173,7 @@ N/A
 	</ul>
 <?php endif; ?>
 ```
-
+ 
 * The first value you pass in is the category id.
 * The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
 * The third value you pass in is the maximum number of post you want to get.
@@ -179,23 +185,22 @@ N/A
 * You can replace DESC  with ASC if you want the least viewed posts.
 
 ### To Display Updating View Count With LiteSpeed Cache
-1. Use: `<div id="postviews_lscwp"></div>` to replace `<?php if(function_exists('the_views')) { the_views(); } ?>`.
-  * NOTE: The id can be changed, but the div id and the ajax function must match.
-2. Replace the ajax query in `wp-content/plugins/wp-postviews/postviews-cache.js` with
+Use: `<div id="postviews_lscwp"></div>` to replace `<?php if(function_exists('the_views')) { the_views(); } ?>`.
+NOTE: The id can be changed, but the div id and the ajax function must match.
+Replace the ajax query in `wp-content/plugins/wp-postviews/postviews-cache.js` with
 
-    ```javascript
-    jQuery.ajax({
-        type:"GET",
-        url:viewsCacheL10n.admin_ajax_url,
-        data:"postviews_id="+viewsCacheL10n.post_id+"&action=postviews",
-        cache:!1,
-        success:function(data) {
-            if(data) {
-                jQuery('#postviews_lscwp').html(data+' views');
-            }
-       }
-    });
-    ```
+```javascript
+jQuery.ajax({
+    type:"GET",
+    url:viewsCacheL10n.admin_ajax_url,
+    data:"postviews_id="+viewsCacheL10n.post_id+"&action=postviews",
+    cache:!1,
+    success:function(data) {
+        if(data) {
+            jQuery('#postviews_lscwp').html(data+' views');
+        }
+   }
+});
+```
 
-3. Purge the cache to use the updated pages.
-
+Purge the cache to use the updated pages.
