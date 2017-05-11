@@ -4,7 +4,7 @@ Donate link: https://lesterchan.net/site/donation/
 Tags: views, hits, counter, postviews  
 Requires at least: 4.0  
 Tested up to: 4.7  
-Stable tag: 1.75  
+Stable tag: 1.76  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -34,6 +34,10 @@ Enables you to display how many times a post/page had been viewed.
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.76
+* NEW: Added postviews_should_count filter
+* FIXED: Change to (int) from intval() and use sanitize_key() with it.
+
 ### Version 1.75
 * NEW: Use WP_Query() for most/least viewed posts
 
