@@ -114,7 +114,7 @@ function process_postviews() {
 					}
 				}
 			}
-			$should_count = apply_filters( 'postviews_should_count', $should_count );
+			$should_count = apply_filters( 'postviews_should_count', $should_count, $id );
 			if( $should_count && ( ( isset( $views_options['use_ajax'] ) && (int) $views_options['use_ajax'] === 0 ) || ( !defined( 'WP_CACHE' ) || !WP_CACHE ) ) ) {
 				update_post_meta( $id, 'views', $post_views + 1 );
 				do_action( 'postviews_increment_views', $post_views + 1 );
@@ -157,7 +157,7 @@ function wp_postview_cache_count_enqueue() {
 				break;
 		}
 
-		$should_count = apply_filters( 'postviews_should_count', $should_count );
+		$should_count = apply_filters( 'postviews_should_count', $should_count, (int) $post->ID );
 		if ( $should_count ) {
 			wp_enqueue_script( 'wp-postviews-cache', plugins_url( 'postviews-cache.js', __FILE__ ), array( 'jquery' ), '1.68', true );
 			wp_localize_script( 'wp-postviews-cache', 'viewsCacheL10n', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php' ), 'post_id' => (int) $post->ID ) );
