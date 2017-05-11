@@ -2,25 +2,25 @@
 ### Variables Variables Variables
 $base_name = plugin_basename( 'wp-postviews/postviews-options.php' );
 $base_page = 'admin.php?page='.$base_name;
-$id = (isset($_GET['id'] ) ? intval($_GET['id'] ) : 0);
-$mode = (isset($_GET['mode'] ) ? trim($_GET['mode'] ) : '' );
+$id = ( isset($_GET['id'] ) ? (int) sanitize_key( $_GET['id'] ) : 0 );
+$mode = ( isset($_GET['mode'] ) ? sanitize_key( trim( $_GET['mode'] ) ) : '' );
 $text = '';
 
 ### Form Processing
 if(!empty($_POST['Submit'] )) {
 	check_admin_referer( 'wp-postviews_options' );
 	$views_options = array(
-		  'count'                   => intval( views_options_parse('views_count') )
-		, 'exclude_bots'            => intval( views_options_parse('views_exclude_bots') )
-		, 'display_home'            => intval( views_options_parse('views_display_home') )
-		, 'display_single'          => intval( views_options_parse('views_display_single') )
-		, 'display_page'            => intval( views_options_parse('views_display_page') )
-		, 'display_archive'         => intval( views_options_parse('views_display_archive') )
-		, 'display_search'          => intval( views_options_parse('views_display_search') )
-		, 'display_other'           => intval( views_options_parse('views_display_other') )
-		, 'use_ajax'                => intval( views_options_parse('views_use_ajax') )
-		, 'template'                => trim( views_options_parse('views_template_template') )
-		, 'most_viewed_template'    => trim( views_options_parse('views_template_most_viewed') )
+		  'count'                   => (int) sanitize_key( views_options_parse('views_count') )
+		, 'exclude_bots'            => (int) sanitize_key( views_options_parse('views_exclude_bots') )
+		, 'display_home'            => (int) sanitize_key( views_options_parse('views_display_home') )
+		, 'display_single'          => (int) sanitize_key( views_options_parse('views_display_single') )
+		, 'display_page'            => (int) sanitize_key( views_options_parse('views_display_page') )
+		, 'display_archive'         => (int) sanitize_key( views_options_parse('views_display_archive') )
+		, 'display_search'          => (int) sanitize_key( views_options_parse('views_display_search') )
+		, 'display_other'           => (int) sanitize_key( views_options_parse('views_display_other') )
+		, 'use_ajax'                => (int) sanitize_key( views_options_parse('views_use_ajax') )
+		, 'template'                => wp_kses_post( trim( views_options_parse('views_template_template') ) )
+		, 'most_viewed_template'    => wp_kses_post( trim( views_options_parse('views_template_most_viewed') ) )
 	);
 	$update_views_queries = array();
 	$update_views_text = array();
