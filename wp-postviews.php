@@ -75,7 +75,7 @@ function process_postviews() {
 					}
 					break;
 			}
-			if ( (int) $views_options['exclude_bots'] === 1 ) {
+			if ( isset( $views_options['exclude_bots'] ) && (int) $views_options['exclude_bots'] === 1 ) {
 				$bots = array(
 					'Google Bot' => 'google'
 					, 'MSN' => 'msnbot'
