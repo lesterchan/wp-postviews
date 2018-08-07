@@ -163,6 +163,9 @@ function wp_postview_cache_count_enqueue() {
 			wp_localize_script( 'wp-postviews-cache', 'viewsCacheL10n', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php' ), 'post_id' => (int) $post->ID ) );
 		}
 	}
+	
+	wp_enqueue_script( 'postviews-cache-refresh', plugins_url( 'postviews-cache-refresh.js', __FILE__ ), array( 'jquery' ), '1.68', true );
+	wp_localize_script( 'postviews-cache-refresh', 'viewsCacheRefresh', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php' ) ) );
 }
 
 
@@ -207,6 +210,7 @@ function the_views($display = true, $prefix = '', $postfix = '', $always = false
 	$views_options = get_option('views_options');
 	if ($always || should_views_be_displayed($views_options)) {
 		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) ).$postfix;
+		if( isset( $views_options['use_ajax'] ) && intval( $views_options['use_ajax'] ) === 1 ) $output = '<span id="postViewsId-'.get_the_ID().'">'.$output.'</span>';
 		if($display) {
 			echo apply_filters('the_views', $output);
 		} else {
@@ -229,6 +233,7 @@ function views_shortcode( $atts ) {
 	$views_options = get_option( 'views_options' );
 	$post_views = (int) get_post_meta( $id, 'views', true );
 	$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) );
+	if( isset( $views_options['use_ajax'] ) && intval( $views_options['use_ajax'] ) === 1 ) $output = '<span id="postViewsId-'.get_the_ID().'">'.$output.'</span>';
 
 	return apply_filters( 'the_views', $output );
 }
@@ -802,6 +807,59 @@ function increment_views() {
 		echo ( $post_views + 1 );
 		exit();
 	}
+}
+
+### Function: Refresh Posts Views
+add_action( 'wp_ajax_postviewsrefresh', 'get_posts_views_update' );
+add_action( 'wp_ajax_nopriv_postviewsrefresh', 'get_posts_views_update' );
+function get_posts_views_update() {
+	global $wpdb;
+	
+	if( empty( $_POST['postviews_ids'] ) )
+		return json_encode(NULL);
+
+	if( !defined( 'WP_CACHE' ) || !WP_CACHE )
+		return json_encode(NULL);
+	
+	if(!isset($_POST['postviews_ids']) or empty($_POST['postviews_ids'])) 
+		return json_encode(NULL);
+	
+	$postviews_ids = urldecode($_POST['postviews_ids']);
+	$postviews_ids = explode(",", $_POST['postviews_ids']);
+	
+	if(empty($postviews_ids) or !is_array($postviews_ids)) 
+		return json_encode(NULL);
+
+	$views_options = get_option( 'views_options' );
+
+	if( intval( $views_options['use_ajax'] ) === 0 )
+		return json_encode(NULL);
+
+	foreach($postviews_ids as $key => $value){
+		if(!is_numeric($value))
+			return json_encode(NULL);
+		
+		$postviews_ids[$key] = intval($value);
+	}
+	
+	$limit = count($postviews_ids);
+	$ids_comma_separe = implode(',',$postviews_ids);
+	
+	$myrows = $wpdb->get_results( "SELECT post_id as id, meta_value as views FROM {$wpdb->prefix}postmeta WHERE post_id IN ({$ids_comma_separe}) AND meta_key = 'views' LIMIT {$limit}" );
+	
+	if(empty($myrows))
+		return json_encode(NULL);
+	
+	$data = array();
+	
+	foreach($myrows as $row){
+		$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $row->views ), postviews_round_number( $row->views) ), stripslashes( $views_options['template'] ) );
+		$row->views = apply_filters('the_views', $output);
+		$data[] = $row;
+	}
+	
+	echo json_encode($data);
+	exit();
 }
 
 ### Function Show Post Views Column in WP-Admin
