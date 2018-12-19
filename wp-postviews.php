@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: https://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.76
+Version: 1.76.1
 Author: Lester 'GaMerZ' Chan
 Author URI: https://lesterchan.net
 Text Domain: wp-postviews
@@ -826,7 +826,7 @@ function add_postviews_column_content($column_name) {
 
 
 ### Function Sort Columns
-add_filter( 'manage_edit-post_sortable_columns', 'sort_postviews_column ');
+add_filter( 'manage_edit-post_sortable_columns', 'sort_postviews_column');
 add_filter( 'manage_edit-page_sortable_columns', 'sort_postviews_column' );
 function sort_postviews_column( $defaults ) {
 	$defaults['views'] = 'views';
