@@ -1023,6 +1023,9 @@ function views_activation( $network_wide ) {
 	} else {
 		add_option( $option_name, $option );
 	}
+
+	// Set Default View Meta
+    post_views_default();
 }
 
 ### Function: Parse View Options
@@ -1054,5 +1057,22 @@ if(!function_exists('today_views')) {
         else
             return $views[1];
 
+    }
+}
+### Function: Set Default Value To 'views' For Order By Meta
+if(!function_exists('post_views_default')) {
+    function post_views_default()
+    {
+        $args = array(
+            'posts_per_page' => -1,
+            'post_type' => array( 'post', 'page' )
+        );
+        $viewsToZero = new WP_Query( $args );
+
+        foreach ( $viewsToZero->posts as $post ){
+
+            if ( ! get_post_meta( $post->ID, 'views', true ) )
+                add_post_meta( $post->ID, 'views', 0, true );
+        }
     }
 }
