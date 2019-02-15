@@ -107,7 +107,8 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 			<td valign="top">
 				<strong><?php _e( 'Views Template:', 'wp-postviews' ); ?></strong><br /><br />
 				<?php _e( 'Allowed Variables:', 'wp-postviews' ); ?><br />
-				- %VIEW_COUNT%<br />
+                - %VIEW_COUNT%<br />
+                - %VIEW_COUNT_TODAY%<br />
 				- %VIEW_COUNT_ROUNDED%<br /><br />
 				<input type="button" name="RestoreDefault" value="<?php _e( 'Restore Default Template', 'wp-postviews' ); ?>" onclick="views_default_templates( 'template' );" class="button" />
 			</td>
@@ -119,7 +120,8 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 			<td valign="top">
 				<strong><?php _e( 'Most Viewed Template:', 'wp-postviews' ); ?></strong><br /><br />
 				<?php _e( 'Allowed Variables:', 'wp-postviews' ); ?><br />
-				- %VIEW_COUNT%<br />
+                - %VIEW_COUNT%<br />
+                - %VIEW_COUNT_TODAY%<br />
 				- %VIEW_COUNT_ROUNDED%<br />
 				- %POST_TITLE%<br />
 				- %POST_DATE%<br />
