@@ -278,6 +278,7 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
 				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
 				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
@@ -339,6 +340,7 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
 				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
 				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
@@ -401,6 +403,7 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
 				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
 				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
@@ -463,6 +466,7 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
 				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
 				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
@@ -524,6 +528,7 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
 				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
 				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
@@ -586,6 +591,7 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
 				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
 				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
