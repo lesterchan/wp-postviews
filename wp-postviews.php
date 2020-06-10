@@ -117,6 +117,7 @@ function process_postviews() {
 			$should_count = apply_filters( 'postviews_should_count', $should_count, $id );
 			if( $should_count && ( ( isset( $views_options['use_ajax'] ) && (int) $views_options['use_ajax'] === 0 ) || ( !defined( 'WP_CACHE' ) || !WP_CACHE ) ) ) {
 				update_post_meta( $id, 'views', $post_views + 1 );
+                process_today_views($id);
 				do_action( 'postviews_increment_views', $post_views + 1 );
 			}
 		}
@@ -203,10 +204,11 @@ function should_views_be_displayed($views_options = null) {
 
 ### Function: Display The Post Views
 function the_views($display = true, $prefix = '', $postfix = '', $always = false) {
-	$post_views = (int) get_post_meta( get_the_ID(), 'views', true );
+    $post_views = (int) get_post_meta( get_the_ID(), 'views', true );
+    $today_views = (int) today_views();
 	$views_options = get_option('views_options');
 	if ($always || should_views_be_displayed($views_options)) {
-		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) ).$postfix;
+		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%', '%VIEW_COUNT_TODAY%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views), number_format_i18n( $today_views ) ), stripslashes( $views_options['template'] ) ).$postfix;
 		if($display) {
 			echo apply_filters('the_views', $output);
 		} else {
@@ -228,7 +230,9 @@ function views_shortcode( $atts ) {
 	}
 	$views_options = get_option( 'views_options' );
 	$post_views = (int) get_post_meta( $id, 'views', true );
-	$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) );
+    $today_views = (int) today_views();
+
+    $output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%', '%VIEW_COUNT_TODAY%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views), number_format_i18n( $today_views )  ), stripslashes( $views_options['template'] ) );
 
 	return apply_filters( 'the_views', $output );
 }
@@ -253,6 +257,7 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 
 				// Post Views.
 				$post_views = get_post_meta( get_the_ID(), 'views', true );
+                $today_views = today_views();
 
 				// Post Title.
 				$post_title = get_the_title();
@@ -269,7 +274,8 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_TODAY%', number_format_i18n( $today_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
 				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
 				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
@@ -315,6 +321,7 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 
 				// Post Views.
 				$post_views = get_post_meta( get_the_ID(), 'views', true );
+                $today_views = today_views();
 
 				// Post Title.
 				$post_title = get_the_title();
@@ -331,7 +338,8 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_TODAY%', number_format_i18n( $today_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
 				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
 				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
@@ -378,6 +386,7 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 
 				// Post Views.
 				$post_views = get_post_meta( get_the_ID(), 'views', true );
+                $today_views = today_views();
 
 				// Post Title.
 				$post_title = get_the_title();
@@ -394,7 +403,8 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_TODAY%', number_format_i18n( $today_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
 				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
 				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
@@ -441,6 +451,7 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 
 				// Post Views.
 				$post_views = get_post_meta( get_the_ID(), 'views', true );
+                $today_views = today_views();
 
 				// Post Title.
 				$post_title = get_the_title();
@@ -457,7 +468,8 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_TODAY%', number_format_i18n( $today_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
 				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
 				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
@@ -503,6 +515,7 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 
 				// Post Views.
 				$post_views = get_post_meta( get_the_ID(), 'views', true );
+                $today_views = today_views();
 
 				// Post Title.
 				$post_title = get_the_title();
@@ -519,7 +532,8 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_TODAY%', number_format_i18n( $today_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
 				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
 				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
@@ -565,7 +579,8 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 				$most_viewed->the_post();
 
 				// Post Views.
-				$post_views = get_post_meta( get_the_ID(), 'views', true );
+                $post_views = get_post_meta( get_the_ID(), 'views', true );
+                $today_views = today_views();
 
 				// Post Title.
 				$post_title = get_the_title();
@@ -581,7 +596,8 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 				}
 
 				$temp = stripslashes( $views_options['most_viewed_template'] );
-				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+                $temp = str_replace( '%VIEW_COUNT_TODAY%', number_format_i18n( $today_views ), $temp );
 				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
 				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
@@ -1013,9 +1029,56 @@ function views_activation( $network_wide ) {
 	} else {
 		add_option( $option_name, $option );
 	}
+
+	// Set Default View Meta
+    post_views_default();
 }
 
 ### Function: Parse View Options
 function views_options_parse( $key ) {
 	return ! empty( $_POST[ $key ] ) ? $_POST[ $key ] : null;
+}
+
+### Function: Count Today Post Views
+function process_today_views($id) {
+    $day_of_week = date("l");
+    $today_views = get_post_meta($id,"today_views",true);
+    $statics = explode("-", $today_views);
+    $count = $statics[1]+1;
+
+    if ($statics[0] === $day_of_week)
+         update_post_meta($id,"today_views",$day_of_week . '-' . $count );
+    else
+        update_post_meta($id,"today_views",$day_of_week . '-' . 1);
+
+}
+### Function: Show Today Post Views
+if(!function_exists('today_views')) {
+    function today_views($display = false)
+    {
+        $today_views = get_post_meta(get_the_ID(),"today_views",true);
+        $views = explode("-", $today_views);
+        if ($display)
+            echo $views[1];
+        else
+            return $views[1];
+
+    }
+}
+### Function: Set Default Value To 'views' For Order By Meta
+if(!function_exists('post_views_default')) {
+    function post_views_default()
+    {
+        $args = array(
+            'posts_per_page' => -1,
+            'post_type' => array( 'post', 'page' )
+        );
+        $viewsToZero = new WP_Query( $args );
+
+        foreach ( $viewsToZero->posts as $post ){
+
+            if ( ! get_post_meta( $post->ID, 'views', true ) )
+                add_post_meta( $post->ID, 'views', 0, true );
+        }
+    }
 }
