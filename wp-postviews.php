@@ -105,6 +105,12 @@ function process_postviews() {
 					, 'Sogou' => 'spider'
 					, 'soso.com' => 'sosospider'
 					, 'Yandex' => 'yandex'
+					, 'Ahrefs' => 'AhrefsBot'
+					, 'Bing' => 'bingbot'
+					, 'Apple' => 'applebot'
+					, 'GitCrawler' => 'GitCrawlerBot'
+					, 'Bytedance' => 'Bytespider'
+					, 'webmeup' => 'BLEXBot'
 				);
 				$useragent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
 				foreach ( $bots as $name => $lookfor ) {
