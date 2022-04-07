@@ -813,8 +813,7 @@ function increment_views() {
 
 	$post_id = (int) sanitize_key( $_POST['postviews_id'] );
 	if( $post_id > 0 ) {
-		$post_views = get_post_custom( $post_id );
-		$post_views = (int) $post_views['views'][0];
+		$post_views = (int) get_post_meta( $post_id, 'views', true );
 		$post_views = $post_views + 1;
 		update_post_meta( $post_id, 'views', $post_views );
 		do_action( 'postviews_increment_views_ajax', $post_views );
