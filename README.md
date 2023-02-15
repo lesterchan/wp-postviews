@@ -212,3 +212,7 @@ jQuery.ajax({
 ```
 
 Purge the cache to use the updated pages.
+
+### To Get Views With REST API
+You can obtain the number of post views by adding `views` to your `_fields` parameter:
+`/wp/v2/posts?_fields=views,title`
