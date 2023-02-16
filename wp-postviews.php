@@ -1031,3 +1031,18 @@ function views_activation( $network_wide ) {
 function views_options_parse( $key ) {
 	return ! empty( $_POST[ $key ] ) ? $_POST[ $key ] : null;
 }
+
+
+### Function: Register views meta field to use it in REST API
+add_action('rest_api_init', 'register_rest_views_field');
+function register_rest_views_field(){
+	register_rest_field('post', 'views', array(
+		'get_callback' => function ($post) {
+			if (!$post_views = get_post_meta($post['id'], 'views', true)) {
+				$post_views = 0;
+			}
+
+			return (int) $post_views;
+		}
+	));
+}
