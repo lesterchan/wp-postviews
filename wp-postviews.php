@@ -36,7 +36,7 @@ function postviews_textdomain() {
 }
 
 
-### Function: Post  Views Option Menu
+### Function: Post Views Option Menu
 add_action('admin_menu', 'postviews_menu');
 function postviews_menu() {
 	if (function_exists('add_options_page')) {
@@ -45,7 +45,7 @@ function postviews_menu() {
 }
 
 
-### Function: Calcul ate Post Views
+### Function: Calculate Post Views
 add_action( 'wp_head', 'process_postviews' );
 function process_postviews() {
 	global $user_ID, $post;
@@ -129,7 +129,7 @@ function process_postviews() {
 	}
 }
 
-### Function: Calcula te Post Views With WP_CACHE Enabled
+### Function: Calculate Post Views With WP_CACHE Enabled
 add_action('wp_enqueue_scripts', 'wp_postview_cache_count_enqueue');
 function wp_postview_cache_count_enqueue() {
 	global $user_ID, $post;
