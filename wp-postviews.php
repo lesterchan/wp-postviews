@@ -31,7 +31,7 @@ Text Domain: wp-postviews
 
 ### Create Text Domain For Translations
 add_action( 'plugins_loaded', 'postviews_textdomain' );
-function postviews _textdomain() {
+function postviews_textdomain() {
 	load_plugin_textdomain( 'wp-postviews', false, dirname( plugin_basename( __FILE__ ) ) );
 }
 
