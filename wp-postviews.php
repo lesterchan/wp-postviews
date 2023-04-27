@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: https://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.76.1
+Version: 1.77
 Author: Lester 'GaMerZ' Chan
 Author URI: https://lesterchan.net
 Text Domain: wp-postviews
@@ -11,7 +11,7 @@ Text Domain: wp-postviews
 
 
 /*
-	Copyright 2017  Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2023  Lester Chan  (email : lesterchan@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -31,12 +31,12 @@ Text Domain: wp-postviews
 
 ### Create Text Domain For Translations
 add_action( 'plugins_loaded', 'postviews_textdomain' );
-function postviews_textdomain() {
+function postviews _textdomain() {
 	load_plugin_textdomain( 'wp-postviews', false, dirname( plugin_basename( __FILE__ ) ) );
 }
 
 
-### Function: Post Views Option Menu
+### Function: Post  Views Option Menu
 add_action('admin_menu', 'postviews_menu');
 function postviews_menu() {
 	if (function_exists('add_options_page')) {
@@ -45,7 +45,7 @@ function postviews_menu() {
 }
 
 
-### Function: Calculate Post Views
+### Function: Calcul ate Post Views
 add_action( 'wp_head', 'process_postviews' );
 function process_postviews() {
 	global $user_ID, $post;
@@ -129,7 +129,7 @@ function process_postviews() {
 	}
 }
 
-### Function: Calculate Post Views With WP_CACHE Enabled
+### Function: Calcula te Post Views With WP_CACHE Enabled
 add_action('wp_enqueue_scripts', 'wp_postview_cache_count_enqueue');
 function wp_postview_cache_count_enqueue() {
 	global $user_ID, $post;
