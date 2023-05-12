@@ -18,9 +18,6 @@ Enables you to display how many times a post/page had been viewed.
 5. Or you can use the shortcode `[views]` or `[views id="1"]` (where 1 is the post ID) in a post
 6. Go to `WP-Admin -> Settings -> PostViews` to configure the plugin.
 
-### Build Status
-[![Build Status](https://travis-ci.org/lesterchan/wp-postviews.svg?branch=master)](https://travis-ci.org/lesterchan/wp-postviews)
-
 ### Development
 [https://github.com/lesterchan/wp-postviews/](https://github.com/lesterchan/wp-postviews/ "https://github.com/lesterchan/wp-postviews/")
 

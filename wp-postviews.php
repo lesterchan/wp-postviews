@@ -28,6 +28,8 @@ Text Domain: wp-postviews
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+### WP-PostViews Version
+define( 'WP_POSTVIEWS_VERSION', '1.77' );
 
 ### Create Text Domain For Translations
 add_action( 'plugins_loaded', 'postviews_textdomain' );
@@ -164,7 +166,7 @@ function wp_postview_cache_count_enqueue() {
 
 		$should_count = apply_filters( 'postviews_should_count', $should_count, (int) $post->ID );
 		if ( $should_count ) {
-			wp_enqueue_script( 'wp-postviews-cache', plugins_url( 'postviews-cache.js', __FILE__ ), array(), '1.68', true );
+			wp_enqueue_script( 'wp-postviews-cache', plugins_url( 'postviews-cache.js', __FILE__ ), array(), WP_POSTVIEWS_VERSION, true );
 			wp_localize_script( 'wp-postviews-cache', 'viewsCacheL10n', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'wp_postviews_nonce' ), 'post_id' => (int) $post->ID ) );
 		}
 	}
