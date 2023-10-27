@@ -128,6 +128,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 				- %POST_CONTENT%<br />
 				- %POST_URL%<br />
 				- %POST_THUMBNAIL%<br />
+				- %POST_THUMBNAIL_URL%<br />
 				- %POST_CATEGORY_ID%<br />
 				- %POST_AUTHOR%<br /><br />
 				<input type="button" name="RestoreDefault" value="<?php _e( 'Restore Default Template', 'wp-postviews' ); ?>" onclick="views_default_templates( 'most_viewed' );" class="button" />
