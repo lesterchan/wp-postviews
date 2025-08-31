@@ -3,7 +3,7 @@ Contributors: GamerZ
 Donate link: https://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 4.0  
-Tested up to: 6.3  
+Tested up to: 6.6  
 Stable tag: 1.78  
 
 Enables you to display how many times a post/page had been viewed.
