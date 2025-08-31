@@ -3,7 +3,7 @@
 Plugin Name: WP-PostViews
 Plugin URI: https://lesterchan.net/portfolio/programming/php/
 Description: Enables you to display how many times a post/page had been viewed.
-Version: 1.77
+Version: 1.78
 Author: Lester 'GaMerZ' Chan
 Author URI: https://lesterchan.net
 Text Domain: wp-postviews
@@ -11,7 +11,7 @@ Text Domain: wp-postviews
 
 
 /*
-	Copyright 2023  Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2025  Lester Chan  (email : lesterchan@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ Text Domain: wp-postviews
 */
 
 ### WP-PostViews Version
-define( 'WP_POSTVIEWS_VERSION', '1.77' );
+define( 'WP_POSTVIEWS_VERSION', '1.78' );
 
 ### Create Text Domain For Translations
 add_action( 'plugins_loaded', 'postviews_textdomain' );
