@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: https://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
 Requires at least: 4.0  
-Tested up to: 6.9  
-Stable tag: 1.78  
+Tested up to: 7.0  
+Stable tag: 1.78.1  
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -31,6 +31,9 @@ Enables you to display how many times a post/page had been viewed.
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 1.78.1
+* NEW: WordPress 7.0
+
 ### Version 1.78
 * NEW: Add %POST_THUMBNAIL_URL% to template variables
 
