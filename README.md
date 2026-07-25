@@ -42,7 +42,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 * NEW: Bump to WordPress 6.2
 * NEW: Support views under fields for Rest API. Props @vitro-mod
 
-## Version 1.76.1
+### Version 1.76.1
 * NEW: Add Post Author in views template
 * NEW: Bump for WordPress 5.3
 
