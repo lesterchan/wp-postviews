@@ -33,26 +33,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-### WP-PostViews Version
+// WP-PostViews Version
 define( 'WP_POSTVIEWS_VERSION', '1.78.1' );
 
-### Create Text Domain For Translations
+// Create Text Domain For Translations
 add_action( 'plugins_loaded', 'postviews_textdomain' );
 function postviews_textdomain() {
 	load_plugin_textdomain( 'wp-postviews', false, dirname( plugin_basename( __FILE__ ) ) );
 }
 
 
-### Function: Post Views Option Menu
-add_action('admin_menu', 'postviews_menu');
+// Function: Post Views Option Menu
+add_action( 'admin_menu', 'postviews_menu' );
 function postviews_menu() {
-	if (function_exists('add_options_page')) {
-		add_options_page(__('PostViews', 'wp-postviews'), __('PostViews', 'wp-postviews'), 'manage_options', 'wp-postviews/postviews-options.php') ;
+	if ( function_exists( 'add_options_page' ) ) {
+		add_options_page( __( 'PostViews', 'wp-postviews' ), __( 'PostViews', 'wp-postviews' ), 'manage_options', 'wp-postviews/postviews-options.php' );
 	}
 }
 
 
-### Function: Calculate Post Views
+// Function: Calculate Post Views
 add_action( 'wp_head', 'process_postviews' );
 function process_postviews() {
 	global $user_ID, $post;
@@ -61,66 +61,66 @@ function process_postviews() {
 	}
 	if ( ! wp_is_post_revision( $post ) && ! is_preview() ) {
 		if ( is_single() || is_page() ) {
-			$id = (int) $post->ID;
+			$id            = (int) $post->ID;
 			$views_options = get_option( 'views_options' );
 			if ( ! is_array( $views_options ) ) {
 				$views_options = array();
 			}
-			if ( !$post_views = get_post_meta( $post->ID, 'views', true ) ) {
+			if ( ! $post_views = get_post_meta( $post->ID, 'views', true ) ) {
 				$post_views = 0;
 			}
 			$should_count = false;
-			switch( (int) ( $views_options['count'] ?? 0 ) ) {
+			switch ( (int) ( $views_options['count'] ?? 0 ) ) {
 				case 0:
 					$should_count = true;
 					break;
 				case 1:
-					if( empty( $_COOKIE[ USER_COOKIE ] ) && (int) $user_ID === 0 ) {
+					if ( empty( $_COOKIE[ USER_COOKIE ] ) && (int) $user_ID === 0 ) {
 						$should_count = true;
 					}
 					break;
 				case 2:
-					if( (int) $user_ID > 0 ) {
+					if ( (int) $user_ID > 0 ) {
 						$should_count = true;
 					}
 					break;
 			}
 			if ( isset( $views_options['exclude_bots'] ) && (int) $views_options['exclude_bots'] === 1 ) {
-				$bots = array(
-					'Google Bot' => 'google'
-					, 'MSN' => 'msnbot'
-					, 'Alex' => 'ia_archiver'
-					, 'Lycos' => 'lycos'
-					, 'Ask Jeeves' => 'jeeves'
-					, 'Altavista' => 'scooter'
-					, 'AllTheWeb' => 'fast-webcrawler'
-					, 'Inktomi' => 'slurp@inktomi'
-					, 'Turnitin.com' => 'turnitinbot'
-					, 'Technorati' => 'technorati'
-					, 'Yahoo' => 'yahoo'
-					, 'Findexa' => 'findexa'
-					, 'NextLinks' => 'findlinks'
-					, 'Gais' => 'gaisbo'
-					, 'WiseNut' => 'zyborg'
-					, 'WhoisSource' => 'surveybot'
-					, 'Bloglines' => 'bloglines'
-					, 'BlogSearch' => 'blogsearch'
-					, 'PubSub' => 'pubsub'
-					, 'Syndic8' => 'syndic8'
-					, 'RadioUserland' => 'userland'
-					, 'Gigabot' => 'gigabot'
-					, 'Become.com' => 'become.com'
-					, 'Baidu' => 'baiduspider'
-					, 'so.com' => '360spider'
-					, 'Sogou' => 'spider'
-					, 'soso.com' => 'sosospider'
-					, 'Yandex' => 'yandex'
-					, 'Ahrefs' => 'AhrefsBot'
-					, 'Bing' => 'bingbot'
-					, 'Apple' => 'applebot'
-					, 'GitCrawler' => 'GitCrawlerBot'
-					, 'Bytedance' => 'Bytespider'
-					, 'webmeup' => 'BLEXBot'
+				$bots      = array(
+					'Google Bot'    => 'google',
+					'MSN'           => 'msnbot',
+					'Alex'          => 'ia_archiver',
+					'Lycos'         => 'lycos',
+					'Ask Jeeves'    => 'jeeves',
+					'Altavista'     => 'scooter',
+					'AllTheWeb'     => 'fast-webcrawler',
+					'Inktomi'       => 'slurp@inktomi',
+					'Turnitin.com'  => 'turnitinbot',
+					'Technorati'    => 'technorati',
+					'Yahoo'         => 'yahoo',
+					'Findexa'       => 'findexa',
+					'NextLinks'     => 'findlinks',
+					'Gais'          => 'gaisbo',
+					'WiseNut'       => 'zyborg',
+					'WhoisSource'   => 'surveybot',
+					'Bloglines'     => 'bloglines',
+					'BlogSearch'    => 'blogsearch',
+					'PubSub'        => 'pubsub',
+					'Syndic8'       => 'syndic8',
+					'RadioUserland' => 'userland',
+					'Gigabot'       => 'gigabot',
+					'Become.com'    => 'become.com',
+					'Baidu'         => 'baiduspider',
+					'so.com'        => '360spider',
+					'Sogou'         => 'spider',
+					'soso.com'      => 'sosospider',
+					'Yandex'        => 'yandex',
+					'Ahrefs'        => 'AhrefsBot',
+					'Bing'          => 'bingbot',
+					'Apple'         => 'applebot',
+					'GitCrawler'    => 'GitCrawlerBot',
+					'Bytedance'     => 'Bytespider',
+					'webmeup'       => 'BLEXBot',
 				);
 				$useragent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 				foreach ( $bots as $name => $lookfor ) {
@@ -131,7 +131,7 @@ function process_postviews() {
 				}
 			}
 			$should_count = apply_filters( 'postviews_should_count', $should_count, $id );
-			if( $should_count && ( ( isset( $views_options['use_ajax'] ) && (int) $views_options['use_ajax'] === 0 ) || ( !defined( 'WP_CACHE' ) || !WP_CACHE ) ) ) {
+			if ( $should_count && ( ( isset( $views_options['use_ajax'] ) && (int) $views_options['use_ajax'] === 0 ) || ( ! defined( 'WP_CACHE' ) || ! WP_CACHE ) ) ) {
 				update_post_meta( $id, 'views', $post_views + 1 );
 				do_action( 'postviews_increment_views', $post_views + 1 );
 			}
@@ -139,12 +139,12 @@ function process_postviews() {
 	}
 }
 
-### Function: Calculate Post Views With WP_CACHE Enabled
-add_action('wp_enqueue_scripts', 'wp_postview_cache_count_enqueue');
+// Function: Calculate Post Views With WP_CACHE Enabled
+add_action( 'wp_enqueue_scripts', 'wp_postview_cache_count_enqueue' );
 function wp_postview_cache_count_enqueue() {
 	global $user_ID, $post;
 
-	if ( !defined( 'WP_CACHE' ) || !WP_CACHE ) {
+	if ( ! defined( 'WP_CACHE' ) || ! WP_CACHE ) {
 		return;
 	}
 
@@ -157,14 +157,14 @@ function wp_postview_cache_count_enqueue() {
 		return;
 	}
 
-	if ( !wp_is_post_revision( $post ) && ( is_single() || is_page() ) ) {
+	if ( ! wp_is_post_revision( $post ) && ( is_single() || is_page() ) ) {
 		$should_count = false;
-		switch( (int) ( $views_options['count'] ?? 0 ) ) {
+		switch ( (int) ( $views_options['count'] ?? 0 ) ) {
 			case 0:
 				$should_count = true;
 				break;
 			case 1:
-				if ( empty( $_COOKIE[USER_COOKIE] ) && (int) $user_ID === 0) {
+				if ( empty( $_COOKIE[ USER_COOKIE ] ) && (int) $user_ID === 0 ) {
 					$should_count = true;
 				}
 				break;
@@ -178,98 +178,105 @@ function wp_postview_cache_count_enqueue() {
 		$should_count = apply_filters( 'postviews_should_count', $should_count, (int) $post->ID );
 		if ( $should_count ) {
 			wp_enqueue_script( 'wp-postviews-cache', plugins_url( 'postviews-cache.js', __FILE__ ), array(), WP_POSTVIEWS_VERSION, true );
-			wp_localize_script( 'wp-postviews-cache', 'viewsCacheL10n', array( 'admin_ajax_url' => admin_url( 'admin-ajax.php' ), 'nonce' => wp_create_nonce( 'wp_postviews_nonce' ), 'post_id' => (int) $post->ID ) );
+			wp_localize_script(
+				'wp-postviews-cache',
+				'viewsCacheL10n',
+				array(
+					'admin_ajax_url' => admin_url( 'admin-ajax.php' ),
+					'nonce'          => wp_create_nonce( 'wp_postviews_nonce' ),
+					'post_id'        => (int) $post->ID,
+				)
+			);
 		}
 	}
 }
 
 
-### Function: Determine If Post Views Should Be Displayed (By: David Potter)
-function should_views_be_displayed($views_options = null) {
-	if ($views_options == null) {
-		$views_options = get_option('views_options');
+// Function: Determine If Post Views Should Be Displayed (By: David Potter)
+function should_views_be_displayed( $views_options = null ) {
+	if ( $views_options == null ) {
+		$views_options = get_option( 'views_options' );
 	}
 	// array_key_exists() throws a TypeError on a non-array in PHP 8, and
 	// get_option() returns false when the row is missing.
-	if (!is_array($views_options)) {
+	if ( ! is_array( $views_options ) ) {
 		$views_options = array();
 	}
 	$display_option = 0;
-	if (is_home()) {
-		if (array_key_exists('display_home', $views_options)) {
+	if ( is_home() ) {
+		if ( array_key_exists( 'display_home', $views_options ) ) {
 			$display_option = $views_options['display_home'];
 		}
-	} elseif (is_single()) {
-		if (array_key_exists('display_single', $views_options)) {
+	} elseif ( is_single() ) {
+		if ( array_key_exists( 'display_single', $views_options ) ) {
 			$display_option = $views_options['display_single'];
 		}
-	} elseif (is_page()) {
-		if (array_key_exists('display_page', $views_options)) {
+	} elseif ( is_page() ) {
+		if ( array_key_exists( 'display_page', $views_options ) ) {
 			$display_option = $views_options['display_page'];
 		}
-	} elseif (is_archive()) {
-		if (array_key_exists('display_archive', $views_options)) {
+	} elseif ( is_archive() ) {
+		if ( array_key_exists( 'display_archive', $views_options ) ) {
 			$display_option = $views_options['display_archive'];
 		}
-	} elseif (is_search()) {
-		if (array_key_exists('display_search', $views_options)) {
+	} elseif ( is_search() ) {
+		if ( array_key_exists( 'display_search', $views_options ) ) {
 			$display_option = $views_options['display_search'];
 		}
-	} else {
-		if (array_key_exists('display_other', $views_options)) {
+	} elseif ( array_key_exists( 'display_other', $views_options ) ) {
 			$display_option = $views_options['display_other'];
-		}
 	}
-	return (($display_option == 0) || (($display_option == 1) && is_user_logged_in()));
+	return ( ( $display_option == 0 ) || ( ( $display_option == 1 ) && is_user_logged_in() ) );
 }
 
 
-### Function: Display The Post Views
-function the_views($display = true, $prefix = '', $postfix = '', $always = false) {
-	$post_views = (int) get_post_meta( get_the_ID(), 'views', true );
-	$views_options = get_option('views_options');
-	if ($always || should_views_be_displayed($views_options)) {
-		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ?? '' ) ).$postfix;
-		if($display) {
-			echo apply_filters('the_views', $output);
+// Function: Display The Post Views
+function the_views( $display = true, $prefix = '', $postfix = '', $always = false ) {
+	$post_views    = (int) get_post_meta( get_the_ID(), 'views', true );
+	$views_options = get_option( 'views_options' );
+	if ( $always || should_views_be_displayed( $views_options ) ) {
+		$output = $prefix . str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views ) ), stripslashes( $views_options['template'] ?? '' ) ) . $postfix;
+		if ( $display ) {
+			echo apply_filters( 'the_views', $output );
 		} else {
-			return apply_filters('the_views', $output);
+			return apply_filters( 'the_views', $output );
 		}
-	}
-	elseif (!$display) {
+	} elseif ( ! $display ) {
 		return '';
 	}
 }
 
-### Function: Short Code For Inserting Views Into Posts
+// Function: Short Code For Inserting Views Into Posts
 add_shortcode( 'views', 'views_shortcode' );
 function views_shortcode( $atts ) {
 	$attributes = shortcode_atts( array( 'id' => 0 ), $atts );
-	$id = (int) $attributes['id'];
-	if( $id === 0) {
+	$id         = (int) $attributes['id'];
+	if ( $id === 0 ) {
 		$id = get_the_ID();
 	}
 	$views_options = get_option( 'views_options' );
-	$post_views = (int) get_post_meta( $id, 'views', true );
-	$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ?? '' ) );
+	$post_views    = (int) get_post_meta( $id, 'views', true );
+	$output        = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views ) ), stripslashes( $views_options['template'] ?? '' ) );
 
 	return apply_filters( 'the_views', $output );
 }
 
 
-### Function: Display Least Viewed Page/Post
+// Function: Display Least Viewed Page/Post
 if ( ! function_exists( 'get_least_viewed' ) ) {
 	function get_least_viewed( $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		$views_options = get_option( 'views_options' );
-		$output = '';
+		$output        = '';
 
-		$least_viewed = new WP_Query( array(
-			'post_type'         => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
-			'posts_per_page'    => $limit,
-			'orderby'           => 'meta_value_num',
-			'order'             => 'asc',
-			'meta_key'          => 'views',
-		) );
+		$least_viewed = new WP_Query(
+			array(
+				'post_type'      => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
+				'posts_per_page' => $limit,
+				'orderby'        => 'meta_value_num',
+				'order'          => 'asc',
+				'meta_key'       => 'views',
+			)
+		);
 		if ( $least_viewed->have_posts() ) {
 			while ( $least_viewed->have_posts() ) {
 				$least_viewed->the_post();
@@ -284,34 +291,34 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 				}
 
 				// Post First Category.
-				$categories = get_the_category();
+				$categories       = get_the_category();
 				$post_category_id = 0;
 				if ( ! empty( $categories ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
-				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
-				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
-				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
-				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
-				$temp = str_replace( '%POST_URL%', get_permalink(), $temp );
-				$temp = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
-				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
-				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
-				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
+				$temp    = stripslashes( $views_options['most_viewed_template'] ?? '' );
+				$temp    = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+				$temp    = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+				$temp    = str_replace( '%POST_TITLE%', $post_title, $temp );
+				$temp    = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
+				$temp    = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
+				$temp    = str_replace( '%POST_URL%', get_permalink(), $temp );
+				$temp    = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
+				$temp    = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp    = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
 			wp_reset_postdata();
-		}  else {
+		} else {
 			$output = '<li>' . __( 'N/A', 'wp-postviews' ) . '</li>' . "\n";
 		}
 
-		if( $display ) {
+		if ( $display ) {
 			echo $output;
 		} else {
 			return $output;
@@ -320,19 +327,21 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 }
 
 
-### Function: Display Most Viewed Page/Post
+// Function: Display Most Viewed Page/Post
 if ( ! function_exists( 'get_most_viewed' ) ) {
 	function get_most_viewed( $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		$views_options = get_option( 'views_options' );
-		$output = '';
+		$output        = '';
 
-		$most_viewed = new WP_Query( array(
-			'post_type'         => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
-			'posts_per_page'    => $limit,
-			'orderby'           => 'meta_value_num',
-			'order'             => 'desc',
-			'meta_key'          => 'views',
-		) );
+		$most_viewed = new WP_Query(
+			array(
+				'post_type'      => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
+				'posts_per_page' => $limit,
+				'orderby'        => 'meta_value_num',
+				'order'          => 'desc',
+				'meta_key'       => 'views',
+			)
+		);
 		if ( $most_viewed->have_posts() ) {
 			while ( $most_viewed->have_posts() ) {
 				$most_viewed->the_post();
@@ -347,34 +356,34 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 				}
 
 				// Post First Category.
-				$categories = get_the_category();
+				$categories       = get_the_category();
 				$post_category_id = 0;
 				if ( ! empty( $categories ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
-				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
-				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
-				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
-				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
-				$temp = str_replace( '%POST_URL%', get_permalink(), $temp );
-				$temp = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
-				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
-				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
-				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
+				$temp    = stripslashes( $views_options['most_viewed_template'] ?? '' );
+				$temp    = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+				$temp    = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+				$temp    = str_replace( '%POST_TITLE%', $post_title, $temp );
+				$temp    = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
+				$temp    = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
+				$temp    = str_replace( '%POST_URL%', get_permalink(), $temp );
+				$temp    = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
+				$temp    = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp    = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
 			wp_reset_postdata();
-		}  else {
+		} else {
 			$output = '<li>' . __( 'N/A', 'wp-postviews' ) . '</li>' . "\n";
 		}
 
-		if( $display ) {
+		if ( $display ) {
 			echo $output;
 		} else {
 			return $output;
@@ -383,20 +392,22 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 }
 
 
-### Function: Display Least Viewed Page/Post By Category ID
+// Function: Display Least Viewed Page/Post By Category ID
 if ( ! function_exists( 'get_least_viewed_category' ) ) {
 	function get_least_viewed_category( $category_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		$views_options = get_option( 'views_options' );
-		$output = '';
+		$output        = '';
 
-		$least_viewed = new WP_Query( array(
-			'post_type'         => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
-			'posts_per_page'    => $limit,
-			'category__in'      => (array) $category_id,
-			'orderby'           => 'meta_value_num',
-			'order'             => 'asc',
-			'meta_key'          => 'views',
-		) );
+		$least_viewed = new WP_Query(
+			array(
+				'post_type'      => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
+				'posts_per_page' => $limit,
+				'category__in'   => (array) $category_id,
+				'orderby'        => 'meta_value_num',
+				'order'          => 'asc',
+				'meta_key'       => 'views',
+			)
+		);
 		if ( $least_viewed->have_posts() ) {
 			while ( $least_viewed->have_posts() ) {
 				$least_viewed->the_post();
@@ -411,34 +422,34 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 				}
 
 				// Post First Category.
-				$categories = get_the_category();
+				$categories       = get_the_category();
 				$post_category_id = 0;
 				if ( ! empty( $categories ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
-				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
-				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
-				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
-				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
-				$temp = str_replace( '%POST_URL%', get_permalink(), $temp );
-				$temp = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
-				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
-				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
-				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
+				$temp    = stripslashes( $views_options['most_viewed_template'] ?? '' );
+				$temp    = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+				$temp    = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+				$temp    = str_replace( '%POST_TITLE%', $post_title, $temp );
+				$temp    = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
+				$temp    = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
+				$temp    = str_replace( '%POST_URL%', get_permalink(), $temp );
+				$temp    = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
+				$temp    = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp    = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
 			wp_reset_postdata();
-		}  else {
+		} else {
 			$output = '<li>' . __( 'N/A', 'wp-postviews' ) . '</li>' . "\n";
 		}
 
-		if($display) {
+		if ( $display ) {
 			echo $output;
 		} else {
 			return $output;
@@ -447,20 +458,22 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 }
 
 
-### Function: Display Most Viewed Page/Post By Category ID
+// Function: Display Most Viewed Page/Post By Category ID
 if ( ! function_exists( 'get_most_viewed_category' ) ) {
 	function get_most_viewed_category( $category_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		$views_options = get_option( 'views_options' );
-		$output = '';
+		$output        = '';
 
-		$most_viewed = new WP_Query( array(
-			'post_type'         => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
-			'posts_per_page'    => $limit,
-			'category__in'      => (array) $category_id,
-			'orderby'           => 'meta_value_num',
-			'order'             => 'desc',
-			'meta_key'          => 'views',
-		) );
+		$most_viewed = new WP_Query(
+			array(
+				'post_type'      => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
+				'posts_per_page' => $limit,
+				'category__in'   => (array) $category_id,
+				'orderby'        => 'meta_value_num',
+				'order'          => 'desc',
+				'meta_key'       => 'views',
+			)
+		);
 		if ( $most_viewed->have_posts() ) {
 			while ( $most_viewed->have_posts() ) {
 				$most_viewed->the_post();
@@ -475,30 +488,30 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 				}
 
 				// Post First Category.
-				$categories = get_the_category();
+				$categories       = get_the_category();
 				$post_category_id = 0;
 				if ( ! empty( $categories ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
-				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
-				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
-				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
-				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
-				$temp = str_replace( '%POST_URL%', get_permalink(), $temp );
-				$temp = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
-				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
-				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
-				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
+				$temp    = stripslashes( $views_options['most_viewed_template'] ?? '' );
+				$temp    = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+				$temp    = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+				$temp    = str_replace( '%POST_TITLE%', $post_title, $temp );
+				$temp    = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
+				$temp    = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
+				$temp    = str_replace( '%POST_URL%', get_permalink(), $temp );
+				$temp    = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
+				$temp    = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp    = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
 			wp_reset_postdata();
-		}  else {
+		} else {
 			$output = '<li>' . __( 'N/A', 'wp-postviews' ) . '</li>' . "\n";
 		}
 
@@ -510,20 +523,22 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 	}
 }
 
-### Function: Display Least Viewed Page/Post By Tag ID
+// Function: Display Least Viewed Page/Post By Tag ID
 if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 	function get_least_viewed_tag( $tag_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		$views_options = get_option( 'views_options' );
-		$output = '';
+		$output        = '';
 
-		$least_viewed = new WP_Query( array(
-			'post_type'         => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
-			'posts_per_page'    => $limit,
-			'tag__in'           => (array) $tag_id,
-			'orderby'           => 'meta_value_num',
-			'order'             => 'asc',
-			'meta_key'          => 'views',
-		) );
+		$least_viewed = new WP_Query(
+			array(
+				'post_type'      => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
+				'posts_per_page' => $limit,
+				'tag__in'        => (array) $tag_id,
+				'orderby'        => 'meta_value_num',
+				'order'          => 'asc',
+				'meta_key'       => 'views',
+			)
+		);
 		if ( $least_viewed->have_posts() ) {
 			while ( $least_viewed->have_posts() ) {
 				$least_viewed->the_post();
@@ -538,30 +553,30 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 				}
 
 				// Post First Category.
-				$categories = get_the_category();
+				$categories       = get_the_category();
 				$post_category_id = 0;
 				if ( ! empty( $categories ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
-				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
-				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
-				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
-				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
-				$temp = str_replace( '%POST_URL%', get_permalink(), $temp );
-				$temp = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
-				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
-				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
-				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
+				$temp    = stripslashes( $views_options['most_viewed_template'] ?? '' );
+				$temp    = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+				$temp    = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+				$temp    = str_replace( '%POST_TITLE%', $post_title, $temp );
+				$temp    = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
+				$temp    = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
+				$temp    = str_replace( '%POST_URL%', get_permalink(), $temp );
+				$temp    = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
+				$temp    = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp    = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
 			wp_reset_postdata();
-		}  else {
+		} else {
 			$output = '<li>' . __( 'N/A', 'wp-postviews' ) . '</li>' . "\n";
 		}
 
@@ -574,20 +589,22 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 }
 
 
-### Function: Display Most Viewed Page/Post By Tag ID
+// Function: Display Most Viewed Page/Post By Tag ID
 if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 	function get_most_viewed_tag( $tag_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		$views_options = get_option( 'views_options' );
-		$output = '';
+		$output        = '';
 
-		$most_viewed = new WP_Query( array(
-			'post_type'         => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
-			'posts_per_page'    => $limit,
-			'tag__in'           => (array) $tag_id,
-			'orderby'           => 'meta_value_num',
-			'order'             => 'desc',
-			'meta_key'          => 'views',
-		) );
+		$most_viewed = new WP_Query(
+			array(
+				'post_type'      => ( empty( $mode ) || $mode === 'both' ) ? 'any' : $mode,
+				'posts_per_page' => $limit,
+				'tag__in'        => (array) $tag_id,
+				'orderby'        => 'meta_value_num',
+				'order'          => 'desc',
+				'meta_key'       => 'views',
+			)
+		);
 		if ( $most_viewed->have_posts() ) {
 			while ( $most_viewed->have_posts() ) {
 				$most_viewed->the_post();
@@ -602,34 +619,34 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 				}
 
 				// Post First Category.
-				$categories = get_the_category();
+				$categories       = get_the_category();
 				$post_category_id = 0;
 				if ( ! empty( $categories ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
-				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
-				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
-				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
-				$temp = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
-				$temp = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
-				$temp = str_replace( '%POST_URL%', get_permalink(), $temp );
-				$temp = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
-				$temp = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
-				$temp = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null,'thumbnail',true ), $temp);
-				$temp = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
-				$temp = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
+				$temp    = stripslashes( $views_options['most_viewed_template'] ?? '' );
+				$temp    = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
+				$temp    = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
+				$temp    = str_replace( '%POST_TITLE%', $post_title, $temp );
+				$temp    = str_replace( '%POST_EXCERPT%', get_the_excerpt(), $temp );
+				$temp    = str_replace( '%POST_CONTENT%', get_the_content(), $temp );
+				$temp    = str_replace( '%POST_URL%', get_permalink(), $temp );
+				$temp    = str_replace( '%POST_DATE%', get_the_time( get_option( 'date_format' ) ), $temp );
+				$temp    = str_replace( '%POST_TIME%', get_the_time( get_option( 'time_format' ) ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL%', get_the_post_thumbnail( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_THUMBNAIL_URL%', get_the_post_thumbnail_url( null, 'thumbnail', true ), $temp );
+				$temp    = str_replace( '%POST_CATEGORY_ID%', $post_category_id, $temp );
+				$temp    = str_replace( '%POST_AUTHOR%', get_the_author(), $temp );
 				$output .= $temp;
 			}
 
 			wp_reset_postdata();
-		}  else {
+		} else {
 			$output = '<li>' . __( 'N/A', 'wp-postviews' ) . '</li>' . "\n";
 		}
 
-		if($display) {
+		if ( $display ) {
 			echo $output;
 		} else {
 			return $output;
@@ -638,13 +655,13 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 }
 
 
-### Function: Display Total Views
-if(!function_exists('get_totalviews')) {
-	function get_totalviews($display = true) {
+// Function: Display Total Views
+if ( ! function_exists( 'get_totalviews' ) ) {
+	function get_totalviews( $display = true ) {
 		global $wpdb;
-		$total_views = (int) $wpdb->get_var("SELECT SUM(meta_value+0) FROM $wpdb->postmeta WHERE meta_key = 'views'" );
-		if($display) {
-			echo number_format_i18n($total_views);
+		$total_views = (int) $wpdb->get_var( "SELECT SUM(meta_value+0) FROM $wpdb->postmeta WHERE meta_key = 'views'" );
+		if ( $display ) {
+			echo number_format_i18n( $total_views );
 		} else {
 			return $total_views;
 		}
@@ -652,50 +669,50 @@ if(!function_exists('get_totalviews')) {
 }
 
 
-### Function: Snippet Text
-if(!function_exists('snippet_text')) {
-	function snippet_text($text, $length = 0) {
+// Function: Snippet Text
+if ( ! function_exists( 'snippet_text' ) ) {
+	function snippet_text( $text, $length = 0 ) {
 		// The multibyte branch used to be gated on MB_OVERLOAD_STRING, which PHP
 		// 8.0 removed along with mbstring function overloading. That left every
 		// title going through substr(), which cuts on bytes: a CJK title chopped
 		// mid-character became invalid UTF-8, and htmlentities() then returned an
 		// empty string, so the title disappeared entirely. Gate on the functions
 		// actually being used instead.
-		$charset = get_option('blog_charset');
-		$text = html_entity_decode((string) $text, ENT_QUOTES, $charset);
+		$charset = get_option( 'blog_charset' );
+		$text    = html_entity_decode( (string) $text, ENT_QUOTES, $charset );
 
-		if (function_exists('mb_strlen') && function_exists('mb_substr')) {
-			$too_long = mb_strlen($text, $charset) > $length;
-			$trimmed = $too_long ? mb_substr($text, 0, $length, $charset) : $text;
+		if ( function_exists( 'mb_strlen' ) && function_exists( 'mb_substr' ) ) {
+			$too_long = mb_strlen( $text, $charset ) > $length;
+			$trimmed  = $too_long ? mb_substr( $text, 0, $length, $charset ) : $text;
 		} else {
-			$too_long = strlen($text) > $length;
-			$trimmed = $too_long ? substr($text, 0, $length) : $text;
+			$too_long = strlen( $text ) > $length;
+			$trimmed  = $too_long ? substr( $text, 0, $length ) : $text;
 		}
 
-		return htmlentities($trimmed, ENT_COMPAT, $charset) . ($too_long ? '...' : '');
+		return htmlentities( $trimmed, ENT_COMPAT, $charset ) . ( $too_long ? '...' : '' );
 	}
 }
 
 
-### Function: Modify Default WordPress Listing To Make It Sorted By Post Views
-function views_fields($content) {
+// Function: Modify Default WordPress Listing To Make It Sorted By Post Views
+function views_fields( $content ) {
 	global $wpdb;
 	$content .= ", ($wpdb->postmeta.meta_value+0) AS views";
 	return $content;
 }
-function views_join($content) {
+function views_join( $content ) {
 	global $wpdb;
 	$content .= " LEFT JOIN $wpdb->postmeta ON $wpdb->postmeta.post_id = $wpdb->posts.ID";
 	return $content;
 }
-function views_where($content) {
+function views_where( $content ) {
 	global $wpdb;
 	$content .= " AND $wpdb->postmeta.meta_key = 'views'";
 	return $content;
 }
-function views_orderby($content) {
-	$orderby = trim(addslashes(get_query_var('v_orderby')));
-	if(empty($orderby) || ($orderby != 'asc' && $orderby != 'desc')) {
+function views_orderby( $content ) {
+	$orderby = trim( addslashes( get_query_var( 'v_orderby' ) ) );
+	if ( empty( $orderby ) || ( $orderby != 'asc' && $orderby != 'desc' ) ) {
 		$orderby = 'desc';
 	}
 	$content = " views $orderby";
@@ -703,44 +720,44 @@ function views_orderby($content) {
 }
 
 
-### Function: Add Views Custom Fields
-add_action('publish_post', 'add_views_fields');
-add_action('publish_page', 'add_views_fields');
-function add_views_fields($post_ID) {
+// Function: Add Views Custom Fields
+add_action( 'publish_post', 'add_views_fields' );
+add_action( 'publish_page', 'add_views_fields' );
+function add_views_fields( $post_ID ) {
 	global $wpdb;
-	if(!wp_is_post_revision($post_ID)) {
-		add_post_meta($post_ID, 'views', 0, true);
+	if ( ! wp_is_post_revision( $post_ID ) ) {
+		add_post_meta( $post_ID, 'views', 0, true );
 	}
 }
 
 
-### Function: Views Public Variables
-add_filter('query_vars', 'views_variables');
-function views_variables($public_query_vars) {
+// Function: Views Public Variables
+add_filter( 'query_vars', 'views_variables' );
+function views_variables( $public_query_vars ) {
 	$public_query_vars[] = 'v_sortby';
 	$public_query_vars[] = 'v_orderby';
 	return $public_query_vars;
 }
 
 
-### Function: Sort Views Posts
-add_action('pre_get_posts', 'views_sorting');
-function views_sorting($local_wp_query) {
-	if($local_wp_query->get('v_sortby') == 'views') {
-		add_filter('posts_fields', 'views_fields');
-		add_filter('posts_join', 'views_join');
-		add_filter('posts_where', 'views_where');
-		add_filter('posts_orderby', 'views_orderby');
+// Function: Sort Views Posts
+add_action( 'pre_get_posts', 'views_sorting' );
+function views_sorting( $local_wp_query ) {
+	if ( $local_wp_query->get( 'v_sortby' ) == 'views' ) {
+		add_filter( 'posts_fields', 'views_fields' );
+		add_filter( 'posts_join', 'views_join' );
+		add_filter( 'posts_where', 'views_where' );
+		add_filter( 'posts_orderby', 'views_orderby' );
 	} else {
-		remove_filter('posts_fields', 'views_fields');
-		remove_filter('posts_join', 'views_join');
-		remove_filter('posts_where', 'views_where');
-		remove_filter('posts_orderby', 'views_orderby');
+		remove_filter( 'posts_fields', 'views_fields' );
+		remove_filter( 'posts_join', 'views_join' );
+		remove_filter( 'posts_where', 'views_where' );
+		remove_filter( 'posts_orderby', 'views_orderby' );
 	}
 }
 
 
-### Function: Plug Into WP-Stats
+// Function: Plug Into WP-Stats
 add_action( 'plugins_loaded', 'postviews_wp_stats' );
 function postviews_wp_stats() {
 	add_filter( 'wp_stats_page_admin_plugins', 'postviews_page_admin_general_stats' );
@@ -750,70 +767,70 @@ function postviews_wp_stats() {
 }
 
 
-### Function: Add WP-PostViews General Stats To WP-Stats Page Options
-function postviews_page_admin_general_stats($content) {
-	$stats_display = get_option('stats_display');
-	if ( (int) ($stats_display['views'] ?? 0) === 1 ) {
-		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_views" value="views" checked="checked" />&nbsp;&nbsp;<label for="wpstats_views">'.__('WP-PostViews', 'wp-postviews').'</label><br />'."\n";
+// Function: Add WP-PostViews General Stats To WP-Stats Page Options
+function postviews_page_admin_general_stats( $content ) {
+	$stats_display = get_option( 'stats_display' );
+	if ( (int) ( $stats_display['views'] ?? 0 ) === 1 ) {
+		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_views" value="views" checked="checked" />&nbsp;&nbsp;<label for="wpstats_views">' . __( 'WP-PostViews', 'wp-postviews' ) . '</label><br />' . "\n";
 	} else {
-		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_views" value="views" />&nbsp;&nbsp;<label for="wpstats_views">'.__('WP-PostViews', 'wp-postviews').'</label><br />'."\n";
+		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_views" value="views" />&nbsp;&nbsp;<label for="wpstats_views">' . __( 'WP-PostViews', 'wp-postviews' ) . '</label><br />' . "\n";
 	}
 	return $content;
 }
 
 
-### Function: Add WP-PostViews Top Most/Highest Stats To WP-Stats Page Options
-function postviews_page_admin_most_stats($content) {
-	$stats_display = get_option('stats_display');
-	$stats_mostlimit = (int) get_option('stats_mostlimit');
-	if ( (int) ($stats_display['viewed_most_post'] ?? 0) === 1 ) {
-		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_post" value="viewed_most_post" checked="checked" />&nbsp;&nbsp;<label for="wpstats_viewed_most_post">'.sprintf(_n('%s Most Viewed Post', '%s Most Viewed Posts', $stats_mostlimit, 'wp-postviews'), number_format_i18n($stats_mostlimit)).'</label><br />'."\n";
+// Function: Add WP-PostViews Top Most/Highest Stats To WP-Stats Page Options
+function postviews_page_admin_most_stats( $content ) {
+	$stats_display   = get_option( 'stats_display' );
+	$stats_mostlimit = (int) get_option( 'stats_mostlimit' );
+	if ( (int) ( $stats_display['viewed_most_post'] ?? 0 ) === 1 ) {
+		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_post" value="viewed_most_post" checked="checked" />&nbsp;&nbsp;<label for="wpstats_viewed_most_post">' . sprintf( _n( '%s Most Viewed Post', '%s Most Viewed Posts', $stats_mostlimit, 'wp-postviews' ), number_format_i18n( $stats_mostlimit ) ) . '</label><br />' . "\n";
 	} else {
-		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_post" value="viewed_most_post" />&nbsp;&nbsp;<label for="wpstats_viewed_most_post">'.sprintf(_n('%s Most Viewed Post', '%s Most Viewed Posts', $stats_mostlimit, 'wp-postviews'), number_format_i18n($stats_mostlimit)).'</label><br />'."\n";
+		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_post" value="viewed_most_post" />&nbsp;&nbsp;<label for="wpstats_viewed_most_post">' . sprintf( _n( '%s Most Viewed Post', '%s Most Viewed Posts', $stats_mostlimit, 'wp-postviews' ), number_format_i18n( $stats_mostlimit ) ) . '</label><br />' . "\n";
 	}
-	if ( (int) ($stats_display['viewed_most_page'] ?? 0) === 1 ) {
-		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_page" value="viewed_most_page" checked="checked" />&nbsp;&nbsp;<label for="wpstats_viewed_most_page">'.sprintf(_n('%s Most Viewed Page', '%s Most Viewed Pages', $stats_mostlimit, 'wp-postviews'), number_format_i18n($stats_mostlimit)).'</label><br />'."\n";
+	if ( (int) ( $stats_display['viewed_most_page'] ?? 0 ) === 1 ) {
+		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_page" value="viewed_most_page" checked="checked" />&nbsp;&nbsp;<label for="wpstats_viewed_most_page">' . sprintf( _n( '%s Most Viewed Page', '%s Most Viewed Pages', $stats_mostlimit, 'wp-postviews' ), number_format_i18n( $stats_mostlimit ) ) . '</label><br />' . "\n";
 	} else {
-		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_page" value="viewed_most_page" />&nbsp;&nbsp;<label for="wpstats_viewed_most_page">'.sprintf(_n('%s Most Viewed Page', '%s Most Viewed Pages', $stats_mostlimit, 'wp-postviews'), number_format_i18n($stats_mostlimit)).'</label><br />'."\n";
+		$content .= '<input type="checkbox" name="stats_display[]" id="wpstats_viewed_most_page" value="viewed_most_page" />&nbsp;&nbsp;<label for="wpstats_viewed_most_page">' . sprintf( _n( '%s Most Viewed Page', '%s Most Viewed Pages', $stats_mostlimit, 'wp-postviews' ), number_format_i18n( $stats_mostlimit ) ) . '</label><br />' . "\n";
 	}
 	return $content;
 }
 
 
-### Function: Add WP-PostViews General Stats To WP-Stats Page
-function postviews_page_general_stats($content) {
-	$stats_display = get_option('stats_display');
-	if ( (int) ($stats_display['views'] ?? 0) === 1 ) {
-		$content .= '<p><strong>'.__('WP-PostViews', 'wp-postviews').'</strong></p>'."\n";
-		$content .= '<ul>'."\n";
-		$content .= '<li>'.sprintf(_n('<strong>%s</strong> view was generated.', '<strong>%s</strong> views were generated.', get_totalviews(false), 'wp-postviews'), number_format_i18n(get_totalviews(false))).'</li>'."\n";
-		$content .= '</ul>'."\n";
+// Function: Add WP-PostViews General Stats To WP-Stats Page
+function postviews_page_general_stats( $content ) {
+	$stats_display = get_option( 'stats_display' );
+	if ( (int) ( $stats_display['views'] ?? 0 ) === 1 ) {
+		$content .= '<p><strong>' . __( 'WP-PostViews', 'wp-postviews' ) . '</strong></p>' . "\n";
+		$content .= '<ul>' . "\n";
+		$content .= '<li>' . sprintf( _n( '<strong>%s</strong> view was generated.', '<strong>%s</strong> views were generated.', get_totalviews( false ), 'wp-postviews' ), number_format_i18n( get_totalviews( false ) ) ) . '</li>' . "\n";
+		$content .= '</ul>' . "\n";
 	}
 	return $content;
 }
 
 
-### Function: Add WP-PostViews Top Most/Highest Stats To WP-Stats Page
-function postviews_page_most_stats($content) {
-	$stats_display = get_option('stats_display');
-	$stats_mostlimit = (int) get_option('stats_mostlimit');
-	if ( (int) ($stats_display['viewed_most_post'] ?? 0) === 1 ) {
-		$content .= '<p><strong>'.sprintf(_n('%s Most Viewed Post', '%s Most Viewed Posts', $stats_mostlimit, 'wp-postviews'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
-		$content .= '<ul>'."\n";
-		$content .= get_most_viewed('post', $stats_mostlimit, 0, false);
-		$content .= '</ul>'."\n";
+// Function: Add WP-PostViews Top Most/Highest Stats To WP-Stats Page
+function postviews_page_most_stats( $content ) {
+	$stats_display   = get_option( 'stats_display' );
+	$stats_mostlimit = (int) get_option( 'stats_mostlimit' );
+	if ( (int) ( $stats_display['viewed_most_post'] ?? 0 ) === 1 ) {
+		$content .= '<p><strong>' . sprintf( _n( '%s Most Viewed Post', '%s Most Viewed Posts', $stats_mostlimit, 'wp-postviews' ), number_format_i18n( $stats_mostlimit ) ) . '</strong></p>' . "\n";
+		$content .= '<ul>' . "\n";
+		$content .= get_most_viewed( 'post', $stats_mostlimit, 0, false );
+		$content .= '</ul>' . "\n";
 	}
-	if(($stats_display['viewed_most_page'] ?? 0) == 1) {
-		$content .= '<p><strong>'.sprintf(_n('%s Most Viewed Page', '%s Most Viewed Pages', $stats_mostlimit, 'wp-postviews'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
-		$content .= '<ul>'."\n";
-		$content .= get_most_viewed('page', $stats_mostlimit, 0, false);
-		$content .= '</ul>'."\n";
+	if ( ( $stats_display['viewed_most_page'] ?? 0 ) == 1 ) {
+		$content .= '<p><strong>' . sprintf( _n( '%s Most Viewed Page', '%s Most Viewed Pages', $stats_mostlimit, 'wp-postviews' ), number_format_i18n( $stats_mostlimit ) ) . '</strong></p>' . "\n";
+		$content .= '<ul>' . "\n";
+		$content .= get_most_viewed( 'page', $stats_mostlimit, 0, false );
+		$content .= '</ul>' . "\n";
 	}
 	return $content;
 }
 
 
-### Function: Increment Post Views
+// Function: Increment Post Views
 add_action( 'wp_ajax_postviews', 'increment_views' );
 add_action( 'wp_ajax_nopriv_postviews', 'increment_views' );
 function increment_views() {
@@ -828,7 +845,7 @@ function increment_views() {
 		return;
 	}
 
-	if ( !defined( 'WP_CACHE' ) || ! WP_CACHE ) {
+	if ( ! defined( 'WP_CACHE' ) || ! WP_CACHE ) {
 		return;
 	}
 
@@ -842,69 +859,73 @@ function increment_views() {
 	// This endpoint is reachable by logged out visitors, and update_post_meta()
 	// happily creates a row for a post ID that does not exist. Without this
 	// check anyone can walk the ID space and grow wp_postmeta indefinitely.
-	if( $post_id > 0 && get_post_status( $post_id ) ) {
+	if ( $post_id > 0 && get_post_status( $post_id ) ) {
 		$post_views = (int) get_post_meta( $post_id, 'views', true );
 		$post_views = $post_views + 1;
 		update_post_meta( $post_id, 'views', $post_views );
 		do_action( 'postviews_increment_views_ajax', $post_views );
-		wp_send_json_success( [ 'views' => $post_views ] );
+		wp_send_json_success( array( 'views' => $post_views ) );
 		exit();
 	}
 }
 
-### Function Show Post Views Column in WP-Admin
-add_action('manage_posts_custom_column', 'add_postviews_column_content');
-add_filter('manage_posts_columns', 'add_postviews_column');
-add_action('manage_pages_custom_column', 'add_postviews_column_content');
-add_filter('manage_pages_columns', 'add_postviews_column');
-function add_postviews_column($defaults) {
+// Function Show Post Views Column in WP-Admin
+add_action( 'manage_posts_custom_column', 'add_postviews_column_content' );
+add_filter( 'manage_posts_columns', 'add_postviews_column' );
+add_action( 'manage_pages_custom_column', 'add_postviews_column_content' );
+add_filter( 'manage_pages_columns', 'add_postviews_column' );
+function add_postviews_column( $defaults ) {
 	$defaults['views'] = __( 'Views', 'wp-postviews' );
 	return $defaults;
 }
 
 
-### Functions Fill In The Views Count
-function add_postviews_column_content($column_name) {
-	if ($column_name === 'views' ) {
-		if ( function_exists('the_views' ) ) {
+// Functions Fill In The Views Count
+function add_postviews_column_content( $column_name ) {
+	if ( $column_name === 'views' ) {
+		if ( function_exists( 'the_views' ) ) {
 			the_views( true, '', '', true );
 		}
 	}
 }
 
 
-### Function Sort Columns
-add_filter( 'manage_edit-post_sortable_columns', 'sort_postviews_column');
+// Function Sort Columns
+add_filter( 'manage_edit-post_sortable_columns', 'sort_postviews_column' );
 add_filter( 'manage_edit-page_sortable_columns', 'sort_postviews_column' );
 function sort_postviews_column( $defaults ) {
 	$defaults['views'] = 'views';
 	return $defaults;
 }
-add_action('pre_get_posts', 'sort_postviews');
-function sort_postviews($query) {
+add_action( 'pre_get_posts', 'sort_postviews' );
+function sort_postviews( $query ) {
 	if ( ! is_admin() ) {
 		return;
 	}
-	$orderby = $query->get('orderby');
+	$orderby = $query->get( 'orderby' );
 	if ( 'views' === $orderby ) {
 		$query->set( 'meta_key', 'views' );
 		$query->set( 'orderby', 'meta_value_num' );
 	}
 }
 
-### Function: Round Numbers To K (Thousand), M (Million) or B (Billion)
+// Function: Round Numbers To K (Thousand), M (Million) or B (Billion)
 function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
-	if( $number < $min_value ) {
+	if ( $number < $min_value ) {
 		return number_format_i18n( $number );
 	}
 	// Work upwards and take the first unit whose *rounded* value still fits in
 	// three digits. Picking the unit from the raw number instead lets rounding
 	// tip it over: 999,950 / 1000 rounds to 1000.0, which used to be printed as
 	// "1000K" rather than "1M", and 999,999,999 came out as "1000M" not "1B".
-	$alphabets = array( 1000 => 'K', 1000000 => 'M', 1000000000 => 'B' );
-	foreach( $alphabets as $key => $value ) {
+	$alphabets = array(
+		1000       => 'K',
+		1000000    => 'M',
+		1000000000 => 'B',
+	);
+	foreach ( $alphabets as $key => $value ) {
 		$rounded = round( $number / $key, $decimal );
-		if( $rounded < 1000 ) {
+		if ( $rounded < 1000 ) {
 			return $rounded . '' . $value;
 		}
 	}
@@ -912,143 +933,165 @@ function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
 }
 
 
-### Class: WP-PostViews Widget
- class WP_Widget_PostViews extends WP_Widget {
+// Class: WP-PostViews Widget
+class WP_Widget_PostViews extends WP_Widget {
 	// Constructor
 	public function __construct() {
-		$widget_ops = array('description' => __('WP-PostViews views statistics', 'wp-postviews'));
-		parent::__construct('views', __('Views', 'wp-postviews'), $widget_ops);
+		$widget_ops = array( 'description' => __( 'WP-PostViews views statistics', 'wp-postviews' ) );
+		parent::__construct( 'views', __( 'Views', 'wp-postviews' ), $widget_ops );
 	}
 
 	// Display Widget
-	public function widget($args, $instance) {
+	public function widget( $args, $instance ) {
 		// The block based widget editor and the customizer both hand over
 		// instances with only the keys the user touched, so fill in the same
 		// defaults form() uses rather than warning on every missing key.
-		$instance = wp_parse_args((array) $instance, array('title' => '', 'type' => 'most_viewed', 'mode' => '', 'limit' => 10, 'chars' => 200, 'cat_ids' => '0'));
-		$title = apply_filters('widget_title', esc_attr($instance['title']));
-		$type = esc_attr($instance['type']);
-		$mode = esc_attr($instance['mode']);
-		$limit = (int) $instance['limit'];
-		$chars = (int) $instance['chars'];
-		$cat_ids = explode(',', esc_attr($instance['cat_ids']));
+		$instance = wp_parse_args(
+			(array) $instance,
+			array(
+				'title'   => '',
+				'type'    => 'most_viewed',
+				'mode'    => '',
+				'limit'   => 10,
+				'chars'   => 200,
+				'cat_ids' => '0',
+			)
+		);
+		$title    = apply_filters( 'widget_title', esc_attr( $instance['title'] ) );
+		$type     = esc_attr( $instance['type'] );
+		$mode     = esc_attr( $instance['mode'] );
+		$limit    = (int) $instance['limit'];
+		$chars    = (int) $instance['chars'];
+		$cat_ids  = explode( ',', esc_attr( $instance['cat_ids'] ) );
 		echo $args['before_widget'] . $args['before_title'] . $title . $args['after_title'];
-		echo '<ul>'."\n";
-		switch($type) {
+		echo '<ul>' . "\n";
+		switch ( $type ) {
 			case 'least_viewed':
-				get_least_viewed($mode, $limit, $chars);
+				get_least_viewed( $mode, $limit, $chars );
 				break;
 			case 'most_viewed':
-				get_most_viewed($mode, $limit, $chars);
+				get_most_viewed( $mode, $limit, $chars );
 				break;
 			case 'most_viewed_category':
-				get_most_viewed_category($cat_ids, $mode, $limit, $chars);
+				get_most_viewed_category( $cat_ids, $mode, $limit, $chars );
 				break;
 			case 'least_viewed_category':
-				get_least_viewed_category($cat_ids, $mode, $limit, $chars);
+				get_least_viewed_category( $cat_ids, $mode, $limit, $chars );
 				break;
 		}
-		echo '</ul>'."\n";
-		echo  $args['after_widget'];
+		echo '</ul>' . "\n";
+		echo $args['after_widget'];
 	}
 
 	// When Widget Control Form Is Posted
-	public function update($new_instance, $old_instance) {
-		if (!isset($new_instance['submit'])) {
+	public function update( $new_instance, $old_instance ) {
+		if ( ! isset( $new_instance['submit'] ) ) {
 			return false;
 		}
-		$instance = $old_instance;
-		$instance['title'] = strip_tags($new_instance['title']);
-		$instance['type'] = strip_tags($new_instance['type']);
-		$instance['mode'] = strip_tags($new_instance['mode']);
-		$instance['limit'] = (int) $new_instance['limit'];
-		$instance['chars'] = (int) $new_instance['chars'];
-		$instance['cat_ids'] = strip_tags($new_instance['cat_ids']);
+		$instance            = $old_instance;
+		$instance['title']   = strip_tags( $new_instance['title'] );
+		$instance['type']    = strip_tags( $new_instance['type'] );
+		$instance['mode']    = strip_tags( $new_instance['mode'] );
+		$instance['limit']   = (int) $new_instance['limit'];
+		$instance['chars']   = (int) $new_instance['chars'];
+		$instance['cat_ids'] = strip_tags( $new_instance['cat_ids'] );
 		return $instance;
 	}
 
 	// DIsplay Widget Control Form
-	public function form($instance) {
-		$instance = wp_parse_args((array) $instance, array('title' => __('Views', 'wp-postviews'), 'type' => 'most_viewed', 'mode' => '', 'limit' => 10, 'chars' => 200, 'cat_ids' => '0'));
-		$title = esc_attr($instance['title']);
-		$type = esc_attr($instance['type']);
-		$mode = trim(esc_attr($instance['mode']));
-		$limit = (int) $instance['limit'];
-		$chars = (int) $instance['chars'];
-		$cat_ids = esc_attr($instance['cat_ids']);
-		$post_types = get_post_types(array(
-			'public' => true
-		));
-?>
+	public function form( $instance ) {
+		$instance   = wp_parse_args(
+			(array) $instance,
+			array(
+				'title'   => __( 'Views', 'wp-postviews' ),
+				'type'    => 'most_viewed',
+				'mode'    => '',
+				'limit'   => 10,
+				'chars'   => 200,
+				'cat_ids' => '0',
+			)
+		);
+		$title      = esc_attr( $instance['title'] );
+		$type       = esc_attr( $instance['type'] );
+		$mode       = trim( esc_attr( $instance['mode'] ) );
+		$limit      = (int) $instance['limit'];
+		$chars      = (int) $instance['chars'];
+		$cat_ids    = esc_attr( $instance['cat_ids'] );
+		$post_types = get_post_types(
+			array(
+				'public' => true,
+			)
+		);
+		?>
 		<p>
-			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'wp-postviews'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:', 'wp-postviews' ); ?> <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo $title; ?>" /></label>
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id('type'); ?>"><?php _e('Statistics Type:', 'wp-postviews'); ?>
-				<select name="<?php echo $this->get_field_name('type'); ?>" id="<?php echo $this->get_field_id('type'); ?>" class="widefat">
-					<option value="least_viewed"<?php selected('least_viewed', $type); ?>><?php _e('Least Viewed', 'wp-postviews'); ?></option>
-					<option value="least_viewed_category"<?php selected('least_viewed_category', $type); ?>><?php _e('Least Viewed By Category', 'wp-postviews'); ?></option>
-					<option value="most_viewed"<?php selected('most_viewed', $type); ?>><?php _e('Most Viewed', 'wp-postviews'); ?></option>
-					<option value="most_viewed_category"<?php selected('most_viewed_category', $type); ?>><?php _e('Most Viewed By Category', 'wp-postviews'); ?></option>
+			<label for="<?php echo $this->get_field_id( 'type' ); ?>"><?php _e( 'Statistics Type:', 'wp-postviews' ); ?>
+				<select name="<?php echo $this->get_field_name( 'type' ); ?>" id="<?php echo $this->get_field_id( 'type' ); ?>" class="widefat">
+					<option value="least_viewed"<?php selected( 'least_viewed', $type ); ?>><?php _e( 'Least Viewed', 'wp-postviews' ); ?></option>
+					<option value="least_viewed_category"<?php selected( 'least_viewed_category', $type ); ?>><?php _e( 'Least Viewed By Category', 'wp-postviews' ); ?></option>
+					<option value="most_viewed"<?php selected( 'most_viewed', $type ); ?>><?php _e( 'Most Viewed', 'wp-postviews' ); ?></option>
+					<option value="most_viewed_category"<?php selected( 'most_viewed_category', $type ); ?>><?php _e( 'Most Viewed By Category', 'wp-postviews' ); ?></option>
 				</select>
 			</label>
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id('mode'); ?>"><?php _e('Include Views From:', 'wp-postviews'); ?>
-				<select name="<?php echo $this->get_field_name('mode'); ?>" id="<?php echo $this->get_field_id('mode'); ?>" class="widefat">
-					<option value=""<?php selected('', $mode); ?>><?php _e('All', 'wp-postviews'); ?></option>
-					<?php if($post_types > 0): ?>
-						<?php foreach($post_types as $post_type): ?>
-							<option value="<?php echo $post_type; ?>"<?php selected($post_type, $mode); ?>><?php printf(__('%s Only', 'wp-postviews'), ucfirst($post_type)); ?></option>
+			<label for="<?php echo $this->get_field_id( 'mode' ); ?>"><?php _e( 'Include Views From:', 'wp-postviews' ); ?>
+				<select name="<?php echo $this->get_field_name( 'mode' ); ?>" id="<?php echo $this->get_field_id( 'mode' ); ?>" class="widefat">
+					<option value=""<?php selected( '', $mode ); ?>><?php _e( 'All', 'wp-postviews' ); ?></option>
+					<?php if ( $post_types > 0 ) : ?>
+						<?php foreach ( $post_types as $post_type ) : ?>
+							<option value="<?php echo $post_type; ?>"<?php selected( $post_type, $mode ); ?>><?php printf( __( '%s Only', 'wp-postviews' ), ucfirst( $post_type ) ); ?></option>
 						<?php endforeach; ?>
 					<?php endif; ?>
 				</select>
 			</label>
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id('limit'); ?>"><?php _e('No. Of Records To Show:', 'wp-postviews'); ?> <input class="widefat" id="<?php echo $this->get_field_id('limit'); ?>" name="<?php echo $this->get_field_name('limit'); ?>" type="text" value="<?php echo $limit; ?>" /></label>
+			<label for="<?php echo $this->get_field_id( 'limit' ); ?>"><?php _e( 'No. Of Records To Show:', 'wp-postviews' ); ?> <input class="widefat" id="<?php echo $this->get_field_id( 'limit' ); ?>" name="<?php echo $this->get_field_name( 'limit' ); ?>" type="text" value="<?php echo $limit; ?>" /></label>
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id('chars'); ?>"><?php _e('Maximum Post Title Length (Characters):', 'wp-postviews'); ?> <input class="widefat" id="<?php echo $this->get_field_id('chars'); ?>" name="<?php echo $this->get_field_name('chars'); ?>" type="text" value="<?php echo $chars; ?>" /></label><br />
-			<small><?php _e('<strong>0</strong> to disable.', 'wp-postviews'); ?></small>
+			<label for="<?php echo $this->get_field_id( 'chars' ); ?>"><?php _e( 'Maximum Post Title Length (Characters):', 'wp-postviews' ); ?> <input class="widefat" id="<?php echo $this->get_field_id( 'chars' ); ?>" name="<?php echo $this->get_field_name( 'chars' ); ?>" type="text" value="<?php echo $chars; ?>" /></label><br />
+			<small><?php _e( '<strong>0</strong> to disable.', 'wp-postviews' ); ?></small>
 		</p>
 		<p>
-			<label for="<?php echo $this->get_field_id('cat_ids'); ?>"><?php _e('Category IDs:', 'wp-postviews'); ?> <span style="color: red;">*</span> <input class="widefat" id="<?php echo $this->get_field_id('cat_ids'); ?>" name="<?php echo $this->get_field_name('cat_ids'); ?>" type="text" value="<?php echo $cat_ids; ?>" /></label><br />
-			<small><?php _e('Separate mutiple categories with commas.', 'wp-postviews'); ?></small>
+			<label for="<?php echo $this->get_field_id( 'cat_ids' ); ?>"><?php _e( 'Category IDs:', 'wp-postviews' ); ?> <span style="color: red;">*</span> <input class="widefat" id="<?php echo $this->get_field_id( 'cat_ids' ); ?>" name="<?php echo $this->get_field_name( 'cat_ids' ); ?>" type="text" value="<?php echo $cat_ids; ?>" /></label><br />
+			<small><?php _e( 'Separate mutiple categories with commas.', 'wp-postviews' ); ?></small>
 		</p>
 		<p style="color: red;">
-			<small><?php _e('* If you are not using any category statistics, you can ignore it.', 'wp-postviews'); ?></small>
+			<small><?php _e( '* If you are not using any category statistics, you can ignore it.', 'wp-postviews' ); ?></small>
 		<p>
-		<input type="hidden" id="<?php echo $this->get_field_id('submit'); ?>" name="<?php echo $this->get_field_name('submit'); ?>" value="1" />
-<?php
+		<input type="hidden" id="<?php echo $this->get_field_id( 'submit' ); ?>" name="<?php echo $this->get_field_name( 'submit' ); ?>" value="1" />
+		<?php
 	}
 }
 
 
-### Function: Init WP-PostViews Widget
+// Function: Init WP-PostViews Widget
 add_action( 'widgets_init', 'widget_views_init' );
 function widget_views_init() {
 	register_widget( 'WP_Widget_PostViews' );
 }
 
 
-### Function: Post Views Options
+// Function: Post Views Options
 register_activation_hook( __FILE__, 'views_activation' );
 function views_activation( $network_wide ) {
 	// Add Options
 	$option_name = 'views_options';
-	$option = array(
-		'count' => 1,
-		'exclude_bots' => 0,
-		'display_home' => 0,
-		'display_single' => 0,
-		'display_page' => 0,
-		'display_archive' => 0,
-		'display_search' => 0,
-		'display_other' => 0,
-		'use_ajax' => 1,
-		'template' => __( '%VIEW_COUNT% views', 'wp-postviews' ),
-		'most_viewed_template' => '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% '.__('views', 'wp-postviews').'</li>'
+	$option      = array(
+		'count'                => 1,
+		'exclude_bots'         => 0,
+		'display_home'         => 0,
+		'display_single'       => 0,
+		'display_page'         => 0,
+		'display_archive'      => 0,
+		'display_search'       => 0,
+		'display_other'        => 0,
+		'use_ajax'             => 1,
+		'template'             => __( '%VIEW_COUNT% views', 'wp-postviews' ),
+		'most_viewed_template' => '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% ' . __( 'views', 'wp-postviews' ) . '</li>',
 	);
 
 	if ( is_multisite() && $network_wide ) {
@@ -1056,7 +1099,12 @@ function views_activation( $network_wide ) {
 		// branch was a fatal waiting to happen. 'number' => 0 lifts
 		// WP_Site_Query's default cap of 100, which silently skipped every site
 		// after the hundredth on a large network.
-		$site_ids = get_sites( array( 'fields' => 'ids', 'number' => 0 ) );
+		$site_ids = get_sites(
+			array(
+				'fields' => 'ids',
+				'number' => 0,
+			)
+		);
 
 		foreach ( $site_ids as $site_id ) {
 			switch_to_blog( (int) $site_id );
@@ -1068,22 +1116,26 @@ function views_activation( $network_wide ) {
 	}
 }
 
-### Function: Parse View Options
+// Function: Parse View Options
 function views_options_parse( $key ) {
 	return ! empty( $_POST[ $key ] ) ? $_POST[ $key ] : null;
 }
 
 
-### Function: Register views meta field to use it in REST API
-add_action('rest_api_init', 'register_rest_views_field');
-function register_rest_views_field(){
-	register_rest_field('post', 'views', array(
-		'get_callback' => function ($post) {
-			if (!$post_views = get_post_meta($post['id'], 'views', true)) {
-				$post_views = 0;
-			}
+// Function: Register views meta field to use it in REST API
+add_action( 'rest_api_init', 'register_rest_views_field' );
+function register_rest_views_field() {
+	register_rest_field(
+		'post',
+		'views',
+		array(
+			'get_callback' => function ( $post ) {
+				if ( ! $post_views = get_post_meta( $post['id'], 'views', true ) ) {
+					$post_views = 0;
+				}
 
-			return (int) $post_views;
-		}
-	));
+				return (int) $post_views;
+			},
+		)
+	);
 }

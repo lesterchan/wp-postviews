@@ -1,40 +1,40 @@
 <?php
-### Variables Variables Variables
+// Variables Variables Variables
 $base_name = plugin_basename( 'wp-postviews/postviews-options.php' );
-$base_page = 'admin.php?page='.$base_name;
-$id = ( isset($_GET['id'] ) ? (int) sanitize_key( $_GET['id'] ) : 0 );
-$mode = ( isset($_GET['mode'] ) ? sanitize_key( trim( $_GET['mode'] ) ) : '' );
-$text = '';
+$base_page = 'admin.php?page=' . $base_name;
+$id        = ( isset( $_GET['id'] ) ? (int) sanitize_key( $_GET['id'] ) : 0 );
+$mode      = ( isset( $_GET['mode'] ) ? sanitize_key( trim( $_GET['mode'] ) ) : '' );
+$text      = '';
 
-### Form Processing
-if(!empty($_POST['Submit'] )) {
+// Form Processing
+if ( ! empty( $_POST['Submit'] ) ) {
 	check_admin_referer( 'wp-postviews_options' );
-	$views_options = array(
-		  'count'                   => (int) sanitize_key( views_options_parse('views_count') )
-		, 'exclude_bots'            => (int) sanitize_key( views_options_parse('views_exclude_bots') )
-		, 'display_home'            => (int) sanitize_key( views_options_parse('views_display_home') )
-		, 'display_single'          => (int) sanitize_key( views_options_parse('views_display_single') )
-		, 'display_page'            => (int) sanitize_key( views_options_parse('views_display_page') )
-		, 'display_archive'         => (int) sanitize_key( views_options_parse('views_display_archive') )
-		, 'display_search'          => (int) sanitize_key( views_options_parse('views_display_search') )
-		, 'display_other'           => (int) sanitize_key( views_options_parse('views_display_other') )
-		, 'use_ajax'                => (int) sanitize_key( views_options_parse('views_use_ajax') )
-		, 'template'                => wp_kses_post( trim( views_options_parse('views_template_template') ) )
-		, 'most_viewed_template'    => wp_kses_post( trim( views_options_parse('views_template_most_viewed') ) )
+	$views_options          = array(
+		'count'                => (int) sanitize_key( views_options_parse( 'views_count' ) ),
+		'exclude_bots'         => (int) sanitize_key( views_options_parse( 'views_exclude_bots' ) ),
+		'display_home'         => (int) sanitize_key( views_options_parse( 'views_display_home' ) ),
+		'display_single'       => (int) sanitize_key( views_options_parse( 'views_display_single' ) ),
+		'display_page'         => (int) sanitize_key( views_options_parse( 'views_display_page' ) ),
+		'display_archive'      => (int) sanitize_key( views_options_parse( 'views_display_archive' ) ),
+		'display_search'       => (int) sanitize_key( views_options_parse( 'views_display_search' ) ),
+		'display_other'        => (int) sanitize_key( views_options_parse( 'views_display_other' ) ),
+		'use_ajax'             => (int) sanitize_key( views_options_parse( 'views_use_ajax' ) ),
+		'template'             => wp_kses_post( trim( views_options_parse( 'views_template_template' ) ) ),
+		'most_viewed_template' => wp_kses_post( trim( views_options_parse( 'views_template_most_viewed' ) ) ),
 	);
-	$update_views_queries = array();
-	$update_views_text = array();
+	$update_views_queries   = array();
+	$update_views_text      = array();
 	$update_views_queries[] = update_option( 'views_options', $views_options );
-	$update_views_text[] = __( 'Post Views Options', 'wp-postviews' );
-	$i = 0;
+	$update_views_text[]    = __( 'Post Views Options', 'wp-postviews' );
+	$i                      = 0;
 
-	foreach( $update_views_queries as $update_views_query ) {
-		if( $update_views_query ) {
-			$text .= '<p style="color: green;">' . $update_views_text[$i] . ' ' . __( 'Updated', 'wp-postviews' ) . '</p>';
+	foreach ( $update_views_queries as $update_views_query ) {
+		if ( $update_views_query ) {
+			$text .= '<p style="color: green;">' . $update_views_text[ $i ] . ' ' . __( 'Updated', 'wp-postviews' ) . '</p>';
 		}
-		$i++;
+		++$i;
 	}
-	if( empty( $text ) ) {
+	if ( empty( $text ) ) {
 		$text = '<p style="color: red;">' . __( 'No Post Views Option Updated', 'wp-postviews' ) . '</p>';
 	}
 }
@@ -42,7 +42,7 @@ if(!empty($_POST['Submit'] )) {
 $views_options = get_option( 'views_options' );
 
 // Default
-if( !isset ( $views_options['use_ajax'] ) ) {
+if ( ! isset( $views_options['use_ajax'] ) ) {
 	$views_options['use_ajax'] = 1;
 }
 ?>
@@ -62,13 +62,16 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 	}
 	/* ]]> */
 </script>
-<?php if( !empty( $text ) ) { echo '<div id="message" class="updated fade"><p>' . $text . '</p></div>'; } ?>
+<?php
+if ( ! empty( $text ) ) {
+	echo '<div id="message" class="updated fade"><p>' . $text . '</p></div>'; }
+?>
 <form method="post" action="<?php echo admin_url( 'admin.php?page=' . plugin_basename( __FILE__ ) ); ?>">
 <?php wp_nonce_field( 'wp-postviews_options' ); ?>
 <div class="wrap">
 	<h2><?php _e( 'Post Views Options', 'wp-postviews' ); ?></h2>
 	<table class="form-table">
-		 <tr>
+		<tr>
 			<td valign="top" width="30%"><strong><?php _e( 'Count Views From:', 'wp-postviews' ); ?></strong></td>
 			<td valign="top">
 				<select name="views_count" size="1">
@@ -87,7 +90,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 				</select>
 			</td>
 		</tr>
-		<?php if( defined( 'WP_CACHE' ) && WP_CACHE ): ?>
+		<?php if ( defined( 'WP_CACHE' ) && WP_CACHE ) : ?>
 			<tr>
 				<td valign="top" width="30%"><strong><?php _e( 'Use AJAX To Update Views:', 'wp-postviews' ); ?></strong></td>
 				<td valign="top">
@@ -100,7 +103,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 					</p>
 				</td>
 			</tr>
-		<?php else: ?>
+		<?php else : ?>
 			<input type="hidden" name="views_use_ajax" value="0" />
 		<?php endif; ?>
 		<tr>
@@ -112,7 +115,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 				<input type="button" name="RestoreDefault" value="<?php _e( 'Restore Default Template', 'wp-postviews' ); ?>" onclick="views_default_templates( 'template' );" class="button" />
 			</td>
 			<td valign="top">
-				<input type="text" id="views_template_template" name="views_template_template" size="70" value="<?php echo htmlspecialchars(stripslashes($views_options['template'] )); ?>" />
+				<input type="text" id="views_template_template" name="views_template_template" size="70" value="<?php echo htmlspecialchars( stripslashes( $views_options['template'] ) ); ?>" />
 			</td>
 		</tr>
 		<tr>
@@ -134,7 +137,7 @@ if( !isset ( $views_options['use_ajax'] ) ) {
 				<input type="button" name="RestoreDefault" value="<?php _e( 'Restore Default Template', 'wp-postviews' ); ?>" onclick="views_default_templates( 'most_viewed' );" class="button" />
 			</td>
 			<td valign="top">
-				<textarea cols="80" rows="15"  id="views_template_most_viewed" name="views_template_most_viewed"><?php echo htmlspecialchars(stripslashes($views_options['most_viewed_template'] )); ?></textarea>
+				<textarea cols="80" rows="15"  id="views_template_most_viewed" name="views_template_most_viewed"><?php echo htmlspecialchars( stripslashes( $views_options['most_viewed_template'] ) ); ?></textarea>
 			</td>
 		</tr>
 	</table>
