@@ -28,6 +28,11 @@ Text Domain: wp-postviews
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 ### WP-PostViews Version
 define( 'WP_POSTVIEWS_VERSION', '1.78.1' );
 
@@ -58,11 +63,14 @@ function process_postviews() {
 		if ( is_single() || is_page() ) {
 			$id = (int) $post->ID;
 			$views_options = get_option( 'views_options' );
+			if ( ! is_array( $views_options ) ) {
+				$views_options = array();
+			}
 			if ( !$post_views = get_post_meta( $post->ID, 'views', true ) ) {
 				$post_views = 0;
 			}
 			$should_count = false;
-			switch( (int) $views_options['count'] ) {
+			switch( (int) ( $views_options['count'] ?? 0 ) ) {
 				case 0:
 					$should_count = true;
 					break;
@@ -114,7 +122,7 @@ function process_postviews() {
 					, 'Bytedance' => 'Bytespider'
 					, 'webmeup' => 'BLEXBot'
 				);
-				$useragent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+				$useragent = isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '';
 				foreach ( $bots as $name => $lookfor ) {
 					if ( ! empty( $useragent ) && ( false !== stripos( $useragent, $lookfor ) ) ) {
 						$should_count = false;
@@ -141,6 +149,9 @@ function wp_postview_cache_count_enqueue() {
 	}
 
 	$views_options = get_option( 'views_options' );
+	if ( ! is_array( $views_options ) ) {
+		$views_options = array();
+	}
 
 	if ( isset( $views_options['use_ajax'] ) && (int) $views_options['use_ajax'] === 0 ) {
 		return;
@@ -148,7 +159,7 @@ function wp_postview_cache_count_enqueue() {
 
 	if ( !wp_is_post_revision( $post ) && ( is_single() || is_page() ) ) {
 		$should_count = false;
-		switch( (int) $views_options['count'] ) {
+		switch( (int) ( $views_options['count'] ?? 0 ) ) {
 			case 0:
 				$should_count = true;
 				break;
@@ -177,6 +188,11 @@ function wp_postview_cache_count_enqueue() {
 function should_views_be_displayed($views_options = null) {
 	if ($views_options == null) {
 		$views_options = get_option('views_options');
+	}
+	// array_key_exists() throws a TypeError on a non-array in PHP 8, and
+	// get_option() returns false when the row is missing.
+	if (!is_array($views_options)) {
+		$views_options = array();
 	}
 	$display_option = 0;
 	if (is_home()) {
@@ -213,7 +229,7 @@ function the_views($display = true, $prefix = '', $postfix = '', $always = false
 	$post_views = (int) get_post_meta( get_the_ID(), 'views', true );
 	$views_options = get_option('views_options');
 	if ($always || should_views_be_displayed($views_options)) {
-		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) ).$postfix;
+		$output = $prefix.str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ?? '' ) ).$postfix;
 		if($display) {
 			echo apply_filters('the_views', $output);
 		} else {
@@ -235,7 +251,7 @@ function views_shortcode( $atts ) {
 	}
 	$views_options = get_option( 'views_options' );
 	$post_views = (int) get_post_meta( $id, 'views', true );
-	$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ) );
+	$output = str_replace( array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ), array( number_format_i18n( $post_views ), postviews_round_number( $post_views) ), stripslashes( $views_options['template'] ?? '' ) );
 
 	return apply_filters( 'the_views', $output );
 }
@@ -274,7 +290,7 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] );
+				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
 				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
@@ -337,7 +353,7 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] );
+				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
 				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
@@ -401,7 +417,7 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] );
+				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
 				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
@@ -465,7 +481,7 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] );
+				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
 				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
@@ -528,7 +544,7 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] );
+				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
 				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
@@ -592,7 +608,7 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 					$post_category_id = $categories[0]->term_id;
 				}
 
-				$temp = stripslashes( $views_options['most_viewed_template'] );
+				$temp = stripslashes( $views_options['most_viewed_template'] ?? '' );
 				$temp = str_replace( '%VIEW_COUNT%', number_format_i18n( $post_views ), $temp );
 				$temp = str_replace( '%VIEW_COUNT_ROUNDED%', postviews_round_number( $post_views ), $temp );
 				$temp = str_replace( '%POST_TITLE%', $post_title, $temp );
@@ -639,21 +655,24 @@ if(!function_exists('get_totalviews')) {
 ### Function: Snippet Text
 if(!function_exists('snippet_text')) {
 	function snippet_text($text, $length = 0) {
-		if (defined('MB_OVERLOAD_STRING')) {
-		  $text = @html_entity_decode($text, ENT_QUOTES, get_option('blog_charset'));
-			 if (mb_strlen($text) > $length) {
-				return htmlentities(mb_substr($text,0,$length), ENT_COMPAT, get_option('blog_charset')).'...';
-			 } else {
-				return htmlentities($text, ENT_COMPAT, get_option('blog_charset'));
-			 }
+		// The multibyte branch used to be gated on MB_OVERLOAD_STRING, which PHP
+		// 8.0 removed along with mbstring function overloading. That left every
+		// title going through substr(), which cuts on bytes: a CJK title chopped
+		// mid-character became invalid UTF-8, and htmlentities() then returned an
+		// empty string, so the title disappeared entirely. Gate on the functions
+		// actually being used instead.
+		$charset = get_option('blog_charset');
+		$text = html_entity_decode((string) $text, ENT_QUOTES, $charset);
+
+		if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+			$too_long = mb_strlen($text, $charset) > $length;
+			$trimmed = $too_long ? mb_substr($text, 0, $length, $charset) : $text;
 		} else {
-			$text = @html_entity_decode($text, ENT_QUOTES, get_option('blog_charset'));
-			 if (strlen($text) > $length) {
-				return htmlentities(substr($text,0,$length), ENT_COMPAT, get_option('blog_charset')).'...';
-			 } else {
-				return htmlentities($text, ENT_COMPAT, get_option('blog_charset'));
-			 }
+			$too_long = strlen($text) > $length;
+			$trimmed = $too_long ? substr($text, 0, $length) : $text;
 		}
+
+		return htmlentities($trimmed, ENT_COMPAT, $charset) . ($too_long ? '...' : '');
 	}
 }
 
@@ -819,8 +838,11 @@ function increment_views() {
 		return;
 	}
 
-	$post_id = (int) sanitize_key( $_POST['postviews_id'] );
-	if( $post_id > 0 ) {
+	$post_id = (int) sanitize_key( wp_unslash( $_POST['postviews_id'] ) );
+	// This endpoint is reachable by logged out visitors, and update_post_meta()
+	// happily creates a row for a post ID that does not exist. Without this
+	// check anyone can walk the ID space and grow wp_postmeta indefinitely.
+	if( $post_id > 0 && get_post_status( $post_id ) ) {
 		$post_views = (int) get_post_meta( $post_id, 'views', true );
 		$post_views = $post_views + 1;
 		update_post_meta( $post_id, 'views', $post_views );
@@ -875,11 +897,18 @@ function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
 	if( $number < $min_value ) {
 		return number_format_i18n( $number );
 	}
-	$alphabets = array( 1000000000 => 'B', 1000000 => 'M', 1000 => 'K' );
-	foreach( $alphabets as $key => $value )
-		if( $number >= $key ) {
-			return round( $number / $key, $decimal ) . '' . $value;
+	// Work upwards and take the first unit whose *rounded* value still fits in
+	// three digits. Picking the unit from the raw number instead lets rounding
+	// tip it over: 999,950 / 1000 rounds to 1000.0, which used to be printed as
+	// "1000K" rather than "1M", and 999,999,999 came out as "1000M" not "1B".
+	$alphabets = array( 1000 => 'K', 1000000 => 'M', 1000000000 => 'B' );
+	foreach( $alphabets as $key => $value ) {
+		$rounded = round( $number / $key, $decimal );
+		if( $rounded < 1000 ) {
+			return $rounded . '' . $value;
 		}
+	}
+	return round( $number / 1000000000, $decimal ) . 'B';
 }
 
 
@@ -893,6 +922,10 @@ function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
 
 	// Display Widget
 	public function widget($args, $instance) {
+		// The block based widget editor and the customizer both hand over
+		// instances with only the keys the user touched, so fill in the same
+		// defaults form() uses rather than warning on every missing key.
+		$instance = wp_parse_args((array) $instance, array('title' => '', 'type' => 'most_viewed', 'mode' => '', 'limit' => 10, 'chars' => 200, 'cat_ids' => '0'));
 		$title = apply_filters('widget_title', esc_attr($instance['title']));
 		$type = esc_attr($instance['type']);
 		$mode = esc_attr($instance['mode']);
@@ -955,7 +988,6 @@ function postviews_round_number( $number, $min_value = 1000, $decimal = 1 ) {
 				<select name="<?php echo $this->get_field_name('type'); ?>" id="<?php echo $this->get_field_id('type'); ?>" class="widefat">
 					<option value="least_viewed"<?php selected('least_viewed', $type); ?>><?php _e('Least Viewed', 'wp-postviews'); ?></option>
 					<option value="least_viewed_category"<?php selected('least_viewed_category', $type); ?>><?php _e('Least Viewed By Category', 'wp-postviews'); ?></option>
-					<optgroup>&nbsp;</optgroup>
 					<option value="most_viewed"<?php selected('most_viewed', $type); ?>><?php _e('Most Viewed', 'wp-postviews'); ?></option>
 					<option value="most_viewed_category"<?php selected('most_viewed_category', $type); ?>><?php _e('Most Viewed By Category', 'wp-postviews'); ?></option>
 				</select>
@@ -1020,15 +1052,16 @@ function views_activation( $network_wide ) {
 	);
 
 	if ( is_multisite() && $network_wide ) {
-		$ms_sites = function_exists( 'get_sites' ) ? get_sites() : wp_get_sites();
+		// wp_get_sites() was removed in WP 5.1, so the old ternary's fallback
+		// branch was a fatal waiting to happen. 'number' => 0 lifts
+		// WP_Site_Query's default cap of 100, which silently skipped every site
+		// after the hundredth on a large network.
+		$site_ids = get_sites( array( 'fields' => 'ids', 'number' => 0 ) );
 
-		if( 0 < count( $ms_sites ) ) {
-			foreach ( $ms_sites as $ms_site ) {
-				$blog_id = class_exists( 'WP_Site' ) ? $ms_site->blog_id : $ms_site['blog_id'];
-				switch_to_blog( $blog_id );
-				add_option( $option_name, $option );
-				restore_current_blog();
-			}
+		foreach ( $site_ids as $site_id ) {
+			switch_to_blog( (int) $site_id );
+			add_option( $option_name, $option );
+			restore_current_blog();
 		}
 	} else {
 		add_option( $option_name, $option );
