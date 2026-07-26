@@ -2,9 +2,12 @@
 Contributors: GamerZ  
 Donate link: https://lesterchan.net/site/donation/  
 Tags: views, hits, counter, postviews  
-Requires at least: 4.0  
+Requires at least: 6.0  
 Tested up to: 7.0  
-Stable tag: 1.78.1  
+Stable tag: 2.0.0  
+Requires PHP: 7.4  
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Enables you to display how many times a post/page had been viewed.
 
@@ -21,66 +24,77 @@ Enables you to display how many times a post/page had been viewed.
 ### Development
 [https://github.com/lesterchan/wp-postviews/](https://github.com/lesterchan/wp-postviews/ "https://github.com/lesterchan/wp-postviews/")
 
-### Translations
-[http://dev.wp-plugins.org/browser/wp-postviews/i18n/](http://dev.wp-plugins.org/browser/wp-postviews/i18n/ "http://dev.wp-plugins.org/browser/wp-postviews/i18n/")
-
 ### Credits
-* Plugin icon by [Iconmoon](http://www.icomoon.io) from [Flaticon](http://www.flaticon.com)
+* Plugin icon by [Iconmoon](https://www.icomoon.io) from [Flaticon](https://www.flaticon.com)
 
 ### Donations
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
-### Version 1.78.1
+### 2.0.0
+* NEW: Restructured into `includes/` classes. The template tags — `the_views()`, `get_most_viewed()`, `get_least_viewed()`, and the category and tag variants — are unchanged and keep working exactly as before.
+* NEW: The options screen is rebuilt on the WordPress Settings API and no longer loads jQuery.
+* NEW: Requires WordPress 6.0 and PHP 7.4.
+* FIXED: `%VIEW_COUNT_ROUNDED%` picked its unit before rounding, so 999,950 displayed as "1000K" instead of "1M" and 999,999,999 as "1000M" instead of "1B".
+* FIXED: Titles were truncated on bytes rather than characters, because the multibyte branch was gated on `MB_OVERLOAD_STRING`, which PHP 8.0 removed. A CJK title cut mid-character disappeared from the most/least viewed lists entirely.
+* FIXED: The AJAX endpoint recorded views against post IDs that do not exist, letting anyone add rows to `wp_postmeta` indefinitely.
+* FIXED: The widget silently discarded changes made in the block widget editor and the customizer, because it required a hidden form field neither of them sends.
+* FIXED: The widget warned about undefined array keys when rendered from the block widget editor or the customizer.
+* FIXED: Uninstalling on a network of more than 100 sites left options and view counts behind on every site after the hundredth, and reported success. Network activation could fatal on the removed `wp_get_sites()`.
+* NOTE: The settings screen moved from `options-general.php?page=wp-postviews/postviews-options.php` to `options-general.php?page=wp-postviews`. Update any bookmark; the Settings → PostViews menu item is unchanged.
+* NOTE: Templates are now stored unslashed. Existing templates are migrated automatically the first time 2.0.0 loads.
+* NOTE: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()` are no longer global functions. They were never documented; they are now `PostViews_Display::should_be_displayed()`, `PostViews_Display::round_number()` and `PostViews_Display::snippet_text()`.
+
+### 1.78.1
 * NEW: WordPress 7.0
 
-### Version 1.78
+### 1.78
 * NEW: Add %POST_THUMBNAIL_URL% to template variables
 
-### Version 1.77
+### 1.77
 * NEW: Use Vanilla JS. Props @JiveDig
 * NEW: Bump to WordPress 6.2
 * NEW: Support views under fields for Rest API. Props @vitro-mod
 
-### Version 1.76.1
+### 1.76.1
 * NEW: Add Post Author in views template
 * NEW: Bump for WordPress 5.3
 
-### Version 1.76
+### 1.76
 * NEW: Added postviews_should_count filter
 * FIXED: Change to (int) from intval() and use sanitize_key() with it.
 
-### Version 1.75
+### 1.75
 * NEW: Use WP_Query() for most/least viewed posts
 
-### Version 1.74
+### 1.74
 * NEW: Bump WordPress 4.7
 * NEW: Template variable %POST_CATEGORY_ID%. It returns Post's Category ID. If you are using Yoast SEO Plugin, it will return the priority Category ID. Props @FunFrog-BY
 
-### Version 1.73
+### 1.73
 * FIXED: In preview mode, don't count views
 
-### Version 1.72
+### 1.72
 * NEW: Add %POST_THUMBNAIL% to template variables
 
-### Version 1.71
+### 1.71
 * FIXED: Notices in Widget Constructor for WordPress 4.3
 
-### Version 1.70
+### 1.70
 * FIXED: Integration with WP-Stats
 
-### Version 1.69
+### 1.69
 * NEW: Shortcode `[views]` or [views id="POST_ID"]` to embed view count into post
 * NEW: Added template variable `%VIEW_COUNT_ROUNDED%` to support rounded view count like 10.1k or 11.2M
 
-### Version 1.68
+### 1.68
 * NEW: Added action hook 'postviews_increment_views' and 'postviews_increment_views_ajax'
 * NEW: Allow custom post type to be chosen under the widget
 
-### Version 1.67
+### 1.67
 * NEW: Allow user to not use AJAX to update the views even though WP_CACHE is true
 
-### Version 1.66
+### 1.66
 * NEW: Supports MultiSite Network Activation
 * NEW: Add %POST_DATE% and %POST_TIME% to template variables
 * NEW: Add China isearch engines bots
@@ -89,12 +103,13 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 * FIXED: Notices and better way to get views from meta. Props daankortenbach.
 * FIXED: No longer needing add_post_meta() if update_post_meta() fails.
 
-### Version 1.65 (02-06-2013)
+### 1.65
 * FIXED: Views not showing in WP-Admin if "Display Options" is not set to "Display to everyone"
 
 ## Upgrade Notice
 
-N/A
+### 2.0.0
+Requires WordPress 6.0 and PHP 7.4. Your template tags and settings carry over untouched, but the settings screen has a new URL — reach it from Settings → PostViews. If your theme calls `should_views_be_displayed()`, `postviews_round_number()` or `snippet_text()` directly, those three undocumented helpers are now methods on `PostViews_Display`.
 
 ## Screenshots
 
@@ -197,26 +212,23 @@ N/A
 
 ### To Sort Most/Least Viewed Posts
 * You can use: `<?php query_posts( array( 'meta_key' => 'views', 'orderby' => 'meta_value_num', 'order' => 'DESC' ) ); ?>`
-* Or pass in the variables to the URL: `http://yoursite.com/?v_sortby=views&v_orderby=desc`
+* Or pass in the variables to the URL: `https://yoursite.com/?v_sortby=views&v_orderby=desc`
 * You can replace DESC  with ASC if you want the least viewed posts.
 
 ### To Display Updating View Count With LiteSpeed Cache
 Use: `<div id="postviews_lscwp"></div>` to replace `<?php if(function_exists('the_views')) { the_views(); } ?>`.
-NOTE: The id can be changed, but the div id and the ajax function must match.
-Replace the ajax query in `wp-content/plugins/wp-postviews/postviews-cache.js` with
+NOTE: The id can be changed, but the div id and the script must match.
+
+`postviews-cache.js` already posts the view and receives the new count back, so you only need to write that count into your div. Add this to your theme, or to a small script of your own enqueued after `wp-postviews-cache`:
 
 ```javascript
-jQuery.ajax({
-    type:"GET",
-    url:viewsCacheL10n.admin_ajax_url,
-    data:"postviews_id="+viewsCacheL10n.post_id+"&action=postviews",
-    cache:!1,
-    success:function(data) {
-        if(data) {
-            jQuery('#postviews_lscwp').html(data+' views');
-        }
-   }
-});
+document.addEventListener( 'postviews:updated', function ( event ) {
+	const target = document.getElementById( 'postviews_lscwp' );
+
+	if ( target ) {
+		target.textContent = event.detail.views + ' views';
+	}
+} );
 ```
 
 Purge the cache to use the updated pages.
