@@ -22,10 +22,10 @@ fetch( viewsCacheL10n.admin_ajax_url, {
 		postviews_id: viewsCacheL10n.post_id,
 	} ),
 } )
-	.then( function ( response ) {
+	.then( function( response ) {
 		return response.json();
 	} )
-	.then( function ( data ) {
+	.then( function( data ) {
 		if ( ! data || ! data.success || ! data.data ) {
 			return;
 		}
@@ -36,10 +36,10 @@ fetch( viewsCacheL10n.admin_ajax_url, {
 					views: data.data.views,
 					postId: viewsCacheL10n.post_id,
 				},
-			} )
+			} ),
 		);
 	} )
-	.catch( function ( error ) {
+	.catch( function( error ) {
 		// eslint-disable-next-line no-console
 		console.log( 'WP-PostViews', error );
 	} );

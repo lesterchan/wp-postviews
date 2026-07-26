@@ -6,7 +6,7 @@
  * defaults arrive as data from wp_localize_script() rather than being written
  * into an attribute, so no escaping happens in a JavaScript string literal.
  */
-document.addEventListener( 'click', function ( event ) {
+document.addEventListener( 'click', function( event ) {
 	const button = event.target.closest( '[data-postviews-reset]' );
 
 	if ( ! button ) {

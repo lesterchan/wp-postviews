@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<ruleset name="WP-PostViews">
+	<description>WordPress Coding Standards for WP-PostViews.</description>
+
+	<file>.</file>
+
+	<!-- Scanning these makes the CI runner run out of memory. -->
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+
+	<!-- Pinned to php so phpcs never wanders into .js, which WPCS dropped
+	     sniffs for in 3.0 and which PHP_CodeSniffer 4.0 cannot scan at all.
+	     JavaScript is checked by ESLint instead. -->
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="ps"/>
+
+	<config name="minimum_wp_version" value="6.0"/>
+
+	<rule ref="WordPress">
+		<!-- The total view count is a SUM() over postmeta. There is no core
+		     API for it and nothing sensible to cache it against. -->
+		<exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/>
+		<exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/>
+	</rule>
+
+	<!-- The public AJAX endpoint calls check_ajax_referer() as its first
+	     statement, which the sniff cannot see. Scoped to that one file rather
+	     than silenced repo-wide. -->
+	<rule ref="WordPress.Security.NonceVerification">
+		<exclude-pattern>/includes/class-postviews-counter.php</exclude-pattern>
+	</rule>
+
+	<!-- Ordering by view count is the entire point of the ?v_sortby query var,
+	     so the listings deliberately set meta_key. -->
+	<rule ref="WordPress.DB.SlowDBQuery.slow_db_query_meta_key">
+		<exclude-pattern>/includes/class-postviews-query.php</exclude-pattern>
+		<exclude-pattern>/includes/class-postviews-admin.php</exclude-pattern>
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="wp-postviews"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Tests assemble their own markup and assert on it. -->
+	<rule ref="WordPress.Security.EscapeOutput">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- The class-{name}.php convention explicitly excepts test classes, which
+	     PHPUnit discovers by Test_* / *-test naming instead. -->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- The AJAX tests assign $_POST directly to drive the endpoint; the nonce
+	     is part of what they are asserting on, not something they skip. -->
+	<rule ref="WordPress.Security.NonceVerification">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- Core's own hook names contain hyphens - manage_edit-post_sortable_columns
+	     is the one under test here - and the sniff flags them wherever they appear. -->
+	<rule ref="WordPress.NamingConventions.ValidHookName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- The uninstall test reads a local source file to assert against it.
+	     wp_remote_get() is for URLs and is not a substitute. -->
+	<rule ref="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+</ruleset>

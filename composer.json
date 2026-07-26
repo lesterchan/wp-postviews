@@ -1,0 +1,32 @@
+{
+    "name": "lesterchan/wp-postviews",
+    "description": "Enables you to display how many times a post/page had been viewed.",
+    "type": "wordpress-plugin",
+    "keywords": [
+        "wordpress",
+        "plugin",
+        "views"
+    ],
+    "license": [
+        "GPL-2.0-only"
+    ],
+    "authors": [
+        {
+            "name": "Lester Chan",
+            "email": "lesterchan@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "yoast/phpunit-polyfills": "^2.0"
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "allow-plugins": false
+    }
+}
