@@ -159,4 +159,117 @@ class Test_PostViews_Options extends PostViews_TestCase {
 
 		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
 	}
+
+	/**
+	 * Saving replaces the row and refills any missing key from the defaults.
+	 *
+	 * @return void
+	 */
+	public function test_save_replaces_and_backfills() {
+		PostViews_Options::save( array( 'count' => 2 ) );
+
+		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( PostViews_Options::default_template( 'template' ), PostViews_Options::get( 'template' ) );
+		$this->assertSame( 2, (int) get_option( PostViews_Options::OPTION )['count'] );
+	}
+
+	/**
+	 * The accessor returns the supplied fallback for a key that does not exist.
+	 *
+	 * @return void
+	 */
+	public function test_get_returns_the_fallback_for_an_unknown_key() {
+		$this->assertSame( 'fallback', PostViews_Options::get( 'no_such_key', 'fallback' ) );
+		$this->assertNull( PostViews_Options::get( 'no_such_key' ) );
+	}
+
+	/**
+	 * The integer accessor coerces whatever is stored, including junk.
+	 *
+	 * Values arrive as strings from the settings form and as integers from
+	 * activation, and the counter compares them with ===.
+	 *
+	 * @return void
+	 */
+	public function test_get_int_coerces() {
+		$this->set_options( array( 'count' => '2' ) );
+		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
+
+		$this->set_options( array( 'count' => 'nonsense' ) );
+		$this->assertSame( 0, PostViews_Options::get_int( 'count' ) );
+
+		$this->assertSame( 0, PostViews_Options::get_int( 'no_such_key' ) );
+	}
+
+	/**
+	 * Both templates have a non-empty default.
+	 *
+	 * @return void
+	 */
+	public function test_default_templates_are_present() {
+		foreach ( array( 'template', 'most_viewed_template' ) as $key ) {
+			$default = PostViews_Options::default_template( $key );
+
+			$this->assertNotSame( '', $default );
+			$this->assertStringContainsString( '%VIEW_COUNT%', $default );
+		}
+
+		$this->assertStringContainsString( '%POST_URL%', PostViews_Options::default_template( 'most_viewed_template' ) );
+	}
+
+	/**
+	 * An unknown template key falls back to the single post template rather
+	 * than returning nothing.
+	 *
+	 * @return void
+	 */
+	public function test_default_template_falls_back() {
+		$this->assertSame(
+			PostViews_Options::default_template( 'template' ),
+			PostViews_Options::default_template( 'anything_else' )
+		);
+	}
+
+	/**
+	 * The migration leaves a corrupt row alone rather than fatal.
+	 *
+	 * @return void
+	 */
+	public function test_migration_survives_a_non_array_row() {
+		update_option( PostViews_Options::OPTION, 'not an array' );
+		delete_option( PostViews_Options::VERSION_OPTION );
+		PostViews_Options::flush();
+
+		PostViews_Options::maybe_upgrade();
+
+		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( PostViews_Options::VERSION_OPTION ) );
+	}
+
+	/**
+	 * A template with no slashes is untouched by the migration.
+	 *
+	 * @return void
+	 */
+	public function test_migration_leaves_clean_templates_alone() {
+		$this->set_options( array( 'template' => 'Plain %VIEW_COUNT%' ) );
+		delete_option( PostViews_Options::VERSION_OPTION );
+		PostViews_Options::flush();
+
+		PostViews_Options::maybe_upgrade();
+
+		$this->assertSame( 'Plain %VIEW_COUNT%', PostViews_Options::get( 'template' ) );
+	}
+
+	/**
+	 * Activation records the version, so the migration does not run again.
+	 *
+	 * @return void
+	 */
+	public function test_install_records_the_version() {
+		delete_option( PostViews_Options::VERSION_OPTION );
+
+		PostViews_Options::install();
+
+		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( PostViews_Options::VERSION_OPTION ) );
+	}
 }

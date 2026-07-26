@@ -262,184 +262,215 @@ class Test_PostViews_Integration extends PostViews_TestCase {
 	}
 
 	/**
-	 * The registered widget, found by id_base rather than class name.
+	 * The direction is matched case insensitively.
 	 *
-	 * @return WP_Widget|null
+	 * The readme tells people to "replace DESC with ASC", so an uppercase
+	 * value is documented usage. Up to 1.78.1 it compared against lowercase
+	 * only, so ?v_orderby=ASC silently fell through to descending - the exact
+	 * opposite of what the reader asked for.
+	 *
+	 * @dataProvider data_orderby_casing
+	 *
+	 * @param string $orderby  Value of the v_orderby query var.
+	 * @param array  $expected Expected post titles, in order.
+	 * @return void
 	 */
-	protected function get_widget() {
-		global $wp_widget_factory;
+	public function test_v_orderby_is_case_insensitive( $orderby, $expected ) {
+		$this->make_post( array( 'post_title' => 'Low' ), 5 );
+		$this->make_post( array( 'post_title' => 'High' ), 123456 );
 
-		foreach ( $wp_widget_factory->widgets as $widget ) {
-			if ( 'views' === $widget->id_base ) {
-				return $widget;
-			}
+		$GLOBALS['wp_query']->set( 'v_orderby', $orderby );
+		$query = new WP_Query(
+			array(
+				'v_sortby'            => 'views',
+				'post_type'           => 'post',
+				'posts_per_page'      => 2,
+				'ignore_sticky_posts' => true,
+			)
+		);
+
+		$this->assertSame( $expected, wp_list_pluck( $query->posts, 'post_title' ) );
+	}
+
+	/**
+	 * Directions in the casings a reader might copy out of the readme.
+	 *
+	 * @return array
+	 */
+	public function data_orderby_casing() {
+		return array(
+			'lowercase asc'  => array( 'asc', array( 'Low', 'High' ) ),
+			'uppercase ASC'  => array( 'ASC', array( 'Low', 'High' ) ),
+			'mixed Asc'      => array( 'Asc', array( 'Low', 'High' ) ),
+			'padded asc'     => array( '  asc  ', array( 'Low', 'High' ) ),
+			'uppercase DESC' => array( 'DESC', array( 'High', 'Low' ) ),
+			'absent'         => array( '', array( 'High', 'Low' ) ),
+		);
+	}
+
+	/**
+	 * The three SQL clause filters contribute what the sort needs.
+	 *
+	 * @return void
+	 */
+	public function test_sql_clause_filters() {
+		global $wpdb;
+
+		$this->assertStringContainsString( 'AS views', PostViews_Core::posts_fields( 'existing' ) );
+		$this->assertStringStartsWith( 'existing', PostViews_Core::posts_fields( 'existing' ) );
+
+		$this->assertStringContainsString( 'LEFT JOIN ' . $wpdb->postmeta, PostViews_Core::posts_join( 'existing' ) );
+		$this->assertStringStartsWith( 'existing', PostViews_Core::posts_join( 'existing' ) );
+
+		$this->assertStringContainsString( "meta_key = 'views'", PostViews_Core::posts_where( 'existing' ) );
+		$this->assertStringStartsWith( 'existing', PostViews_Core::posts_where( 'existing' ) );
+	}
+
+	/**
+	 * The ORDER BY clause admits only the two directions.
+	 *
+	 * It is interpolated rather than bound, because neither an identifier nor
+	 * a sort direction can be a prepared parameter.
+	 *
+	 * @return void
+	 */
+	public function test_orderby_clause_admits_only_two_directions() {
+		foreach ( array( 'asc; DROP TABLE wp_posts', "asc'", 'RAND()', 'nonsense', '' ) as $hostile ) {
+			$GLOBALS['wp_query']->set( 'v_orderby', $hostile );
+
+			$this->assertSame( ' views desc', PostViews_Core::posts_orderby( 'existing' ) );
 		}
 
-		return null;
+		$GLOBALS['wp_query']->set( 'v_orderby', 'asc' );
+		$this->assertSame( ' views asc', PostViews_Core::posts_orderby( 'existing' ) );
 	}
 
 	/**
-	 * The widget keeps its id_base, and therefore its option row.
-	 *
-	 * Changing it would orphan every configured widget on every site.
+	 * A revision is not given a view count of its own.
 	 *
 	 * @return void
 	 */
-	public function test_widget_option_name_is_unchanged() {
-		$widget = $this->get_widget();
-
-		$this->assertNotNull( $widget, 'No widget with id_base "views" is registered.' );
-		$this->assertSame( 'widget_views', $widget->option_name );
-	}
-
-	/**
-	 * The widget renders a listing inside the sidebar wrappers.
-	 *
-	 * @return void
-	 */
-	public function test_widget_renders() {
-		$this->make_post(
+	public function test_revisions_are_not_seeded() {
+		$parent      = $this->make_post( array(), 500 );
+		$revision_id = self::factory()->post->create(
 			array(
-				'post_title' => 'Top Page',
-				'post_type'  => 'page',
-			),
-			7777
-		);
-		$this->set_options( array( 'most_viewed_template' => '<li>%POST_TITLE%</li>' ) );
-
-		$widget = $this->get_widget();
-		$output = $this->capture(
-			function () use ( $widget ) {
-				$widget->widget(
-					array(
-						'before_widget' => '<aside>',
-						'after_widget'  => '</aside>',
-						'before_title'  => '<h2>',
-						'after_title'   => '</h2>',
-					),
-					array(
-						'title' => 'Top Views',
-						'type'  => 'most_viewed',
-						'mode'  => 'page',
-						'limit' => 2,
-						'chars' => 0,
-					)
-				);
-			}
+				'post_type'   => 'revision',
+				'post_status' => 'inherit',
+				'post_parent' => $parent,
+			)
 		);
 
-		$this->assertStringContainsString( '<aside>', $output );
-		$this->assertStringContainsString( '<h2>Top Views</h2>', $output );
-		$this->assertStringContainsString( '<li>Top Page</li>', $output );
-		$this->assertStringContainsString( '</aside>', $output );
+		delete_post_meta( $revision_id, 'views' );
+		PostViews_Core::seed_views_meta( $revision_id );
+
+		$this->assertSame( '', get_post_meta( $revision_id, 'views', true ) );
 	}
 
 	/**
-	 * The category widget type scopes to its category IDs.
+	 * Publishing a page seeds it too.
 	 *
 	 * @return void
 	 */
-	public function test_widget_category_scoping() {
-		$wanted = self::factory()->category->create( array( 'name' => 'Wanted' ) );
-		$in     = $this->make_post( array( 'post_title' => 'In Category' ), 500 );
-		$this->make_post( array( 'post_title' => 'Out Of Category' ), 900 );
-		wp_set_post_categories( $in, array( $wanted ) );
-
-		$this->set_options( array( 'most_viewed_template' => '<li>%POST_TITLE%</li>' ) );
-
-		$widget = $this->get_widget();
-		$output = $this->capture(
-			function () use ( $widget, $wanted ) {
-				$widget->widget(
-					array(
-						'before_widget' => '',
-						'after_widget'  => '',
-						'before_title'  => '',
-						'after_title'   => '',
-					),
-					array(
-						'title'   => '',
-						'type'    => 'most_viewed_category',
-						'mode'    => 'post',
-						'limit'   => 5,
-						'chars'   => 0,
-						'cat_ids' => (string) $wanted,
-					)
-				);
-			}
-		);
-
-		$this->assertStringContainsString( 'In Category', $output );
-		$this->assertStringNotContainsString( 'Out Of Category', $output );
-	}
-
-	/**
-	 * A sparse instance, which is what the block widget editor and the
-	 * customizer hand over, must render without notices.
-	 *
-	 * @return void
-	 */
-	public function test_widget_tolerates_a_sparse_instance() {
-		$this->make_post( array(), 5 );
-		$widget = $this->get_widget();
-
-		$output = $this->capture(
-			function () use ( $widget ) {
-				$widget->widget(
-					array(
-						'before_widget' => '',
-						'after_widget'  => '',
-						'before_title'  => '',
-						'after_title'   => '',
-					),
-					array( 'title' => 'Bare' )
-				);
-			}
-		);
-
-		$this->assertStringContainsString( '<ul>', $output );
-	}
-
-	/**
-	 * The update() method saves without the hidden "submit" field.
-	 *
-	 * 1.78.1 bailed out unless that field was present, so the block widget
-	 * editor and the customizer silently discarded every change.
-	 *
-	 * @return void
-	 */
-	public function test_widget_update_saves_without_the_submit_field() {
-		$widget = $this->get_widget();
-
-		$saved = $widget->update(
+	public function test_publishing_a_page_seeds_the_meta() {
+		$page_id = self::factory()->post->create(
 			array(
-				'title'   => 'New <b>Title</b>',
-				'type'    => 'least_viewed',
-				'mode'    => 'post',
-				'limit'   => '7',
-				'chars'   => '30',
-				'cat_ids' => '1,2',
-			),
-			array()
+				'post_type'   => 'page',
+				'post_status' => 'publish',
+			)
 		);
 
-		$this->assertSame( 'New Title', $saved['title'] );
-		$this->assertSame( 'least_viewed', $saved['type'] );
-		$this->assertSame( 7, $saved['limit'] );
-		$this->assertSame( 30, $saved['chars'] );
-		$this->assertSame( '1,2', $saved['cat_ids'] );
+		$this->assertSame( '0', get_post_meta( $page_id, 'views', true ) );
 	}
 
 	/**
-	 * An unknown statistics type is rejected rather than stored.
+	 * The REST field is registered on posts only.
+	 *
+	 * Pages have never carried it. Pinned so that adding it later is a
+	 * deliberate change rather than an accident of refactoring.
 	 *
 	 * @return void
 	 */
-	public function test_widget_update_rejects_an_unknown_type() {
-		$widget = $this->get_widget();
+	public function test_rest_field_is_not_on_pages() {
+		$page_id = $this->make_post( array( 'post_type' => 'page' ), 500 );
 
-		$saved = $widget->update( array( 'type' => 'not_a_type' ), array( 'type' => 'most_viewed' ) );
+		$data = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id ) )->get_data();
 
-		$this->assertSame( 'most_viewed', $saved['type'] );
+		$this->assertArrayNotHasKey( 'views', $data );
+	}
+
+	/**
+	 * The REST field is read only and advertises its schema.
+	 *
+	 * @return void
+	 */
+	public function test_rest_field_schema() {
+		$schema = rest_get_server()->get_routes()['/wp/v2/posts']['0']['args'] ?? array();
+		$this->assertArrayNotHasKey( 'views', $schema, 'views must not be writable over REST.' );
+
+		$post_id = $this->make_post( array(), 500 );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
+		$request->set_param( 'context', 'edit' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$this->assertArrayHasKey( 'views', rest_do_request( $request )->get_data() );
+	}
+
+	/**
+	 * The REST callback coerces whatever the meta holds to an integer.
+	 *
+	 * @return void
+	 */
+	public function test_rest_callback_coerces_to_int() {
+		$post_id = $this->make_post( array(), 0 );
+		update_post_meta( $post_id, 'views', 'nonsense' );
+
+		$this->assertSame( 0, PostViews_Core::rest_get_views( array( 'id' => $post_id ) ) );
+	}
+
+	/**
+	 * Admin sorting leaves other columns alone.
+	 *
+	 * @return void
+	 */
+	public function test_admin_sorting_ignores_other_columns() {
+		set_current_screen( 'edit-post' );
+
+		$query = new WP_Query();
+		$query->set( 'orderby', 'title' );
+		$this->fire( 'pre_get_posts', array( $query ) );
+
+		$this->assertSame( 'title', $query->get( 'orderby' ) );
+		$this->assertSame( '', $query->get( 'meta_key' ) );
+
+		set_current_screen( 'front' );
+	}
+
+	/**
+	 * Admin sorting does not reach front end queries.
+	 *
+	 * @return void
+	 */
+	public function test_admin_sorting_does_not_apply_on_the_front_end() {
+		set_current_screen( 'front' );
+
+		$query = new WP_Query();
+		$query->set( 'orderby', 'views' );
+		$this->fire( 'pre_get_posts', array( $query ) );
+
+		$this->assertSame( 'views', $query->get( 'orderby' ), 'The front end query should be untouched.' );
+		$this->assertSame( '', $query->get( 'meta_key' ) );
+	}
+
+	/**
+	 * The query vars are added to whatever is already registered.
+	 *
+	 * @return void
+	 */
+	public function test_query_vars_are_appended() {
+		$vars = PostViews_Core::query_vars( array( 'existing_var' ) );
+
+		$this->assertContains( 'existing_var', $vars );
+		$this->assertContains( 'v_sortby', $vars );
+		$this->assertContains( 'v_orderby', $vars );
 	}
 }

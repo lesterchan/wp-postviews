@@ -75,4 +75,11 @@
 	<rule ref="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
+
+	<!-- Assigning $post and $submenu is how a test stands up the state the
+	     plugin reads. Setting the loop's globals directly is the point, not an
+	     accident, and WP_UnitTestCase restores them between tests. -->
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
 </ruleset>

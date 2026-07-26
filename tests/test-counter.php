@@ -384,6 +384,265 @@ class Test_PostViews_Counter extends PostViews_TestCase {
 	}
 
 	/**
+	 * The cache script is enqueued when the AJAX path is in use.
+	 *
+	 * @return void
+	 */
+	public function test_enqueue_registers_the_cache_script() {
+		$this->set_options(
+			array(
+				'count'    => 0,
+				'use_ajax' => 1,
+			)
+		);
+		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
+
+		$this->fire( 'wp_enqueue_scripts' );
+
+		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+
+		$data = (string) wp_scripts()->get_data( 'wp-postviews-cache', 'data' );
+		$this->assertStringContainsString( '"post_id":"' . $this->post_id . '"', $data );
+		$this->assertStringContainsString( 'admin-ajax.php', $data );
+		$this->assertStringContainsString( '"nonce"', $data );
+	}
+
+	/**
+	 * The cache script does not pull in jQuery.
+	 *
+	 * Dropping that dependency is one of the things 2.0.0 was for, and it is
+	 * easy to reintroduce by copying an enqueue call from another plugin.
+	 *
+	 * @return void
+	 */
+	public function test_cache_script_has_no_jquery_dependency() {
+		$this->set_options(
+			array(
+				'count'    => 0,
+				'use_ajax' => 1,
+			)
+		);
+		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
+
+		$this->fire( 'wp_enqueue_scripts' );
+
+		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-cache']->deps );
+	}
+
+	/**
+	 * Nothing is enqueued when the admin has turned AJAX counting off.
+	 *
+	 * @return void
+	 */
+	public function test_nothing_is_enqueued_when_ajax_is_off() {
+		$this->set_options(
+			array(
+				'count'    => 0,
+				'use_ajax' => 0,
+			)
+		);
+		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
+
+		$this->fire( 'wp_enqueue_scripts' );
+
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+	}
+
+	/**
+	 * Nothing is enqueued on a page that would not be counted anyway.
+	 *
+	 * @return void
+	 */
+	public function test_nothing_is_enqueued_off_a_single_post() {
+		$this->set_options(
+			array(
+				'count'    => 0,
+				'use_ajax' => 1,
+			)
+		);
+		$this->set_context( array( 'is_archive' ), $this->post_id );
+
+		$this->fire( 'wp_enqueue_scripts' );
+
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+	}
+
+	/**
+	 * Nothing is enqueued when the count mode excludes this visitor, so a
+	 * cached page does not carry a request that the endpoint would reject.
+	 *
+	 * @return void
+	 */
+	public function test_nothing_is_enqueued_when_the_visitor_is_not_counted() {
+		$this->sign_in( false );
+		$this->set_options(
+			array(
+				'count'    => 2,
+				'use_ajax' => 1,
+			)
+		);
+		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
+
+		$this->fire( 'wp_enqueue_scripts' );
+
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+	}
+
+	/**
+	 * The bot list is well formed.
+	 *
+	 * @return void
+	 */
+	public function test_bot_list_is_well_formed() {
+		$bots = PostViews_Counter::bots();
+
+		$this->assertNotEmpty( $bots );
+
+		foreach ( $bots as $name => $fragment ) {
+			$this->assertIsString( $fragment, "Bot {$name} has a non-string fragment." );
+			$this->assertNotSame( '', trim( $fragment ), "Bot {$name} has an empty fragment, which would match everything." );
+		}
+
+		$fragments = array_map( 'strtolower', array_values( $bots ) );
+		$this->assertSame(
+			array_values( array_unique( $fragments ) ),
+			$fragments,
+			'A duplicated fragment is a dead entry.'
+		);
+	}
+
+	/**
+	 * Matching is case insensitive, because user agents are not consistent.
+	 *
+	 * @dataProvider data_bot_casing
+	 *
+	 * @param string $user_agent User agent to send.
+	 * @return void
+	 */
+	public function test_bot_matching_is_case_insensitive( $user_agent ) {
+		$this->set_options(
+			array(
+				'count'        => 0,
+				'exclude_bots' => 1,
+			)
+		);
+		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
+
+		$_SERVER['HTTP_USER_AGENT'] = $user_agent;
+
+		$this->assertSame( 0, $this->hit( $this->post_id ) );
+	}
+
+	/**
+	 * The same bot in three different casings.
+	 *
+	 * @return array
+	 */
+	public function data_bot_casing() {
+		return array(
+			'lower' => array( 'bingbot/2.0' ),
+			'upper' => array( 'BINGBOT/2.0' ),
+			'mixed' => array( 'BingBot/2.0' ),
+		);
+	}
+
+	/**
+	 * Bot exclusion only applies when it is switched on.
+	 *
+	 * @return void
+	 */
+	public function test_bots_are_counted_when_exclusion_is_off() {
+		$this->set_options(
+			array(
+				'count'        => 0,
+				'exclude_bots' => 0,
+			)
+		);
+		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
+
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (compatible; bingbot/2.0)';
+
+		$this->assertSame( 1, $this->hit( $this->post_id ) );
+	}
+
+	/**
+	 * A bare post ID in the $post global is still counted.
+	 *
+	 * Some themes assign an ID rather than a WP_Post to that global. The
+	 * counter has always coped with it, and the branch is easy to drop when
+	 * tidying the code.
+	 *
+	 * @return void
+	 */
+	public function test_a_bare_post_id_in_the_global_is_handled() {
+		$this->set_options( array( 'count' => 0 ) );
+		$this->set_context( array( 'is_single', 'is_singular' ) );
+
+		$GLOBALS['post'] = $this->post_id;
+
+		$this->assertSame( 1, $this->hit( $this->post_id ) );
+		$this->assertInstanceOf( WP_Post::class, $GLOBALS['post'], 'The global should have been normalised to a WP_Post.' );
+	}
+
+	/**
+	 * A junk $post global is ignored rather than fatal.
+	 *
+	 * @return void
+	 */
+	public function test_a_junk_post_global_is_ignored() {
+		$this->set_options( array( 'count' => 0 ) );
+		$this->set_context( array( 'is_single', 'is_singular' ) );
+
+		$GLOBALS['post'] = null;
+
+		$before = (int) get_post_meta( $this->post_id, 'views', true );
+		ob_start();
+		$this->fire( 'wp_head' );
+		ob_end_clean();
+
+		$this->assertSame( $before, (int) get_post_meta( $this->post_id, 'views', true ) );
+	}
+
+	/**
+	 * A revision is never counted.
+	 *
+	 * @return void
+	 */
+	public function test_revisions_are_not_counted() {
+		$revision_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'revision',
+				'post_status' => 'inherit',
+				'post_parent' => $this->post_id,
+			)
+		);
+
+		$this->set_options( array( 'count' => 0 ) );
+		$this->set_context( array( 'is_single', 'is_singular' ) );
+		$GLOBALS['post'] = get_post( $revision_id );
+
+		$before = (int) get_post_meta( $revision_id, 'views', true );
+		ob_start();
+		$this->fire( 'wp_head' );
+		ob_end_clean();
+
+		$this->assertSame( $before, (int) get_post_meta( $revision_id, 'views', true ) );
+	}
+
+	/**
+	 * The AJAX path needs both a page cache and the setting.
+	 *
+	 * @return void
+	 */
+	public function test_using_ajax_requires_both_conditions() {
+		$this->set_options( array( 'use_ajax' => 1 ) );
+		$this->assertTrue( PostViews_Counter::using_ajax() );
+
+		$this->set_options( array( 'use_ajax' => 0 ) );
+		$this->assertFalse( PostViews_Counter::using_ajax() );
+	}
+
+	/**
 	 * Drive the nopriv endpoint.
 	 *
 	 * Both wp_send_json_success() and check_ajax_referer() end in wp_die(), so

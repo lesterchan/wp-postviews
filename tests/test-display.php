@@ -305,4 +305,181 @@ class Test_PostViews_Display extends PostViews_TestCase {
 			)
 		);
 	}
+
+	/**
+	 * Entities in a title survive truncation as entities.
+	 *
+	 * The helper decodes then re-encodes, so a title stored with an
+	 * ampersand comes back encoded rather than raw.
+	 *
+	 * @return void
+	 */
+	public function test_snippet_text_round_trips_entities() {
+		$this->assertSame( 'Tom &amp; Jerry', PostViews_Display::snippet_text( 'Tom &amp; Jerry', 50 ) );
+		$this->assertSame( 'Tom &amp; Jerry', PostViews_Display::snippet_text( 'Tom & Jerry', 50 ) );
+	}
+
+	/**
+	 * An entity counts as the character it represents, not its markup.
+	 *
+	 * @return void
+	 */
+	public function test_snippet_text_counts_decoded_characters() {
+		// "Tom & Jerry" is 11 characters once decoded, so a limit of 5 cuts it.
+		$this->assertSame( 'Tom &amp;...', PostViews_Display::snippet_text( 'Tom &amp; Jerry', 5 ) );
+	}
+
+	/**
+	 * A zero length limit truncates everything to the ellipsis.
+	 *
+	 * The listing tags treat 0 as "do not truncate" and never reach this, but
+	 * the helper is public and should not warn.
+	 *
+	 * @return void
+	 */
+	public function test_snippet_text_with_a_zero_limit() {
+		$this->assertSame( '...', PostViews_Display::snippet_text( 'Anything', 0 ) );
+	}
+
+	/**
+	 * Calling round_number() directly, including the arguments the template
+	 * path never varies.
+	 *
+	 * @return void
+	 */
+	public function test_round_number_arguments() {
+		$this->assertSame( '2.5M', PostViews_Display::round_number( 2500000 ) );
+		// A higher minimum keeps the number in full for longer.
+		$this->assertSame( '5,000', PostViews_Display::round_number( 5000, 10000 ) );
+		// More decimal places.
+		$this->assertSame( '1.23K', PostViews_Display::round_number( 1234, 1000, 2 ) );
+		// No decimal places.
+		$this->assertSame( '1K', PostViews_Display::round_number( 1234, 1000, 0 ) );
+	}
+
+	/**
+	 * The total is zero, not empty, when nothing has been viewed.
+	 *
+	 * SUM() over no rows returns NULL, which used to surface as an empty
+	 * string in the WP-Stats panel.
+	 *
+	 * @return void
+	 */
+	public function test_get_totalviews_with_no_rows() {
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key = 'views'" );
+
+		$this->assertSame( 0, get_totalviews( false ) );
+		$this->assertSame(
+			'0',
+			$this->capture(
+				function () {
+					get_totalviews();
+				}
+			)
+		);
+	}
+
+	/**
+	 * When the matrix hides the count, echoing produces nothing at all.
+	 *
+	 * @return void
+	 */
+	public function test_the_views_echoes_nothing_when_hidden() {
+		$post_id = $this->make_post( array(), 500 );
+		$this->set_options(
+			array_merge(
+				array_fill_keys( $this->display_keys, 2 ),
+				array( 'template' => 'SHOULD NOT APPEAR' )
+			)
+		);
+		$this->set_context( array( 'is_home' ), $post_id );
+
+		$this->assertSame(
+			'',
+			$this->capture(
+				function () {
+					the_views();
+				}
+			)
+		);
+	}
+
+	/**
+	 * The prefix and postfix are inside what the filter receives.
+	 *
+	 * A theme filtering the_views sees the finished string, wrappers and all.
+	 *
+	 * @return void
+	 */
+	public function test_the_views_filter_sees_prefix_and_postfix() {
+		$post_id = $this->make_post( array(), 5 );
+		$this->set_options( array( 'template' => 'X' ) );
+		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+
+		$seen = null;
+		add_filter(
+			'the_views',
+			function ( $output ) use ( &$seen ) {
+				$seen = $output;
+				return $output;
+			}
+		);
+
+		the_views( false, '[', ']' );
+
+		$this->assertSame( '[X]', $seen );
+	}
+
+	/**
+	 * An empty template renders as an empty string rather than warning.
+	 *
+	 * @return void
+	 */
+	public function test_an_empty_template_renders_empty() {
+		$post_id = $this->make_post( array(), 500 );
+		$this->set_options( array( 'template' => '' ) );
+		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+
+		$this->assertSame( '', the_views( false ) );
+	}
+
+	/**
+	 * A template with no tokens is passed through untouched.
+	 *
+	 * @return void
+	 */
+	public function test_a_template_without_tokens_is_literal() {
+		$post_id = $this->make_post( array(), 500 );
+		$this->set_options( array( 'template' => 'Hits!' ) );
+		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+
+		$this->assertSame( 'Hits!', the_views( false ) );
+	}
+
+	/**
+	 * The shortcode on a post ID that does not exist renders zero.
+	 *
+	 * @return void
+	 */
+	public function test_shortcode_with_a_nonexistent_id() {
+		$post_id = $this->make_post( array(), 500 );
+		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
+		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+
+		$this->assertSame( '0 views', do_shortcode( '[views id="999999"]' ) );
+	}
+
+	/**
+	 * A non-numeric shortcode id degrades to the current post.
+	 *
+	 * @return void
+	 */
+	public function test_shortcode_with_a_non_numeric_id() {
+		$post_id = $this->make_post( array(), 500 );
+		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
+		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+
+		$this->assertSame( '500 views', do_shortcode( '[views id="abc"]' ) );
+	}
 }

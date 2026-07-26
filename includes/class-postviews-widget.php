@@ -93,6 +93,12 @@ class PostViews_Widget extends WP_Widget {
 
 		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		if ( '' !== $title ) {
+			// Core already registers esc_html on the widget_title filter, so
+			// this is a second pass. It is kept because the filter is public
+			// and a theme can remove that callback, and it costs nothing:
+			// esc_html() passes $double_encode = false, so escaping an already
+			// escaped string is a no-op rather than turning &#038; into
+			// &amp;#038;.
 			echo $args['before_title'] . esc_html( $title ) . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 		echo '<ul>' . "\n";

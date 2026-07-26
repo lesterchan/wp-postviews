@@ -311,4 +311,156 @@ class Test_PostViews_Listings extends PostViews_TestCase {
 
 		$this->assertSame( '[日本語のタ...]', get_most_viewed( 'post', 1, 5, false ) );
 	}
+
+	/**
+	 * The thumbnail tokens render real markup when a featured image is set.
+	 *
+	 * Both were only ever exercised empty, which is the one case where a typo
+	 * in the token name still looks right.
+	 *
+	 * @return void
+	 */
+	public function test_thumbnail_tokens_with_a_featured_image() {
+		$file = DIR_TESTDATA . '/images/canola.jpg';
+		if ( ! file_exists( $file ) ) {
+			$this->markTestSkipped( 'The WordPress test image fixtures are not available.' );
+		}
+
+		$post_id       = $this->make_post(
+			array(
+				'post_title' => 'Illustrated',
+				'post_type'  => 'page',
+			),
+			99999
+		);
+		$attachment_id = self::factory()->attachment->create_upload_object( $file, $post_id );
+		set_post_thumbnail( $post_id, $attachment_id );
+
+		$this->set_options( array( 'most_viewed_template' => '[%POST_THUMBNAIL%][%POST_THUMBNAIL_URL%]' ) );
+
+		$output = get_most_viewed( 'page', 1, 0, false );
+
+		$this->assertStringContainsString( '<img', $output );
+		$this->assertStringContainsString( 'canola', $output );
+		$this->assertStringNotContainsString( '[]', $output, 'Neither thumbnail token should be empty here.' );
+	}
+
+	/**
+	 * Several post types can be requested at once.
+	 *
+	 * @return void
+	 */
+	public function test_an_array_of_several_post_types() {
+		$titles = $this->listed_titles( get_most_viewed( array( 'post', 'page' ), 3, 0, false ) );
+
+		$this->assertSame( array( 'Huge Post', 'High Post', 'Other Page' ), $titles );
+	}
+
+	/**
+	 * An unknown post type yields the N/A fallback rather than everything.
+	 *
+	 * @return void
+	 */
+	public function test_an_unknown_post_type_lists_nothing() {
+		$this->assertSame(
+			'<li>N/A</li>' . "\n",
+			get_most_viewed( 'no_such_type', 5, 0, false )
+		);
+	}
+
+	/**
+	 * Category and tag scoping combine as an intersection.
+	 *
+	 * @return void
+	 */
+	public function test_category_and_tag_scope_together() {
+		$red = get_term_by( 'slug', 'red', 'post_tag' );
+
+		// Alpha holds Low (red) and Mid (blue); red also covers High, in Beta.
+		$output = PostViews_Query::render(
+			array(
+				'mode'     => 'post',
+				'limit'    => 10,
+				'order'    => 'desc',
+				'category' => $this->cats['a'],
+				'tag'      => $red->term_id,
+			)
+		);
+
+		$this->assertStringContainsString( 'Low Post', $output );
+		$this->assertStringNotContainsString( 'Mid Post', $output );
+		$this->assertStringNotContainsString( 'High Post', $output );
+	}
+
+	/**
+	 * A limit of -1 lists everything, as WP_Query defines it.
+	 *
+	 * Four of the fixture posts are of type post and carry a views row; the
+	 * fifth deliberately has no row and so is never listed.
+	 *
+	 * @return void
+	 */
+	public function test_a_negative_limit_lists_everything() {
+		$this->assertCount( 4, $this->listed_titles( get_most_viewed( 'post', -1, 0, false ) ) );
+	}
+
+	/**
+	 * A category that does not exist lists nothing rather than everything.
+	 *
+	 * Falling back to an unscoped query here would leak posts the caller
+	 * deliberately scoped away from.
+	 *
+	 * @return void
+	 */
+	public function test_a_nonexistent_category_lists_nothing() {
+		$this->assertSame(
+			'<li>N/A</li>' . "\n",
+			get_most_viewed_category( 999999, 'post', 5, 0, false )
+		);
+	}
+
+	/**
+	 * The loop is reset, so the listing does not disturb the main query.
+	 *
+	 * @return void
+	 */
+	public function test_the_global_post_survives_a_listing() {
+		$post_id = $this->ids['Mid Post'];
+		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+
+		get_most_viewed( 'post', 3, 0, false );
+
+		$this->assertSame( $post_id, $GLOBALS['post']->ID, 'wp_reset_postdata() should have restored the global.' );
+	}
+
+	/**
+	 * Ties are listed, not dropped.
+	 *
+	 * @return void
+	 */
+	public function test_posts_with_equal_counts_are_all_listed() {
+		// Above Huge Post's 2,500,000, so the pair occupies the top two slots.
+		$this->make_post( array( 'post_title' => 'Tied One' ), 9000000 );
+		$this->make_post( array( 'post_title' => 'Tied Two' ), 9000000 );
+
+		$output = get_most_viewed( 'post', 2, 0, false );
+
+		$this->assertStringContainsString( 'Tied', $output );
+		$this->assertCount( 2, $this->listed_titles( $output ) );
+	}
+
+	/**
+	 * A post whose count is zero is still listed; only a missing meta row
+	 * excludes it.
+	 *
+	 * @return void
+	 */
+	public function test_a_zero_count_is_listed() {
+		$this->make_post( array( 'post_title' => 'Never Read' ), 0 );
+
+		$this->assertStringContainsString(
+			'Never Read',
+			get_least_viewed( 'post', 1, 0, false )
+		);
+	}
 }

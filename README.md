@@ -38,6 +38,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 * FIXED: `%VIEW_COUNT_ROUNDED%` picked its unit before rounding, so 999,950 displayed as "1000K" instead of "1M" and 999,999,999 as "1000M" instead of "1B".
 * FIXED: Titles were truncated on bytes rather than characters, because the multibyte branch was gated on `MB_OVERLOAD_STRING`, which PHP 8.0 removed. A CJK title cut mid-character disappeared from the most/least viewed lists entirely.
 * FIXED: The AJAX endpoint recorded views against post IDs that do not exist, letting anyone add rows to `wp_postmeta` indefinitely.
+* FIXED: `?v_orderby=ASC` was compared against lowercase only, so an uppercase direction — which is what the FAQ tells you to use — silently fell back to descending, the opposite of what was asked for.
 * FIXED: The widget silently discarded changes made in the block widget editor and the customizer, because it required a hidden form field neither of them sends.
 * FIXED: The widget warned about undefined array keys when rendered from the block widget editor or the customizer.
 * FIXED: Uninstalling on a network of more than 100 sites left options and view counts behind on every site after the hundredth, and reported success. Network activation could fatal on the removed `wp_get_sites()`.

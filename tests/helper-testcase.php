@@ -51,6 +51,17 @@ abstract class PostViews_TestCase extends WP_UnitTestCase {
 		$_POST   = array();
 		PostViews_Options::flush();
 
+		// phpunit.xml.dist turns backupGlobals off, so $wp_scripts survives
+		// between tests. Left alone, one test that enqueues makes the next
+		// test's "nothing was enqueued" assertion pass or fail for the wrong
+		// reason.
+		foreach ( array( 'wp-postviews-cache', 'wp-postviews-admin' ) as $handle ) {
+			if ( wp_script_is( $handle, 'registered' ) ) {
+				wp_dequeue_script( $handle );
+				wp_deregister_script( $handle );
+			}
+		}
+
 		parent::tear_down();
 	}
 
