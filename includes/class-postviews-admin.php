@@ -102,10 +102,32 @@ class PostViews_Admin {
 	 * @return void
 	 */
 	public static function register_wp_stats() {
+		add_filter( 'wp_stats_display_defaults', array( __CLASS__, 'wp_stats_display_defaults' ) );
 		add_filter( 'wp_stats_page_admin_plugins', array( __CLASS__, 'wp_stats_admin_general' ) );
 		add_filter( 'wp_stats_page_admin_most', array( __CLASS__, 'wp_stats_admin_most' ) );
 		add_filter( 'wp_stats_page_plugins', array( __CLASS__, 'wp_stats_general' ) );
 		add_filter( 'wp_stats_page_most', array( __CLASS__, 'wp_stats_most' ) );
+	}
+
+	/**
+	 * Tell WP-Stats about the toggles this plugin owns, and their defaults.
+	 *
+	 * Without this WP-Stats only learns a key exists once its checkbox has been
+	 * submitted, so the panels would start out off on a fresh install.
+	 *
+	 * @param array $defaults Registered toggles.
+	 * @return array
+	 */
+	public static function wp_stats_display_defaults( $defaults ) {
+		// WP-Stats' own defaults win, so this only ever adds.
+		return array_merge(
+			array(
+				'views'            => 1,
+				'viewed_most_post' => 1,
+				'viewed_most_page' => 0,
+			),
+			(array) $defaults
+		);
 	}
 
 	/**
@@ -117,6 +139,11 @@ class PostViews_Admin {
 	 * @return bool
 	 */
 	protected static function wp_stats_enabled( $key ) {
+		if ( function_exists( 'wp_stats_display_enabled' ) ) {
+			return wp_stats_display_enabled( $key );
+		}
+
+		// WP-Stats before 3.0.0 kept the toggles in their own option row.
 		$stats_display = get_option( 'stats_display' );
 
 		if ( ! is_array( $stats_display ) ) {
@@ -124,6 +151,19 @@ class PostViews_Admin {
 		}
 
 		return 1 === (int) ( $stats_display[ $key ] ?? 0 );
+	}
+
+	/**
+	 * How many "most" entries WP-Stats is configured to show.
+	 *
+	 * @return int
+	 */
+	protected static function wp_stats_limit() {
+		if ( function_exists( 'wp_stats_most_limit' ) ) {
+			return wp_stats_most_limit();
+		}
+
+		return (int) get_option( 'stats_mostlimit' );
 	}
 
 	/**
@@ -135,6 +175,12 @@ class PostViews_Admin {
 	 * @return string
 	 */
 	protected static function wp_stats_checkbox( $value, $label, $checked ) {
+		// WP-Stats 3.0.0 owns the field name, which changed when it consolidated
+		// its option rows.
+		if ( function_exists( 'wp_stats_checkbox' ) ) {
+			return wp_stats_checkbox( $value, $label );
+		}
+
 		return '<input type="checkbox" name="stats_display[]" id="wpstats_' . esc_attr( $value ) . '" value="' . esc_attr( $value ) . '"' .
 			checked( $checked, true, false ) .
 			' />&nbsp;&nbsp;<label for="wpstats_' . esc_attr( $value ) . '">' . esc_html( $label ) . '</label><br />' . "\n";
@@ -157,7 +203,7 @@ class PostViews_Admin {
 	 * @return string
 	 */
 	public static function wp_stats_admin_most( $content ) {
-		$limit = (int) get_option( 'stats_mostlimit' );
+		$limit = self::wp_stats_limit();
 
 		$content .= self::wp_stats_checkbox(
 			'viewed_most_post',
@@ -209,7 +255,7 @@ class PostViews_Admin {
 	 * @return string
 	 */
 	public static function wp_stats_most( $content ) {
-		$limit = (int) get_option( 'stats_mostlimit' );
+		$limit = self::wp_stats_limit();
 
 		$panels = array(
 			'viewed_most_post' => array(
