@@ -54,11 +54,16 @@ jobs:
         run: npm run lint:js
 
   phpunit:
-    name: PHPUnit (WP ${{ matrix.wordpress }}, PHP ${{ matrix.php }})
+    name: PHPUnit (WP ${{ matrix.wordpress }}, PHP ${{ matrix.php }}, ${{ matrix.multisite == '1' && 'multisite' || 'single site' }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        # Both modes on both stacks. The multisite branch of uninstall.php has
+        # historically failed silently - reporting success while leaving data
+        # behind - so it is worth running everywhere rather than once.
+        php: [ '7.4', '8.3' ]
+        multisite: [ '0', '1' ]
         include:
           - php: '7.4'
             wordpress: '6.0'
@@ -85,7 +90,9 @@ jobs:
           npx --yes @wordpress/env run tests-cli --env-cwd=wp-content/plugins/wp-postviews \
             composer install --no-interaction --no-progress
 
+      # WP_MULTISITE is what the WordPress test bootstrap reads to install a
+      # network, and is the same switch `bin/test.sh --multisite` flips.
       - name: Run PHPUnit
         run: |
           npx --yes @wordpress/env run tests-cli --env-cwd=wp-content/plugins/wp-postviews \
-            vendor/bin/phpunit
+            env WP_MULTISITE=${{ matrix.multisite }} vendor/bin/phpunit

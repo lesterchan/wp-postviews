@@ -2,11 +2,11 @@
 /**
  * The uninstall routine.
  *
- * The multisite branch cannot be exercised from a single site suite, so its
- * arguments are asserted against the source. That is weaker than running it,
- * but the failure it guards against - get_sites() capping at its default of
- * 100 and leaving options and meta behind on every site after the hundredth -
- * is invisible at runtime and still reports success.
+ * The multisite branch is exercised for real in Test_PostViews_Multisite,
+ * which runs under WP_MULTISITE=1. The source level assertions below are kept
+ * as a second line of defence, because the single site CI job is the one that
+ * always runs: they cost nothing and they catch a regression even if the
+ * multisite job is skipped or removed.
  *
  * @package WP-PostViews
  */
@@ -104,6 +104,10 @@ class Test_PostViews_Uninstall extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_uninstall_removes_only_our_data() {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'The network branch is covered by Test_PostViews_Multisite.' );
+		}
+
 		$post_id = $this->make_post( array(), 500 );
 		update_post_meta( $post_id, 'keep_me', 'do not delete' );
 		update_option( 'widget_views', array( 'test' => 1 ) );
