@@ -37,6 +37,76 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	}
 
 	/**
+	 * Both sections are registered against the screen do_settings_sections()
+	 * renders.
+	 *
+	 * @return void
+	 */
+	public function test_sections_are_registered() {
+		global $wp_settings_sections;
+
+		$this->assertArrayHasKey( PostViews_Settings::SLUG, $wp_settings_sections );
+
+		$sections = $wp_settings_sections[ PostViews_Settings::SLUG ];
+
+		$this->assertArrayHasKey( PostViews_Settings::SECTION_GENERAL, $sections );
+		$this->assertArrayHasKey( PostViews_Settings::SECTION_DISPLAY, $sections );
+
+		// The first section has no heading of its own, so the table follows the
+		// h1 the way it always has.
+		$this->assertSame( '', $sections[ PostViews_Settings::SECTION_GENERAL ]['title'] );
+	}
+
+	/**
+	 * Every option key the screen owns is a registered field, not markup in
+	 * render().
+	 *
+	 * @return void
+	 */
+	public function test_every_option_key_has_a_registered_field() {
+		global $wp_settings_fields;
+
+		$fields = $wp_settings_fields[ PostViews_Settings::SLUG ];
+
+		foreach ( array( 'count', 'exclude_bots', 'template', 'most_viewed_template' ) as $key ) {
+			$this->assertArrayHasKey( $key, $fields[ PostViews_Settings::SECTION_GENERAL ], "No registered field for {$key}." );
+		}
+
+		foreach ( $this->display_keys as $key ) {
+			$this->assertArrayHasKey( $key, $fields[ PostViews_Settings::SECTION_DISPLAY ], "No registered field for {$key}." );
+		}
+
+		// The AJAX row exists only under a page cache, same as the markup.
+		$this->assertSame(
+			defined( 'WP_CACHE' ) && WP_CACHE,
+			isset( $fields[ PostViews_Settings::SECTION_GENERAL ]['use_ajax'] )
+		);
+	}
+
+	/**
+	 * The select fields hand core a label_for, so clicking the row label focuses
+	 * the control.
+	 *
+	 * @return void
+	 */
+	public function test_select_fields_declare_their_label_target() {
+		global $wp_settings_fields;
+
+		$fields = $wp_settings_fields[ PostViews_Settings::SLUG ];
+
+		$this->assertSame( 'views-count', $fields[ PostViews_Settings::SECTION_GENERAL ]['count']['args']['label_for'] );
+		$this->assertSame( 'views-display_home', $fields[ PostViews_Settings::SECTION_DISPLAY ]['display_home']['args']['label_for'] );
+
+		// The template rows carry a variable list in the heading cell, which
+		// cannot live inside a label element, so they bring their own.
+		$this->assertArrayNotHasKey( 'label_for', $fields[ PostViews_Settings::SECTION_GENERAL ]['template']['args'] );
+		$this->assertStringContainsString(
+			'<label for="views-template-template">',
+			$fields[ PostViews_Settings::SECTION_GENERAL ]['template']['title']
+		);
+	}
+
+	/**
 	 * A full round trip through update_option(), which is what options.php
 	 * does, keeps every submitted value.
 	 *
@@ -230,6 +300,37 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 		foreach ( array_merge( array( 'count', 'exclude_bots' ), $this->display_keys ) as $key ) {
 			$this->assertStringContainsString( PostViews_Options::OPTION . '[' . $key . ']', $html, "No field for {$key}." );
 		}
+	}
+
+	/**
+	 * The rows are drawn by do_settings_sections(), so the tables, the heading
+	 * and the row order all come from the registered sections.
+	 *
+	 * @return void
+	 */
+	public function test_render_draws_the_registered_sections() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$html = $this->capture(
+			function () {
+				PostViews_Settings::render();
+			}
+		);
+
+		// One table per section, and nothing hand written alongside them.
+		$this->assertSame( 2, substr_count( $html, 'class="form-table"' ) );
+
+		// The second section's title, emitted by core from the registration.
+		$this->assertStringContainsString( '<h2>Display Options</h2>', $html );
+
+		// Its callback ran.
+		$this->assertStringContainsString( '<code>the_views()</code>', $html );
+
+		// Counting rows come before the display matrix.
+		$this->assertLessThan( strpos( $html, 'id="views-display_home"' ), strpos( $html, 'id="views-count"' ) );
+
+		// The variable list still sits in the template row's heading cell.
+		$this->assertStringContainsString( '<code>%POST_THUMBNAIL_URL%</code>', $html );
 	}
 
 	/**

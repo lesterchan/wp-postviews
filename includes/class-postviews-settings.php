@@ -6,6 +6,11 @@
  * $_POST inline. The Settings API does the nonce, the capability check, the
  * redirect and the "Settings saved" notice, so none of that is repeated here.
  *
+ * Every row is registered with add_settings_section() and add_settings_field()
+ * and drawn by do_settings_sections(), so the form-table markup, the label
+ * pairing and the row order all come from core rather than from a hand written
+ * table in render().
+ *
  * The screen slug changed with 2.0.0. It used to be the literal plugin file
  * path, wp-postviews/postviews-options.php, which is how menu pages were
  * registered before add_options_page() grew a proper slug argument, and it
@@ -37,6 +42,20 @@ class PostViews_Settings {
 	const SLUG = 'wp-postviews';
 
 	/**
+	 * Section holding the counting and template rows.
+	 *
+	 * @var string
+	 */
+	const SECTION_GENERAL = 'views_general';
+
+	/**
+	 * Section holding the per context display matrix.
+	 *
+	 * @var string
+	 */
+	const SECTION_DISPLAY = 'views_display';
+
+	/**
 	 * Hook registration.
 	 *
 	 * @return void
@@ -64,7 +83,7 @@ class PostViews_Settings {
 	}
 
 	/**
-	 * Register the one setting.
+	 * Register the one setting, and the sections and fields that edit it.
 	 *
 	 * @return void
 	 */
@@ -77,6 +96,155 @@ class PostViews_Settings {
 				'sanitize_callback' => array( __CLASS__, 'sanitize' ),
 				'default'           => PostViews_Options::defaults(),
 			)
+		);
+
+		// No title, so do_settings_sections() emits the table straight after the
+		// h1 the way the screen has always looked. No callback either.
+		add_settings_section( self::SECTION_GENERAL, '', '', self::SLUG );
+
+		add_settings_field(
+			'count',
+			__( 'Count Views From:', 'wp-postviews' ),
+			array( __CLASS__, 'field_select' ),
+			self::SLUG,
+			self::SECTION_GENERAL,
+			array(
+				'label_for' => 'views-count',
+				'key'       => 'count',
+				'choices'   => array(
+					0 => __( 'Everyone', 'wp-postviews' ),
+					1 => __( 'Guests Only', 'wp-postviews' ),
+					2 => __( 'Registered Users Only', 'wp-postviews' ),
+				),
+			)
+		);
+
+		add_settings_field(
+			'exclude_bots',
+			__( 'Exclude Bot Views:', 'wp-postviews' ),
+			array( __CLASS__, 'field_select' ),
+			self::SLUG,
+			self::SECTION_GENERAL,
+			array(
+				'label_for' => 'views-exclude_bots',
+				'key'       => 'exclude_bots',
+				'choices'   => self::yes_no_choices(),
+			)
+		);
+
+		// Without a page cache the setting has no effect, so the row is not
+		// offered at all; render() pins the stored value off instead.
+		if ( self::using_cache() ) {
+			add_settings_field(
+				'use_ajax',
+				__( 'Use AJAX To Update Views:', 'wp-postviews' ),
+				array( __CLASS__, 'field_select' ),
+				self::SLUG,
+				self::SECTION_GENERAL,
+				array(
+					'label_for'   => 'views-use_ajax',
+					'key'         => 'use_ajax',
+					'choices'     => self::yes_no_choices(),
+					'description' => __( 'You have caching enabled for your WordPress installation, by default WP-PostViews will use AJAX to update the view count. However in some cases, you might not want it.', 'wp-postviews' ),
+				)
+			);
+		}
+
+		add_settings_field(
+			'template',
+			self::template_title( __( 'Views Template:', 'wp-postviews' ), 'views-template-template', array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ) ),
+			array( __CLASS__, 'field_template' ),
+			self::SLUG,
+			self::SECTION_GENERAL,
+			array(
+				'key'  => 'template',
+				'id'   => 'views-template-template',
+				'type' => 'text',
+			)
+		);
+
+		add_settings_field(
+			'most_viewed_template',
+			self::template_title(
+				__( 'Most Viewed Template:', 'wp-postviews' ),
+				'views-template-most_viewed_template',
+				array(
+					'VIEW_COUNT',
+					'VIEW_COUNT_ROUNDED',
+					'POST_TITLE',
+					'POST_DATE',
+					'POST_TIME',
+					'POST_EXCERPT',
+					'POST_CONTENT',
+					'POST_URL',
+					'POST_THUMBNAIL',
+					'POST_THUMBNAIL_URL',
+					'POST_CATEGORY_ID',
+					'POST_AUTHOR',
+				)
+			),
+			array( __CLASS__, 'field_template' ),
+			self::SLUG,
+			self::SECTION_GENERAL,
+			array(
+				'key'  => 'most_viewed_template',
+				'id'   => 'views-template-most_viewed_template',
+				'type' => 'textarea',
+			)
+		);
+
+		add_settings_section(
+			self::SECTION_DISPLAY,
+			__( 'Display Options', 'wp-postviews' ),
+			array( __CLASS__, 'display_section' ),
+			self::SLUG
+		);
+
+		$contexts = array(
+			'display_home'    => array( __( 'Home Page:', 'wp-postviews' ), __( "Don't display on home page", 'wp-postviews' ) ),
+			'display_single'  => array( __( 'Single Posts:', 'wp-postviews' ), __( "Don't display on single posts", 'wp-postviews' ) ),
+			'display_page'    => array( __( 'Pages:', 'wp-postviews' ), __( "Don't display on pages", 'wp-postviews' ) ),
+			'display_archive' => array( __( 'Archive Pages:', 'wp-postviews' ), __( "Don't display on archive pages", 'wp-postviews' ) ),
+			'display_search'  => array( __( 'Search Pages:', 'wp-postviews' ), __( "Don't display on search pages", 'wp-postviews' ) ),
+			'display_other'   => array( __( 'Other Pages:', 'wp-postviews' ), __( "Don't display on other pages", 'wp-postviews' ) ),
+		);
+
+		foreach ( $contexts as $key => $labels ) {
+			list( $label, $never_label ) = $labels;
+
+			add_settings_field(
+				$key,
+				$label,
+				array( __CLASS__, 'field_select' ),
+				self::SLUG,
+				self::SECTION_DISPLAY,
+				array(
+					'label_for' => 'views-' . $key,
+					'key'       => $key,
+					'choices'   => self::display_choices( $never_label ),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Whether a page cache is in play.
+	 *
+	 * @return bool
+	 */
+	protected static function using_cache() {
+		return defined( 'WP_CACHE' ) && WP_CACHE;
+	}
+
+	/**
+	 * The two choices every toggle on this screen offers.
+	 *
+	 * @return array
+	 */
+	protected static function yes_no_choices() {
+		return array(
+			0 => __( 'No', 'wp-postviews' ),
+			1 => __( 'Yes', 'wp-postviews' ),
 		);
 	}
 
@@ -176,41 +344,108 @@ class PostViews_Settings {
 	}
 
 	/**
-	 * Render a select bound to one option key.
+	 * Field callback: a select bound to one option key.
 	 *
-	 * @param string $key     Option key.
-	 * @param array  $choices value => label.
+	 * @param array $args Field args: key, choices, and an optional description.
 	 * @return void
 	 */
-	protected static function select( $key, $choices ) {
+	public static function field_select( $args ) {
+		$key      = $args['key'];
 		$selected = PostViews_Options::get_int( $key );
 		?>
 		<select name="<?php echo esc_attr( PostViews_Options::OPTION . '[' . $key . ']' ); ?>" id="views-<?php echo esc_attr( $key ); ?>" size="1">
-			<?php foreach ( $choices as $value => $label ) : ?>
+			<?php foreach ( $args['choices'] as $value => $label ) : ?>
 				<option value="<?php echo esc_attr( $value ); ?>"<?php selected( $value, $selected ); ?>><?php echo esc_html( $label ); ?></option>
 			<?php endforeach; ?>
 		</select>
 		<?php
+		if ( ! empty( $args['description'] ) ) {
+			echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
+		}
 	}
 
 	/**
-	 * Render a list of the tokens a template accepts.
+	 * Field callback: a template input plus its "Restore Default Template"
+	 * button.
 	 *
-	 * The tokens are emitted as markup rather than being interpolated into a
-	 * translatable string: phpcbf reads %VIEW_COUNT% as a printf placeholder
-	 * and rewrites it to %1$VIEW_COUNT%, which changes the msgid and shows the
-	 * mangled form to the user.
+	 * The button carries the option key and the field id as data attributes;
+	 * that pairing is the whole contract with postviews-admin.js.
 	 *
-	 * @param array $tokens Token names, without the surrounding percent signs.
+	 * @param array $args Field args: key, id, and type of text or textarea.
 	 * @return void
 	 */
-	protected static function token_list( $tokens ) {
-		echo '<p>' . esc_html__( 'Allowed Variables:', 'wp-postviews' ) . '</p>';
-		echo '<ul>';
-		foreach ( $tokens as $token ) {
-			echo '<li><code>%' . esc_html( $token ) . '%</code></li>';
+	public static function field_template( $args ) {
+		$key   = $args['key'];
+		$id    = $args['id'];
+		$name  = PostViews_Options::OPTION . '[' . $key . ']';
+		$value = PostViews_Options::get( $key, '' );
+
+		if ( 'textarea' === $args['type'] ) {
+			?>
+			<textarea class="large-text code" rows="12" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $name ); ?>"><?php echo esc_textarea( $value ); ?></textarea>
+			<?php
+		} else {
+			?>
+			<input type="text" class="large-text code" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $value ); ?>" />
+			<?php
 		}
-		echo '</ul>';
+		?>
+		<p>
+			<button type="button" class="button" data-postviews-reset="<?php echo esc_attr( $key ); ?>" data-postviews-target="<?php echo esc_attr( $id ); ?>">
+				<?php esc_html_e( 'Restore Default Template', 'wp-postviews' ); ?>
+			</button>
+		</p>
+		<?php
+	}
+
+	/**
+	 * The heading cell for a template field: its label, then the tokens the
+	 * template accepts.
+	 *
+	 * Core prints a field title as given, and do_settings_fields() wraps it in a
+	 * label element when label_for is set. These titles carry a list, which has
+	 * no business inside a label, so they bring their own label element and the
+	 * fields leave label_for unset.
+	 *
+	 * The tokens are markup rather than placeholders in a translatable string:
+	 * phpcbf reads %VIEW_COUNT% as a printf placeholder and rewrites it to
+	 * %1$VIEW_COUNT%, which changes the msgid and shows the mangled form to the
+	 * user.
+	 *
+	 * @param string $label  Visible label.
+	 * @param string $id     Field the label points at.
+	 * @param array  $tokens Token names, without the surrounding percent signs.
+	 * @return string
+	 */
+	protected static function template_title( $label, $id, $tokens ) {
+		$title  = '<label for="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</label>';
+		$title .= '<p>' . esc_html__( 'Allowed Variables:', 'wp-postviews' ) . '</p>';
+		$title .= '<ul>';
+		foreach ( $tokens as $token ) {
+			$title .= '<li><code>%' . esc_html( $token ) . '%</code></li>';
+		}
+		$title .= '</ul>';
+
+		return $title;
+	}
+
+	/**
+	 * Section callback: what the display matrix does.
+	 *
+	 * @return void
+	 */
+	public static function display_section() {
+		?>
+		<p>
+			<?php
+			printf(
+				/* translators: %s: the the_views() template tag, wrapped in a code element. */
+				esc_html__( 'These options specify where the view counts should be displayed and to whom. By default view counts will be displayed to all visitors. Note that the theme files must contain a call to %s in order for any view count to be displayed.', 'wp-postviews' ),
+				'<code>the_views()</code>'
+			);
+			?>
+		</p>
+		<?php
 	}
 
 	/**
@@ -223,145 +458,26 @@ class PostViews_Settings {
 			return;
 		}
 
-		$using_cache = defined( 'WP_CACHE' ) && WP_CACHE;
-		$option      = PostViews_Options::OPTION;
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Post Views Options', 'wp-postviews' ); ?></h1>
 
 			<form method="post" action="options.php">
-				<?php settings_fields( self::GROUP ); ?>
+				<?php
+				settings_fields( self::GROUP );
 
-				<table class="form-table" role="presentation">
-					<tr>
-						<th scope="row"><label for="views-count"><?php esc_html_e( 'Count Views From:', 'wp-postviews' ); ?></label></th>
-						<td>
-							<?php
-							self::select(
-								'count',
-								array(
-									0 => __( 'Everyone', 'wp-postviews' ),
-									1 => __( 'Guests Only', 'wp-postviews' ),
-									2 => __( 'Registered Users Only', 'wp-postviews' ),
-								)
-							);
-							?>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="views-exclude_bots"><?php esc_html_e( 'Exclude Bot Views:', 'wp-postviews' ); ?></label></th>
-						<td>
-							<?php
-							self::select(
-								'exclude_bots',
-								array(
-									0 => __( 'No', 'wp-postviews' ),
-									1 => __( 'Yes', 'wp-postviews' ),
-								)
-							);
-							?>
-						</td>
-					</tr>
-					<?php if ( $using_cache ) : ?>
-						<tr>
-							<th scope="row"><label for="views-use_ajax"><?php esc_html_e( 'Use AJAX To Update Views:', 'wp-postviews' ); ?></label></th>
-							<td>
-								<?php
-								self::select(
-									'use_ajax',
-									array(
-										0 => __( 'No', 'wp-postviews' ),
-										1 => __( 'Yes', 'wp-postviews' ),
-									)
-								);
-								?>
-								<p class="description">
-									<?php esc_html_e( 'You have caching enabled for your WordPress installation, by default WP-PostViews will use AJAX to update the view count. However in some cases, you might not want it.', 'wp-postviews' ); ?>
-								</p>
-							</td>
-						</tr>
-					<?php else : ?>
-						<input type="hidden" name="<?php echo esc_attr( $option . '[use_ajax]' ); ?>" value="0" />
-					<?php endif; ?>
-					<tr>
-						<th scope="row">
-							<label for="views-template-template"><?php esc_html_e( 'Views Template:', 'wp-postviews' ); ?></label>
-							<?php self::token_list( array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ) ); ?>
-						</th>
-						<td>
-							<input type="text" class="large-text code" id="views-template-template" name="<?php echo esc_attr( $option . '[template]' ); ?>" value="<?php echo esc_attr( PostViews_Options::get( 'template', '' ) ); ?>" />
-							<p>
-								<button type="button" class="button" data-postviews-reset="template" data-postviews-target="views-template-template">
-									<?php esc_html_e( 'Restore Default Template', 'wp-postviews' ); ?>
-								</button>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row">
-							<label for="views-template-most_viewed_template"><?php esc_html_e( 'Most Viewed Template:', 'wp-postviews' ); ?></label>
-							<?php
-							self::token_list(
-								array(
-									'VIEW_COUNT',
-									'VIEW_COUNT_ROUNDED',
-									'POST_TITLE',
-									'POST_DATE',
-									'POST_TIME',
-									'POST_EXCERPT',
-									'POST_CONTENT',
-									'POST_URL',
-									'POST_THUMBNAIL',
-									'POST_THUMBNAIL_URL',
-									'POST_CATEGORY_ID',
-									'POST_AUTHOR',
-								)
-							);
-							?>
-						</th>
-						<td>
-							<textarea class="large-text code" rows="12" id="views-template-most_viewed_template" name="<?php echo esc_attr( $option . '[most_viewed_template]' ); ?>"><?php echo esc_textarea( PostViews_Options::get( 'most_viewed_template', '' ) ); ?></textarea>
-							<p>
-								<button type="button" class="button" data-postviews-reset="most_viewed_template" data-postviews-target="views-template-most_viewed_template">
-									<?php esc_html_e( 'Restore Default Template', 'wp-postviews' ); ?>
-								</button>
-							</p>
-						</td>
-					</tr>
-				</table>
-
-				<h2><?php esc_html_e( 'Display Options', 'wp-postviews' ); ?></h2>
-				<p>
-					<?php
-					printf(
-						/* translators: %s: the the_views() template tag, wrapped in a code element. */
-						esc_html__( 'These options specify where the view counts should be displayed and to whom. By default view counts will be displayed to all visitors. Note that the theme files must contain a call to %s in order for any view count to be displayed.', 'wp-postviews' ),
-						'<code>the_views()</code>'
-					);
+				// There is no use_ajax field when nothing is cached, and a key the
+				// form omits keeps its stored value, so pin it off here.
+				if ( ! self::using_cache() ) {
 					?>
-				</p>
-
-				<table class="form-table" role="presentation">
+					<input type="hidden" name="<?php echo esc_attr( PostViews_Options::OPTION . '[use_ajax]' ); ?>" value="0" />
 					<?php
-					$contexts = array(
-						'display_home'    => array( __( 'Home Page:', 'wp-postviews' ), __( "Don't display on home page", 'wp-postviews' ) ),
-						'display_single'  => array( __( 'Single Posts:', 'wp-postviews' ), __( "Don't display on single posts", 'wp-postviews' ) ),
-						'display_page'    => array( __( 'Pages:', 'wp-postviews' ), __( "Don't display on pages", 'wp-postviews' ) ),
-						'display_archive' => array( __( 'Archive Pages:', 'wp-postviews' ), __( "Don't display on archive pages", 'wp-postviews' ) ),
-						'display_search'  => array( __( 'Search Pages:', 'wp-postviews' ), __( "Don't display on search pages", 'wp-postviews' ) ),
-						'display_other'   => array( __( 'Other Pages:', 'wp-postviews' ), __( "Don't display on other pages", 'wp-postviews' ) ),
-					);
-					foreach ( $contexts as $key => $labels ) :
-						list( $label, $never_label ) = $labels;
-						?>
-						<tr>
-							<th scope="row"><label for="views-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $label ); ?></label></th>
-							<td><?php self::select( $key, self::display_choices( $never_label ) ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
+				}
 
-				<?php submit_button(); ?>
+				do_settings_sections( self::SLUG );
+
+				submit_button();
+				?>
 			</form>
 		</div>
 		<?php
