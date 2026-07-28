@@ -321,7 +321,9 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 		$this->assertSame( 2, substr_count( $html, 'class="form-table"' ) );
 
 		// The second section's title, emitted by core from the registration.
-		$this->assertStringContainsString( '<h2>Display Options</h2>', $html );
+		// Matched loosely: WordPress 7.0 gives the heading an id attribute, 6.0
+		// does not.
+		$this->assertMatchesRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html );
 
 		// Its callback ran.
 		$this->assertStringContainsString( '<code>the_views()</code>', $html );
