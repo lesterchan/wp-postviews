@@ -28,11 +28,15 @@ defined( 'ABSPATH' ) || exit;
 class WP_PostViews_Settings {
 
 	/**
-	 * Settings group the screen posts under.
+	 * Settings group the screen posts under, which is the settings row name.
+	 *
+	 * The same string as WP_PostViews_Options::OPTION deliberately: one setting,
+	 * one group, and nothing to keep in step. It was views_options_group, a third
+	 * name for the same thing.
 	 *
 	 * @var string
 	 */
-	const GROUP = 'views_options_group';
+	const GROUP = 'wp_postviews_options';
 
 	/**
 	 * Menu and screen slug.
