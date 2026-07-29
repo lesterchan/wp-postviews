@@ -2,7 +2,7 @@
 /**
  * The uninstall routine.
  *
- * The multisite branch is exercised for real in Test_PostViews_Multisite,
+ * The multisite branch is exercised for real in WP_PostViews_Multisite_Test,
  * which runs under WP_MULTISITE=1. The source level assertions below are kept
  * as a second line of defence, because the single site CI job is the one that
  * always runs: they cost nothing and they catch a regression even if the
@@ -14,7 +14,7 @@
 /**
  * Uninstall routine.
  */
-class Test_PostViews_Uninstall extends WP_PostViews_TestCase {
+class WP_PostViews_Uninstall_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * The uninstall.php source, with comments stripped.
@@ -105,7 +105,7 @@ class Test_PostViews_Uninstall extends WP_PostViews_TestCase {
 	 */
 	public function test_uninstall_removes_only_our_data() {
 		if ( is_multisite() ) {
-			$this->markTestSkipped( 'The network branch is covered by Test_PostViews_Multisite.' );
+			$this->markTestSkipped( 'The network branch is covered by WP_PostViews_Multisite_Test.' );
 		}
 
 		$post_id = $this->make_post( array(), 500 );

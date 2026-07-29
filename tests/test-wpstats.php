@@ -14,7 +14,7 @@
 /**
  * The wp_stats_sections contribution.
  */
-class Test_PostViews_WPStats extends WP_PostViews_TestCase {
+class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * The entry this plugin contributes, or null when it opted out.

@@ -9,7 +9,7 @@
 /**
  * Recording a view.
  */
-class Test_PostViews_Counter extends WP_PostViews_TestCase {
+class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * The post under test.

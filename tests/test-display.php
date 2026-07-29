@@ -9,7 +9,7 @@
 /**
  * Single post output.
  */
-class Test_PostViews_Display extends WP_PostViews_TestCase {
+class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * The template tag substitutes the count.

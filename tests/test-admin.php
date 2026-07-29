@@ -15,7 +15,7 @@
 /**
  * The menu, the settings screen and the admin script.
  */
-class Test_PostViews_Admin extends WP_PostViews_TestCase {
+class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * Make sure the sections and fields the screen draws are registered.

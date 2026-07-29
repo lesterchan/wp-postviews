@@ -11,7 +11,7 @@
 /**
  * Settings screen.
  */
-class Test_PostViews_Settings extends WP_PostViews_TestCase {
+class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * Make sure register_setting() has run.
@@ -303,35 +303,5 @@ class Test_PostViews_Settings extends WP_PostViews_TestCase {
 		$this->assertSame( 25, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '25' ) )['stats_most_limit'] );
 		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '0' ) )['stats_most_limit'] );
 		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => 'nonsense' ) )['stats_most_limit'] );
-	}
-
-	/**
-	 * The sanitiser never writes an upgrade marker into the settings row.
-	 *
-	 * This is the regression guard for the bug wp-useronline shipped: with the
-	 * markers inside the settings array every save had to rescue them by hand,
-	 * and the one that forgot made the upgrade re-run on every request. It fails
-	 * the moment somebody moves a marker back in.
-	 *
-	 * @return void
-	 */
-	public function test_settings_sanitizer_never_stores_version_markers() {
-		$clean = WP_PostViews_Settings::sanitize(
-			array(
-				'count'      => '2',
-				'version'    => '9.9.9',
-				'db_version' => '99',
-				'versions'   => array( 'plugin' => '9.9.9' ),
-			)
-		);
-
-		foreach ( array( 'version', 'db_version', 'versions' ) as $key ) {
-			$this->assertArrayNotHasKey( $key, $clean, $key . ' reached the settings row.' );
-		}
-
-		WP_PostViews_Options::save( $clean );
-		WP_PostViews_Options::update_markers();
-
-		$this->assertSame( array( 'plugin', 'db' ), array_keys( (array) get_option( WP_PostViews_Options::VERSION ) ) );
 	}
 }

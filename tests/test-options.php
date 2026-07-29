@@ -10,7 +10,7 @@
 /**
  * Option storage.
  */
-class Test_PostViews_Options extends WP_PostViews_TestCase {
+class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * Every documented key has a default.

@@ -9,7 +9,7 @@
 /**
  * Everything that hangs off a WordPress integration point.
  */
-class Test_PostViews_Integration extends WP_PostViews_TestCase {
+class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * The REST response carries an integer views field.
@@ -337,7 +337,9 @@ class Test_PostViews_Integration extends WP_PostViews_TestCase {
 	 * The ORDER BY clause admits only the two directions.
 	 *
 	 * It is interpolated rather than bound, because neither an identifier nor
-	 * a sort direction can be a prepared parameter.
+	 * a sort direction can be a prepared parameter. The callback takes no
+	 * arguments: it replaces the incoming clause outright rather than appending
+	 * to it, so there is nothing for it to read.
 	 *
 	 * @return void
 	 */
@@ -345,11 +347,11 @@ class Test_PostViews_Integration extends WP_PostViews_TestCase {
 		foreach ( array( 'asc; DROP TABLE wp_posts', "asc'", 'RAND()', 'nonsense', '' ) as $hostile ) {
 			$GLOBALS['wp_query']->set( 'v_orderby', $hostile );
 
-			$this->assertSame( ' views desc', WP_PostViews_Core::posts_orderby( 'existing' ) );
+			$this->assertSame( ' views desc', WP_PostViews_Core::posts_orderby() );
 		}
 
 		$GLOBALS['wp_query']->set( 'v_orderby', 'asc' );
-		$this->assertSame( ' views asc', WP_PostViews_Core::posts_orderby( 'existing' ) );
+		$this->assertSame( ' views asc', WP_PostViews_Core::posts_orderby() );
 	}
 
 	/**

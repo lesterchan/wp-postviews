@@ -15,7 +15,7 @@
 /**
  * Network activation and uninstall.
  */
-class Test_PostViews_Multisite extends WP_PostViews_TestCase {
+class WP_PostViews_Multisite_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * Skip the whole class on a single site install.

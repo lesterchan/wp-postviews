@@ -9,7 +9,7 @@
 /**
  * Most and least viewed listings.
  */
-class Test_PostViews_Listings extends WP_PostViews_TestCase {
+class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * Post IDs by title.
