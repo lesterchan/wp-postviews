@@ -402,7 +402,8 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-cache', 'data' );
-		$this->assertStringContainsString( '"post_id":"' . $this->post_id . '"', $data );
+		$this->assertStringContainsString( 'wpPostViewsL10n', $data );
+		$this->assertStringContainsString( '"postId":"' . $this->post_id . '"', $data );
 		$this->assertStringContainsString( 'admin-ajax.php', $data );
 		$this->assertStringContainsString( '"nonce"', $data );
 	}

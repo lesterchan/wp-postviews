@@ -27,6 +27,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		WP_PostViews_Settings::register();
 	}
+
 	/**
 	 * The screen is registered under Settings.
 	 *
@@ -46,6 +47,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		set_current_screen( 'front' );
 	}
+
 	/**
 	 * The screen renders nothing for a user without the capability.
 	 *
@@ -66,6 +68,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 			)
 		);
 	}
+
 	/**
 	 * An administrator gets the form.
 	 *
@@ -90,6 +93,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 			$this->assertStringContainsString( WP_PostViews_Options::OPTION . '[' . $key . ']', $html, "No field for {$key}." );
 		}
 	}
+
 	/**
 	 * The rows are drawn by do_settings_sections(), so the tables, the heading
 	 * and the row order all come from the registered sections.
@@ -106,22 +110,26 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		);
 
 		// One table per section, and nothing hand written alongside them.
-		$this->assertSame( 2, substr_count( $html, 'class="form-table"' ) );
+		$this->assertSame( 3, substr_count( $html, 'class="form-table"' ), 'do_settings_sections() draws one table per section.' );
 
-		// The second section's title, emitted by core from the registration.
-		// Matched loosely: WordPress 7.0 gives the heading an id attribute, 6.0
-		// does not.
+		// The second and third section titles, emitted by core from the
+		// registration. Matched loosely: WordPress gives a settings heading an id
+		// attribute and the attribute has not always been there.
 		$this->assertMatchesRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html );
+		$this->assertMatchesRegularExpression( '#<h2[^>]*>WP-Stats Options</h2>#', $html );
 
-		// Its callback ran.
+		// Their callbacks ran.
 		$this->assertStringContainsString( '<code>the_views()</code>', $html );
+		$this->assertStringContainsString( 'These settings do nothing without WP-Stats.', $html );
 
-		// Counting rows come before the display matrix.
+		// Counting rows, then the display matrix, then WP-Stats.
 		$this->assertLessThan( strpos( $html, 'id="views-display_home"' ), strpos( $html, 'id="views-count"' ) );
+		$this->assertLessThan( strpos( $html, 'id="views-stats_display"' ), strpos( $html, 'id="views-display_home"' ) );
 
 		// The variable list still sits in the template row's heading cell.
 		$this->assertStringContainsString( '<code>%POST_THUMBNAIL_URL%</code>', $html );
 	}
+
 	/**
 	 * The reset buttons carry the data attributes the script keys off.
 	 *
@@ -147,6 +155,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		// The inline handlers 2.0.0 removed must not come back.
 		$this->assertStringNotContainsString( 'onclick', $html );
 	}
+
 	/**
 	 * A stored template cannot break out of the field it is rendered into.
 	 *
@@ -165,6 +174,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		$this->assertStringNotContainsString( 'onmouseover="alert(1)"', $html );
 		$this->assertStringContainsString( '&quot;', $html );
 	}
+
 	/**
 	 * The admin script is enqueued with its defaults and without jQuery.
 	 *
@@ -181,6 +191,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		$this->assertStringContainsString( '%VIEW_COUNT%', $data );
 		$this->assertStringContainsString( '%POST_URL%', $data );
 	}
+
 	/**
 	 * The localised defaults are the same strings the reset button restores.
 	 *
@@ -196,6 +207,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), $decoded['defaults']['template'] );
 		$this->assertSame( WP_PostViews_Options::default_template( 'most_viewed_template' ), $decoded['defaults']['most_viewed_template'] );
 	}
+
 	/**
 	 * The AJAX row is only offered when a page cache is in play.
 	 *
