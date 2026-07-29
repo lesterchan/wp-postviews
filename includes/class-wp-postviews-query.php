@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Builds and renders the view count listings.
  */
-class PostViews_Query {
+class WP_PostViews_Query {
 
 	/**
 	 * Run a listing and render it.
@@ -91,7 +91,7 @@ class PostViews_Query {
 
 		$post_title = get_the_title();
 		if ( $chars > 0 ) {
-			$post_title = PostViews_Display::snippet_text( $post_title, $chars );
+			$post_title = WP_PostViews_Display::snippet_text( $post_title, $chars );
 		}
 
 		// The first category, or 0 for a post type that has none.
@@ -100,7 +100,7 @@ class PostViews_Query {
 
 		$tokens = array(
 			'%VIEW_COUNT%'         => number_format_i18n( $post_views ),
-			'%VIEW_COUNT_ROUNDED%' => PostViews_Display::round_number( $post_views ),
+			'%VIEW_COUNT_ROUNDED%' => WP_PostViews_Display::round_number( $post_views ),
 			'%POST_TITLE%'         => $post_title,
 			'%POST_EXCERPT%'       => get_the_excerpt(),
 			'%POST_CONTENT%'       => get_the_content(),
@@ -117,7 +117,7 @@ class PostViews_Query {
 		return str_replace(
 			array_keys( $tokens ),
 			array_values( $tokens ),
-			(string) PostViews_Options::get( 'most_viewed_template', '' )
+			(string) WP_PostViews_Options::get( 'most_viewed_template', '' )
 		);
 	}
 
@@ -140,6 +140,6 @@ class PostViews_Query {
 
 		// The template is HTML by design and is run through wp_kses_post() when
 		// it is saved, so it is echoed as-is.
-		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by PostViews_Settings on save.
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by WP_PostViews_Settings on save.
 	}
 }

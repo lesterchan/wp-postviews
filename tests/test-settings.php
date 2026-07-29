@@ -8,7 +8,7 @@
 /**
  * Settings screen.
  */
-class Test_PostViews_Settings extends PostViews_TestCase {
+class Test_PostViews_Settings extends WP_PostViews_TestCase {
 
 	/**
 	 * Make sure register_setting() has run.
@@ -18,7 +18,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	public function set_up() {
 		parent::set_up();
 
-		PostViews_Settings::register();
+		WP_PostViews_Settings::register();
 	}
 
 	/**
@@ -32,8 +32,8 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	public function test_setting_is_registered_in_the_group() {
 		$registered = get_registered_settings();
 
-		$this->assertArrayHasKey( PostViews_Options::OPTION, $registered );
-		$this->assertSame( PostViews_Settings::GROUP, $registered[ PostViews_Options::OPTION ]['group'] );
+		$this->assertArrayHasKey( WP_PostViews_Options::OPTION, $registered );
+		$this->assertSame( WP_PostViews_Settings::GROUP, $registered[ WP_PostViews_Options::OPTION ]['group'] );
 	}
 
 	/**
@@ -45,16 +45,16 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	public function test_sections_are_registered() {
 		global $wp_settings_sections;
 
-		$this->assertArrayHasKey( PostViews_Settings::SLUG, $wp_settings_sections );
+		$this->assertArrayHasKey( WP_PostViews_Settings::PAGE, $wp_settings_sections );
 
-		$sections = $wp_settings_sections[ PostViews_Settings::SLUG ];
+		$sections = $wp_settings_sections[ WP_PostViews_Settings::PAGE ];
 
-		$this->assertArrayHasKey( PostViews_Settings::SECTION_GENERAL, $sections );
-		$this->assertArrayHasKey( PostViews_Settings::SECTION_DISPLAY, $sections );
+		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_GENERAL, $sections );
+		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_DISPLAY, $sections );
 
 		// The first section has no heading of its own, so the table follows the
 		// h1 the way it always has.
-		$this->assertSame( '', $sections[ PostViews_Settings::SECTION_GENERAL ]['title'] );
+		$this->assertSame( '', $sections[ WP_PostViews_Settings::SECTION_GENERAL ]['title'] );
 	}
 
 	/**
@@ -66,20 +66,20 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	public function test_every_option_key_has_a_registered_field() {
 		global $wp_settings_fields;
 
-		$fields = $wp_settings_fields[ PostViews_Settings::SLUG ];
+		$fields = $wp_settings_fields[ WP_PostViews_Settings::PAGE ];
 
 		foreach ( array( 'count', 'exclude_bots', 'template', 'most_viewed_template' ) as $key ) {
-			$this->assertArrayHasKey( $key, $fields[ PostViews_Settings::SECTION_GENERAL ], "No registered field for {$key}." );
+			$this->assertArrayHasKey( $key, $fields[ WP_PostViews_Settings::SECTION_GENERAL ], "No registered field for {$key}." );
 		}
 
 		foreach ( $this->display_keys as $key ) {
-			$this->assertArrayHasKey( $key, $fields[ PostViews_Settings::SECTION_DISPLAY ], "No registered field for {$key}." );
+			$this->assertArrayHasKey( $key, $fields[ WP_PostViews_Settings::SECTION_DISPLAY ], "No registered field for {$key}." );
 		}
 
 		// The AJAX row exists only under a page cache, same as the markup.
 		$this->assertSame(
 			defined( 'WP_CACHE' ) && WP_CACHE,
-			isset( $fields[ PostViews_Settings::SECTION_GENERAL ]['use_ajax'] )
+			isset( $fields[ WP_PostViews_Settings::SECTION_GENERAL ]['use_ajax'] )
 		);
 	}
 
@@ -92,17 +92,17 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	public function test_select_fields_declare_their_label_target() {
 		global $wp_settings_fields;
 
-		$fields = $wp_settings_fields[ PostViews_Settings::SLUG ];
+		$fields = $wp_settings_fields[ WP_PostViews_Settings::PAGE ];
 
-		$this->assertSame( 'views-count', $fields[ PostViews_Settings::SECTION_GENERAL ]['count']['args']['label_for'] );
-		$this->assertSame( 'views-display_home', $fields[ PostViews_Settings::SECTION_DISPLAY ]['display_home']['args']['label_for'] );
+		$this->assertSame( 'views-count', $fields[ WP_PostViews_Settings::SECTION_GENERAL ]['count']['args']['label_for'] );
+		$this->assertSame( 'views-display_home', $fields[ WP_PostViews_Settings::SECTION_DISPLAY ]['display_home']['args']['label_for'] );
 
 		// The template rows carry a variable list in the heading cell, which
 		// cannot live inside a label element, so they bring their own.
-		$this->assertArrayNotHasKey( 'label_for', $fields[ PostViews_Settings::SECTION_GENERAL ]['template']['args'] );
+		$this->assertArrayNotHasKey( 'label_for', $fields[ WP_PostViews_Settings::SECTION_GENERAL ]['template']['args'] );
 		$this->assertStringContainsString(
 			'<label for="views-template-template">',
-			$fields[ PostViews_Settings::SECTION_GENERAL ]['template']['title']
+			$fields[ WP_PostViews_Settings::SECTION_GENERAL ]['template']['title']
 		);
 	}
 
@@ -114,7 +114,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 */
 	public function test_save_round_trip() {
 		update_option(
-			PostViews_Options::OPTION,
+			WP_PostViews_Options::OPTION,
 			array(
 				'count'                => '2',
 				'exclude_bots'         => '1',
@@ -126,12 +126,12 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
-		$this->assertSame( 1, PostViews_Options::get_int( 'exclude_bots' ) );
-		$this->assertSame( 0, PostViews_Options::get_int( 'use_ajax' ) );
-		$this->assertSame( 1, PostViews_Options::get_int( 'display_home' ) );
-		$this->assertSame( 2, PostViews_Options::get_int( 'display_single' ) );
-		$this->assertSame( '<b>%VIEW_COUNT%</b> reads', PostViews_Options::get( 'template' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 1, WP_PostViews_Options::get_int( 'exclude_bots' ) );
+		$this->assertSame( 0, WP_PostViews_Options::get_int( 'use_ajax' ) );
+		$this->assertSame( 1, WP_PostViews_Options::get_int( 'display_home' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'display_single' ) );
+		$this->assertSame( '<b>%VIEW_COUNT%</b> reads', WP_PostViews_Options::get( 'template' ) );
 	}
 
 	/**
@@ -145,7 +145,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	public function test_absent_keys_are_preserved() {
 		$this->set_options( array( 'count' => 2 ) );
 
-		$sanitized = PostViews_Settings::sanitize( array( 'template' => 'X' ) );
+		$sanitized = WP_PostViews_Settings::sanitize( array( 'template' => 'X' ) );
 
 		$this->assertSame( 2, (int) $sanitized['count'] );
 		$this->assertSame( 'X', $sanitized['template'] );
@@ -157,7 +157,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_display_values_are_clamped() {
-		$sanitized = PostViews_Settings::sanitize(
+		$sanitized = WP_PostViews_Settings::sanitize(
 			array(
 				'count'        => '99',
 				'display_home' => '-4',
@@ -174,7 +174,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_boolean_values_are_normalised() {
-		$sanitized = PostViews_Settings::sanitize(
+		$sanitized = WP_PostViews_Settings::sanitize(
 			array(
 				'exclude_bots' => '1',
 				'use_ajax'     => '0',
@@ -191,7 +191,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_templates_are_kses_filtered() {
-		$sanitized = PostViews_Settings::sanitize(
+		$sanitized = WP_PostViews_Settings::sanitize(
 			array( 'template' => '<script>alert(1)</script><b>%VIEW_COUNT%</b>' )
 		);
 
@@ -205,7 +205,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_templates_reject_inline_handlers() {
-		$sanitized = PostViews_Settings::sanitize(
+		$sanitized = WP_PostViews_Settings::sanitize(
 			array( 'most_viewed_template' => '<li onclick="steal()">%POST_TITLE%</li>' )
 		);
 
@@ -220,7 +220,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	public function test_non_array_input_is_ignored() {
 		$this->set_options( array( 'count' => 2 ) );
 
-		$this->assertSame( PostViews_Options::all(), PostViews_Settings::sanitize( 'nonsense' ) );
+		$this->assertSame( WP_PostViews_Options::all(), WP_PostViews_Settings::sanitize( 'nonsense' ) );
 	}
 
 	/**
@@ -229,11 +229,11 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_saving_refreshes_the_cache() {
-		PostViews_Options::all();
+		WP_PostViews_Options::all();
 
-		update_option( PostViews_Options::OPTION, array_merge( PostViews_Options::all(), array( 'template' => 'FRESH' ) ) );
+		update_option( WP_PostViews_Options::OPTION, array_merge( WP_PostViews_Options::all(), array( 'template' => 'FRESH' ) ) );
 
-		$this->assertSame( 'FRESH', PostViews_Options::get( 'template' ) );
+		$this->assertSame( 'FRESH', WP_PostViews_Options::get( 'template' ) );
 	}
 
 	/**
@@ -248,10 +248,10 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 		global $submenu;
 		$submenu = array();
 
-		PostViews_Settings::add_menu();
+		WP_PostViews_Settings::add_menu();
 
 		$slugs = wp_list_pluck( $submenu['options-general.php'] ?? array(), 2 );
-		$this->assertContains( PostViews_Settings::SLUG, $slugs );
+		$this->assertContains( WP_PostViews_Settings::PAGE, $slugs );
 
 		set_current_screen( 'front' );
 	}
@@ -271,7 +271,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 			'',
 			$this->capture(
 				function () {
-					PostViews_Settings::render();
+					WP_PostViews_Settings::render();
 				}
 			)
 		);
@@ -287,18 +287,18 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 
 		$html = $this->capture(
 			function () {
-				PostViews_Settings::render();
+				WP_PostViews_Settings::render();
 			}
 		);
 
 		$this->assertStringContainsString( 'action="options.php"', $html );
-		$this->assertStringContainsString( PostViews_Settings::GROUP, $html );
+		$this->assertStringContainsString( WP_PostViews_Settings::GROUP, $html );
 		$this->assertStringContainsString( 'views-template-template', $html );
 		$this->assertStringContainsString( 'views-template-most_viewed_template', $html );
 
 		// Every option key the screen owns has a field.
 		foreach ( array_merge( array( 'count', 'exclude_bots' ), $this->display_keys ) as $key ) {
-			$this->assertStringContainsString( PostViews_Options::OPTION . '[' . $key . ']', $html, "No field for {$key}." );
+			$this->assertStringContainsString( WP_PostViews_Options::OPTION . '[' . $key . ']', $html, "No field for {$key}." );
 		}
 	}
 
@@ -313,7 +313,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 
 		$html = $this->capture(
 			function () {
-				PostViews_Settings::render();
+				WP_PostViews_Settings::render();
 			}
 		);
 
@@ -348,7 +348,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 
 		$html = $this->capture(
 			function () {
-				PostViews_Settings::render();
+				WP_PostViews_Settings::render();
 			}
 		);
 
@@ -372,7 +372,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 
 		$html = $this->capture(
 			function () {
-				PostViews_Settings::render();
+				WP_PostViews_Settings::render();
 			}
 		);
 
@@ -386,7 +386,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_admin_script_is_enqueued_and_localised() {
-		PostViews_Settings::enqueue_scripts();
+		WP_PostViews_Settings::enqueue_scripts();
 
 		$this->assertTrue( wp_script_is( 'wp-postviews-admin', 'enqueued' ) );
 		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-admin']->deps );
@@ -403,14 +403,14 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_localised_defaults_match_the_option_defaults() {
-		PostViews_Settings::enqueue_scripts();
+		WP_PostViews_Settings::enqueue_scripts();
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );
 		preg_match( '/wpPostViewsL10n = (\{.*\});/', $data, $matches );
 		$decoded = json_decode( $matches[1], true );
 
-		$this->assertSame( PostViews_Options::default_template( 'template' ), $decoded['defaults']['template'] );
-		$this->assertSame( PostViews_Options::default_template( 'most_viewed_template' ), $decoded['defaults']['most_viewed_template'] );
+		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), $decoded['defaults']['template'] );
+		$this->assertSame( WP_PostViews_Options::default_template( 'most_viewed_template' ), $decoded['defaults']['most_viewed_template'] );
 	}
 
 	/**
@@ -423,11 +423,11 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 
 		$html = $this->capture(
 			function () {
-				PostViews_Settings::render();
+				WP_PostViews_Settings::render();
 			}
 		);
 
-		$hidden_field = 'name="' . PostViews_Options::OPTION . '[use_ajax]" value="0"';
+		$hidden_field = 'name="' . WP_PostViews_Options::OPTION . '[use_ajax]" value="0"';
 
 		if ( defined( 'WP_CACHE' ) && WP_CACHE ) {
 			// A visible select, and no hidden field forcing the value off.

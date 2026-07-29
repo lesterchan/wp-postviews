@@ -1,6 +1,6 @@
 <?php
 /**
- * PostViews_Options: defaults, the runtime cache, and the 2.0.0 migration.
+ * WP_PostViews_Options: defaults, the runtime cache, and the 2.0.0 migration.
  *
  * @package WP-PostViews
  */
@@ -8,7 +8,7 @@
 /**
  * Option storage.
  */
-class Test_PostViews_Options extends PostViews_TestCase {
+class Test_PostViews_Options extends WP_PostViews_TestCase {
 
 	/**
 	 * Every documented key has a default.
@@ -16,7 +16,7 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_defaults_cover_every_key() {
-		$defaults = PostViews_Options::defaults();
+		$defaults = WP_PostViews_Options::defaults();
 
 		foreach ( array( 'count', 'exclude_bots', 'use_ajax', 'template', 'most_viewed_template' ) as $key ) {
 			$this->assertArrayHasKey( $key, $defaults );
@@ -32,12 +32,12 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_partial_row_is_merged_over_defaults() {
-		update_option( PostViews_Options::OPTION, array( 'count' => 2 ) );
+		update_option( WP_PostViews_Options::OPTION, array( 'count' => 2 ) );
 
-		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
 		$this->assertSame(
-			PostViews_Options::default_template( 'template' ),
-			PostViews_Options::get( 'template' ),
+			WP_PostViews_Options::default_template( 'template' ),
+			WP_PostViews_Options::get( 'template' ),
 			'A key absent from the stored row should fall back to its default.'
 		);
 	}
@@ -48,9 +48,9 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_non_array_row_falls_back_to_defaults() {
-		update_option( PostViews_Options::OPTION, 'not an array' );
+		update_option( WP_PostViews_Options::OPTION, 'not an array' );
 
-		$this->assertSame( PostViews_Options::defaults(), PostViews_Options::all() );
+		$this->assertSame( WP_PostViews_Options::defaults(), WP_PostViews_Options::all() );
 	}
 
 	/**
@@ -64,11 +64,11 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_external_write_invalidates_the_cache() {
-		$this->assertSame( 1, PostViews_Options::get_int( 'count' ), 'Priming the cache.' );
+		$this->assertSame( 1, WP_PostViews_Options::get_int( 'count' ), 'Priming the cache.' );
 
-		update_option( PostViews_Options::OPTION, array_merge( PostViews_Options::all(), array( 'count' => 2 ) ) );
+		update_option( WP_PostViews_Options::OPTION, array_merge( WP_PostViews_Options::all(), array( 'count' => 2 ) ) );
 
-		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
 	}
 
 	/**
@@ -77,13 +77,13 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_add_option_invalidates_the_cache() {
-		delete_option( PostViews_Options::OPTION );
-		PostViews_Options::flush();
-		PostViews_Options::all();
+		delete_option( WP_PostViews_Options::OPTION );
+		WP_PostViews_Options::flush();
+		WP_PostViews_Options::all();
 
-		add_option( PostViews_Options::OPTION, array( 'count' => 2 ) );
+		add_option( WP_PostViews_Options::OPTION, array( 'count' => 2 ) );
 
-		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
 	}
 
 	/**
@@ -93,23 +93,23 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 */
 	public function test_migration_unslashes_stored_templates() {
 		update_option(
-			PostViews_Options::OPTION,
+			WP_PostViews_Options::OPTION,
 			array_merge(
-				PostViews_Options::defaults(),
+				WP_PostViews_Options::defaults(),
 				array(
 					'template'             => "it\\'s %VIEW_COUNT% views",
 					'most_viewed_template' => "<li>it\\'s %POST_TITLE%</li>",
 				)
 			)
 		);
-		delete_option( PostViews_Options::VERSION_OPTION );
-		PostViews_Options::flush();
+		delete_option( WP_PostViews_Options::VERSION );
+		WP_PostViews_Options::flush();
 
-		PostViews_Options::maybe_upgrade();
+		WP_PostViews_Options::maybe_upgrade();
 
-		$this->assertSame( "it's %VIEW_COUNT% views", PostViews_Options::get( 'template' ) );
-		$this->assertSame( "<li>it's %POST_TITLE%</li>", PostViews_Options::get( 'most_viewed_template' ) );
-		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( PostViews_Options::VERSION_OPTION ) );
+		$this->assertSame( "it's %VIEW_COUNT% views", WP_PostViews_Options::get( 'template' ) );
+		$this->assertSame( "<li>it's %POST_TITLE%</li>", WP_PostViews_Options::get( 'most_viewed_template' ) );
+		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( WP_PostViews_Options::VERSION ) );
 	}
 
 	/**
@@ -122,12 +122,12 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_migration_does_not_rerun_on_a_current_install() {
-		update_option( PostViews_Options::VERSION_OPTION, WP_POSTVIEWS_VERSION );
+		update_option( WP_PostViews_Options::VERSION, WP_POSTVIEWS_VERSION );
 		$this->set_options( array( 'template' => 'C:\\path %VIEW_COUNT%' ) );
 
-		PostViews_Options::maybe_upgrade();
+		WP_PostViews_Options::maybe_upgrade();
 
-		$this->assertSame( 'C:\\path %VIEW_COUNT%', PostViews_Options::get( 'template' ) );
+		$this->assertSame( 'C:\\path %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ) );
 	}
 
 	/**
@@ -137,14 +137,14 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 */
 	public function test_migration_is_idempotent() {
 		$this->set_options( array( 'template' => "it\\'s" ) );
-		delete_option( PostViews_Options::VERSION_OPTION );
+		delete_option( WP_PostViews_Options::VERSION );
 
-		PostViews_Options::maybe_upgrade();
-		$once = PostViews_Options::get( 'template' );
+		WP_PostViews_Options::maybe_upgrade();
+		$once = WP_PostViews_Options::get( 'template' );
 
-		PostViews_Options::maybe_upgrade();
+		WP_PostViews_Options::maybe_upgrade();
 
-		$this->assertSame( $once, PostViews_Options::get( 'template' ) );
+		$this->assertSame( $once, WP_PostViews_Options::get( 'template' ) );
 	}
 
 	/**
@@ -155,9 +155,9 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	public function test_install_does_not_overwrite_existing_settings() {
 		$this->set_options( array( 'count' => 2 ) );
 
-		PostViews_Options::install();
+		WP_PostViews_Options::install();
 
-		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
 	}
 
 	/**
@@ -166,11 +166,11 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_save_replaces_and_backfills() {
-		PostViews_Options::save( array( 'count' => 2 ) );
+		WP_PostViews_Options::save( array( 'count' => 2 ) );
 
-		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
-		$this->assertSame( PostViews_Options::default_template( 'template' ), PostViews_Options::get( 'template' ) );
-		$this->assertSame( 2, (int) get_option( PostViews_Options::OPTION )['count'] );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), WP_PostViews_Options::get( 'template' ) );
+		$this->assertSame( 2, (int) get_option( WP_PostViews_Options::OPTION )['count'] );
 	}
 
 	/**
@@ -179,8 +179,8 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_get_returns_the_fallback_for_an_unknown_key() {
-		$this->assertSame( 'fallback', PostViews_Options::get( 'no_such_key', 'fallback' ) );
-		$this->assertNull( PostViews_Options::get( 'no_such_key' ) );
+		$this->assertSame( 'fallback', WP_PostViews_Options::get( 'no_such_key', 'fallback' ) );
+		$this->assertNull( WP_PostViews_Options::get( 'no_such_key' ) );
 	}
 
 	/**
@@ -193,12 +193,12 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 */
 	public function test_get_int_coerces() {
 		$this->set_options( array( 'count' => '2' ) );
-		$this->assertSame( 2, PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
 
 		$this->set_options( array( 'count' => 'nonsense' ) );
-		$this->assertSame( 0, PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 0, WP_PostViews_Options::get_int( 'count' ) );
 
-		$this->assertSame( 0, PostViews_Options::get_int( 'no_such_key' ) );
+		$this->assertSame( 0, WP_PostViews_Options::get_int( 'no_such_key' ) );
 	}
 
 	/**
@@ -208,13 +208,13 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 */
 	public function test_default_templates_are_present() {
 		foreach ( array( 'template', 'most_viewed_template' ) as $key ) {
-			$default = PostViews_Options::default_template( $key );
+			$default = WP_PostViews_Options::default_template( $key );
 
 			$this->assertNotSame( '', $default );
 			$this->assertStringContainsString( '%VIEW_COUNT%', $default );
 		}
 
-		$this->assertStringContainsString( '%POST_URL%', PostViews_Options::default_template( 'most_viewed_template' ) );
+		$this->assertStringContainsString( '%POST_URL%', WP_PostViews_Options::default_template( 'most_viewed_template' ) );
 	}
 
 	/**
@@ -225,8 +225,8 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 */
 	public function test_default_template_falls_back() {
 		$this->assertSame(
-			PostViews_Options::default_template( 'template' ),
-			PostViews_Options::default_template( 'anything_else' )
+			WP_PostViews_Options::default_template( 'template' ),
+			WP_PostViews_Options::default_template( 'anything_else' )
 		);
 	}
 
@@ -236,13 +236,13 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_migration_survives_a_non_array_row() {
-		update_option( PostViews_Options::OPTION, 'not an array' );
-		delete_option( PostViews_Options::VERSION_OPTION );
-		PostViews_Options::flush();
+		update_option( WP_PostViews_Options::OPTION, 'not an array' );
+		delete_option( WP_PostViews_Options::VERSION );
+		WP_PostViews_Options::flush();
 
-		PostViews_Options::maybe_upgrade();
+		WP_PostViews_Options::maybe_upgrade();
 
-		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( PostViews_Options::VERSION_OPTION ) );
+		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( WP_PostViews_Options::VERSION ) );
 	}
 
 	/**
@@ -252,12 +252,12 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 */
 	public function test_migration_leaves_clean_templates_alone() {
 		$this->set_options( array( 'template' => 'Plain %VIEW_COUNT%' ) );
-		delete_option( PostViews_Options::VERSION_OPTION );
-		PostViews_Options::flush();
+		delete_option( WP_PostViews_Options::VERSION );
+		WP_PostViews_Options::flush();
 
-		PostViews_Options::maybe_upgrade();
+		WP_PostViews_Options::maybe_upgrade();
 
-		$this->assertSame( 'Plain %VIEW_COUNT%', PostViews_Options::get( 'template' ) );
+		$this->assertSame( 'Plain %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ) );
 	}
 
 	/**
@@ -266,10 +266,10 @@ class Test_PostViews_Options extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_install_records_the_version() {
-		delete_option( PostViews_Options::VERSION_OPTION );
+		delete_option( WP_PostViews_Options::VERSION );
 
-		PostViews_Options::install();
+		WP_PostViews_Options::install();
 
-		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( PostViews_Options::VERSION_OPTION ) );
+		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( WP_PostViews_Options::VERSION ) );
 	}
 }

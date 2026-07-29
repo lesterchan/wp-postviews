@@ -9,7 +9,7 @@
 /**
  * Most and least viewed listings.
  */
-class Test_PostViews_Listings extends PostViews_TestCase {
+class Test_PostViews_Listings extends WP_PostViews_TestCase {
 
 	/**
 	 * Post IDs by title.
@@ -377,7 +377,7 @@ class Test_PostViews_Listings extends PostViews_TestCase {
 		$red = get_term_by( 'slug', 'red', 'post_tag' );
 
 		// Alpha holds Low (red) and Mid (blue); red also covers High, in Beta.
-		$output = PostViews_Query::render(
+		$output = WP_PostViews_Query::render(
 			array(
 				'mode'     => 'post',
 				'limit'    => 10,

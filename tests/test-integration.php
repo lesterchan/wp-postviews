@@ -9,7 +9,7 @@
 /**
  * Everything that hangs off a WordPress integration point.
  */
-class Test_PostViews_Integration extends PostViews_TestCase {
+class Test_PostViews_Integration extends WP_PostViews_TestCase {
 
 	/**
 	 * The REST response carries an integer views field.
@@ -323,14 +323,14 @@ class Test_PostViews_Integration extends PostViews_TestCase {
 	public function test_sql_clause_filters() {
 		global $wpdb;
 
-		$this->assertStringContainsString( 'AS views', PostViews_Core::posts_fields( 'existing' ) );
-		$this->assertStringStartsWith( 'existing', PostViews_Core::posts_fields( 'existing' ) );
+		$this->assertStringContainsString( 'AS views', WP_PostViews_Core::posts_fields( 'existing' ) );
+		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_fields( 'existing' ) );
 
-		$this->assertStringContainsString( 'LEFT JOIN ' . $wpdb->postmeta, PostViews_Core::posts_join( 'existing' ) );
-		$this->assertStringStartsWith( 'existing', PostViews_Core::posts_join( 'existing' ) );
+		$this->assertStringContainsString( 'LEFT JOIN ' . $wpdb->postmeta, WP_PostViews_Core::posts_join( 'existing' ) );
+		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_join( 'existing' ) );
 
-		$this->assertStringContainsString( "meta_key = 'views'", PostViews_Core::posts_where( 'existing' ) );
-		$this->assertStringStartsWith( 'existing', PostViews_Core::posts_where( 'existing' ) );
+		$this->assertStringContainsString( "meta_key = 'views'", WP_PostViews_Core::posts_where( 'existing' ) );
+		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_where( 'existing' ) );
 	}
 
 	/**
@@ -345,11 +345,11 @@ class Test_PostViews_Integration extends PostViews_TestCase {
 		foreach ( array( 'asc; DROP TABLE wp_posts', "asc'", 'RAND()', 'nonsense', '' ) as $hostile ) {
 			$GLOBALS['wp_query']->set( 'v_orderby', $hostile );
 
-			$this->assertSame( ' views desc', PostViews_Core::posts_orderby( 'existing' ) );
+			$this->assertSame( ' views desc', WP_PostViews_Core::posts_orderby( 'existing' ) );
 		}
 
 		$GLOBALS['wp_query']->set( 'v_orderby', 'asc' );
-		$this->assertSame( ' views asc', PostViews_Core::posts_orderby( 'existing' ) );
+		$this->assertSame( ' views asc', WP_PostViews_Core::posts_orderby( 'existing' ) );
 	}
 
 	/**
@@ -368,7 +368,7 @@ class Test_PostViews_Integration extends PostViews_TestCase {
 		);
 
 		delete_post_meta( $revision_id, 'views' );
-		PostViews_Core::seed_views_meta( $revision_id );
+		WP_PostViews_Core::seed_views_meta( $revision_id );
 
 		$this->assertSame( '', get_post_meta( $revision_id, 'views', true ) );
 	}
@@ -431,7 +431,7 @@ class Test_PostViews_Integration extends PostViews_TestCase {
 		$post_id = $this->make_post( array(), 0 );
 		update_post_meta( $post_id, 'views', 'nonsense' );
 
-		$this->assertSame( 0, PostViews_Core::rest_get_views( array( 'id' => $post_id ) ) );
+		$this->assertSame( 0, WP_PostViews_Core::rest_get_views( array( 'id' => $post_id ) ) );
 	}
 
 	/**
@@ -474,7 +474,7 @@ class Test_PostViews_Integration extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_query_vars_are_appended() {
-		$vars = PostViews_Core::query_vars( array( 'existing_var' ) );
+		$vars = WP_PostViews_Core::query_vars( array( 'existing_var' ) );
 
 		$this->assertContains( 'existing_var', $vars );
 		$this->assertContains( 'v_sortby', $vars );

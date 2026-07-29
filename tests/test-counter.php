@@ -9,7 +9,7 @@
 /**
  * Recording a view.
  */
-class Test_PostViews_Counter extends PostViews_TestCase {
+class Test_PostViews_Counter extends WP_PostViews_TestCase {
 
 	/**
 	 * The post under test.
@@ -494,7 +494,7 @@ class Test_PostViews_Counter extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_bot_list_is_well_formed() {
-		$bots = PostViews_Counter::bots();
+		$bots = WP_PostViews_Counter::bots();
 
 		$this->assertNotEmpty( $bots );
 
@@ -636,10 +636,10 @@ class Test_PostViews_Counter extends PostViews_TestCase {
 	 */
 	public function test_using_ajax_requires_both_conditions() {
 		$this->set_options( array( 'use_ajax' => 1 ) );
-		$this->assertTrue( PostViews_Counter::using_ajax() );
+		$this->assertTrue( WP_PostViews_Counter::using_ajax() );
 
 		$this->set_options( array( 'use_ajax' => 0 ) );
-		$this->assertFalse( PostViews_Counter::using_ajax() );
+		$this->assertFalse( WP_PostViews_Counter::using_ajax() );
 	}
 
 	/**

@@ -13,7 +13,7 @@
 /**
  * WP-Stats panels.
  */
-class Test_PostViews_Admin extends PostViews_TestCase {
+class Test_PostViews_Admin extends WP_PostViews_TestCase {
 
 	/**
 	 * Clean up the foreign options between tests.
@@ -45,7 +45,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_filters_are_registered() {
-		PostViews_Admin::register_wp_stats();
+		WP_PostViews_Admin::register_wp_stats();
 
 		foreach ( array( 'wp_stats_page_admin_plugins', 'wp_stats_page_admin_most', 'wp_stats_page_plugins', 'wp_stats_page_most' ) as $hook ) {
 			$this->assertNotFalse( has_filter( $hook ), "Nothing is attached to {$hook}." );
@@ -58,7 +58,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_admin_general_checkbox_unchecked() {
-		$html = PostViews_Admin::wp_stats_admin_general( '' );
+		$html = WP_PostViews_Admin::wp_stats_admin_general( '' );
 
 		$this->assertStringContainsString( 'name="stats_display[]"', $html );
 		$this->assertStringContainsString( 'value="views"', $html );
@@ -74,7 +74,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 	public function test_admin_general_checkbox_checked() {
 		$this->enable_stats( array( 'views' ) );
 
-		$this->assertStringContainsString( "checked='checked'", PostViews_Admin::wp_stats_admin_general( '' ) );
+		$this->assertStringContainsString( "checked='checked'", WP_PostViews_Admin::wp_stats_admin_general( '' ) );
 	}
 
 	/**
@@ -89,7 +89,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 		$this->make_post( array(), 500 );
 
 		foreach ( array( 'wp_stats_admin_general', 'wp_stats_admin_most', 'wp_stats_general', 'wp_stats_most' ) as $method ) {
-			$out = PostViews_Admin::$method( 'EXISTING' );
+			$out = WP_PostViews_Admin::$method( 'EXISTING' );
 			$this->assertStringStartsWith( 'EXISTING', $out, "{$method}() dropped the content it was handed." );
 		}
 	}
@@ -102,7 +102,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 	public function test_admin_most_checkboxes_use_the_limit() {
 		$this->enable_stats( array( 'viewed_most_post' ), 25 );
 
-		$html = PostViews_Admin::wp_stats_admin_most( '' );
+		$html = WP_PostViews_Admin::wp_stats_admin_most( '' );
 
 		$this->assertStringContainsString( 'id="wpstats_viewed_most_post"', $html );
 		$this->assertStringContainsString( 'id="wpstats_viewed_most_page"', $html );
@@ -120,7 +120,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 		$this->make_post( array(), 1000 );
 		$this->make_post( array(), 234 );
 
-		$html = PostViews_Admin::wp_stats_general( '' );
+		$html = WP_PostViews_Admin::wp_stats_general( '' );
 
 		$this->assertStringContainsString( '<strong>1,234</strong>', $html );
 		$this->assertStringContainsString( 'views were generated', $html );
@@ -135,7 +135,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 		$this->enable_stats( array( 'views' ) );
 		$this->make_post( array(), 1 );
 
-		$html = PostViews_Admin::wp_stats_general( '' );
+		$html = WP_PostViews_Admin::wp_stats_general( '' );
 
 		$this->assertStringContainsString( 'view was generated', $html );
 		$this->assertStringNotContainsString( 'views were generated', $html );
@@ -149,7 +149,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 	public function test_general_panel_respects_its_toggle() {
 		$this->make_post( array(), 500 );
 
-		$this->assertSame( '', PostViews_Admin::wp_stats_general( '' ) );
+		$this->assertSame( '', WP_PostViews_Admin::wp_stats_general( '' ) );
 	}
 
 	/**
@@ -169,7 +169,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 			950
 		);
 
-		$html = PostViews_Admin::wp_stats_most( '' );
+		$html = WP_PostViews_Admin::wp_stats_most( '' );
 
 		$this->assertStringContainsString( '5 Most Viewed Post', $html );
 		$this->assertStringContainsString( '<li>Popular Post</li>', $html );
@@ -195,7 +195,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 			950
 		);
 
-		$html = PostViews_Admin::wp_stats_most( '' );
+		$html = WP_PostViews_Admin::wp_stats_most( '' );
 
 		$this->assertStringContainsString( '<li>A Page</li>', $html );
 		$this->assertStringNotContainsString( 'Popular Post', $html );
@@ -218,7 +218,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 			950
 		);
 
-		$html = PostViews_Admin::wp_stats_most( '' );
+		$html = WP_PostViews_Admin::wp_stats_most( '' );
 
 		$this->assertStringContainsString( '<li>Popular Post</li>', $html );
 		$this->assertStringContainsString( '<li>A Page</li>', $html );
@@ -244,10 +244,10 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 		}
 		$this->make_post( array(), 500 );
 
-		$this->assertSame( '', PostViews_Admin::wp_stats_general( '' ) );
-		$this->assertSame( '', PostViews_Admin::wp_stats_most( '' ) );
-		$this->assertIsString( PostViews_Admin::wp_stats_admin_general( '' ) );
-		$this->assertIsString( PostViews_Admin::wp_stats_admin_most( '' ) );
+		$this->assertSame( '', WP_PostViews_Admin::wp_stats_general( '' ) );
+		$this->assertSame( '', WP_PostViews_Admin::wp_stats_most( '' ) );
+		$this->assertIsString( WP_PostViews_Admin::wp_stats_admin_general( '' ) );
+		$this->assertIsString( WP_PostViews_Admin::wp_stats_admin_most( '' ) );
 	}
 
 	/**
@@ -276,7 +276,7 @@ class Test_PostViews_Admin extends PostViews_TestCase {
 		delete_option( 'stats_mostlimit' );
 		$this->make_post( array(), 500 );
 
-		$this->assertIsString( PostViews_Admin::wp_stats_admin_most( '' ) );
-		$this->assertIsString( PostViews_Admin::wp_stats_most( '' ) );
+		$this->assertIsString( WP_PostViews_Admin::wp_stats_admin_most( '' ) );
+		$this->assertIsString( WP_PostViews_Admin::wp_stats_most( '' ) );
 	}
 }

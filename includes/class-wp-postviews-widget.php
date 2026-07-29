@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Lists the most or least viewed posts.
  */
-class PostViews_Widget extends WP_Widget {
+class WP_PostViews_Widget extends WP_Widget {
 
 	/**
 	 * Register the widget.
@@ -104,7 +104,7 @@ class PostViews_Widget extends WP_Widget {
 		echo '<ul>' . "\n";
 		// The listing is rendered from the user's own template, which is run
 		// through wp_kses_post() when it is saved.
-		echo PostViews_Query::render( $listing ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by PostViews_Settings on save.
+		echo WP_PostViews_Query::render( $listing ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by WP_PostViews_Settings on save.
 		echo '</ul>' . "\n";
 		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sidebar chrome supplied by the theme; escaping it would print the wrapper instead of closing it.
 	}

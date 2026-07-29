@@ -18,7 +18,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit();
 }
 
-if ( ! function_exists( 'postviews_uninstall_site' ) ) {
+if ( ! function_exists( 'wp_postviews_uninstall_site' ) ) {
 	/**
 	 * Delete this plugin's data from the current site.
 	 *
@@ -27,7 +27,7 @@ if ( ! function_exists( 'postviews_uninstall_site' ) ) {
 	 *
 	 * @return void
 	 */
-	function postviews_uninstall_site() {
+	function wp_postviews_uninstall_site() {
 		$option_names = array(
 			'views_options',
 			'views_version',
@@ -55,20 +55,20 @@ if ( is_multisite() ) {
 	//
 	// restore_current_blog() belongs inside the loop: switch_to_blog() pushes
 	// onto a stack, so restoring once at the end unwinds it by exactly one.
-	$postviews_site_ids = get_sites(
+	$wp_postviews_site_ids = get_sites(
 		array(
 			'fields' => 'ids',
 			'number' => 0,
 		)
 	);
 
-	foreach ( $postviews_site_ids as $postviews_site_id ) {
-		switch_to_blog( (int) $postviews_site_id );
-		postviews_uninstall_site();
+	foreach ( $wp_postviews_site_ids as $wp_postviews_site_id ) {
+		switch_to_blog( (int) $wp_postviews_site_id );
+		wp_postviews_uninstall_site();
 		restore_current_blog();
 	}
 
-	unset( $postviews_site_ids, $postviews_site_id );
+	unset( $wp_postviews_site_ids, $wp_postviews_site_id );
 } else {
-	postviews_uninstall_site();
+	wp_postviews_uninstall_site();
 }

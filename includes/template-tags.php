@@ -9,7 +9,7 @@
  * Three helpers that used to be global functions here are not: 1.78.1 also
  * exported should_views_be_displayed(), postviews_round_number() and
  * snippet_text(), none of which were documented and the last of which squatted
- * on a very generic name. They are PostViews_Display::should_be_displayed(),
+ * on a very generic name. They are WP_PostViews_Display::should_be_displayed(),
  * ::round_number() and ::snippet_text() as of 2.0.0.
  *
  * @package WP-PostViews
@@ -28,7 +28,7 @@ if ( ! function_exists( 'the_views' ) ) {
 	 * @return string|void
 	 */
 	function the_views( $display = true, $prefix = '', $postfix = '', $always = false ) {
-		return PostViews_Display::the_views( $display, $prefix, $postfix, $always );
+		return WP_PostViews_Display::the_views( $display, $prefix, $postfix, $always );
 	}
 }
 
@@ -40,7 +40,7 @@ if ( ! function_exists( 'get_totalviews' ) ) {
 	 * @return int|void
 	 */
 	function get_totalviews( $display = true ) {
-		return PostViews_Display::get_totalviews( $display );
+		return WP_PostViews_Display::get_totalviews( $display );
 	}
 }
 
@@ -55,7 +55,7 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 	 * @return string|void
 	 */
 	function get_most_viewed( $mode = '', $limit = 10, $chars = 0, $display = true ) {
-		return PostViews_Query::output(
+		return WP_PostViews_Query::output(
 			array(
 				'mode'  => $mode,
 				'limit' => $limit,
@@ -78,7 +78,7 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 	 * @return string|void
 	 */
 	function get_least_viewed( $mode = '', $limit = 10, $chars = 0, $display = true ) {
-		return PostViews_Query::output(
+		return WP_PostViews_Query::output(
 			array(
 				'mode'  => $mode,
 				'limit' => $limit,
@@ -102,7 +102,7 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 	 * @return string|void
 	 */
 	function get_most_viewed_category( $category_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
-		return PostViews_Query::output(
+		return WP_PostViews_Query::output(
 			array(
 				'mode'     => $mode,
 				'limit'    => $limit,
@@ -127,7 +127,7 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 	 * @return string|void
 	 */
 	function get_least_viewed_category( $category_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
-		return PostViews_Query::output(
+		return WP_PostViews_Query::output(
 			array(
 				'mode'     => $mode,
 				'limit'    => $limit,
@@ -152,7 +152,7 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 	 * @return string|void
 	 */
 	function get_most_viewed_tag( $tag_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
-		return PostViews_Query::output(
+		return WP_PostViews_Query::output(
 			array(
 				'mode'  => $mode,
 				'limit' => $limit,
@@ -177,7 +177,7 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 	 * @return string|void
 	 */
 	function get_least_viewed_tag( $tag_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
-		return PostViews_Query::output(
+		return WP_PostViews_Query::output(
 			array(
 				'mode'  => $mode,
 				'limit' => $limit,

@@ -9,7 +9,7 @@
  * Base class: resets the option row and the runtime cache between tests, and
  * provides the query-context helpers the display tests need.
  */
-abstract class PostViews_TestCase extends WP_UnitTestCase {
+abstract class WP_PostViews_TestCase extends WP_UnitTestCase {
 
 	/**
 	 * Every display context key, so a test can switch them all off at once.
@@ -33,8 +33,8 @@ abstract class PostViews_TestCase extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		update_option( PostViews_Options::OPTION, PostViews_Options::defaults() );
-		PostViews_Options::flush();
+		update_option( WP_PostViews_Options::OPTION, WP_PostViews_Options::defaults() );
+		WP_PostViews_Options::flush();
 
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (Macintosh) PHPUnit/1.0';
 		$_COOKIE                    = array();
@@ -49,7 +49,7 @@ abstract class PostViews_TestCase extends WP_UnitTestCase {
 		unset( $_SERVER['HTTP_USER_AGENT'] );
 		$_COOKIE = array();
 		$_POST   = array();
-		PostViews_Options::flush();
+		WP_PostViews_Options::flush();
 
 		// phpunit.xml.dist turns backupGlobals off, so $wp_scripts survives
 		// between tests. Left alone, one test that enqueues makes the next
@@ -72,7 +72,7 @@ abstract class PostViews_TestCase extends WP_UnitTestCase {
 	 * @return void
 	 */
 	protected function set_options( $overrides ) {
-		update_option( PostViews_Options::OPTION, array_merge( PostViews_Options::all(), $overrides ) );
+		update_option( WP_PostViews_Options::OPTION, array_merge( WP_PostViews_Options::all(), $overrides ) );
 	}
 
 	/**

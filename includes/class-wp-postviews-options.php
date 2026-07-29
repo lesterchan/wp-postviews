@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Reads and writes the views_options row.
  */
-class PostViews_Options {
+class WP_PostViews_Options {
 
 	/**
 	 * Name of the settings row.
@@ -35,7 +35,7 @@ class PostViews_Options {
 	 *
 	 * @var string
 	 */
-	const VERSION_OPTION = 'views_version';
+	const VERSION = 'views_version';
 
 	/**
 	 * Runtime cache, so a page render reads the row once rather than per lookup.
@@ -192,7 +192,7 @@ class PostViews_Options {
 	 * @return void
 	 */
 	public static function maybe_upgrade() {
-		$installed = get_option( self::VERSION_OPTION );
+		$installed = get_option( self::VERSION );
 
 		if ( WP_POSTVIEWS_VERSION === $installed ) {
 			return;
@@ -206,7 +206,7 @@ class PostViews_Options {
 			self::migrate_template_slashes();
 		}
 
-		update_option( self::VERSION_OPTION, WP_POSTVIEWS_VERSION );
+		update_option( self::VERSION, WP_POSTVIEWS_VERSION );
 	}
 
 	/**

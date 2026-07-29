@@ -44,7 +44,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 * FIXED: Uninstalling on a network of more than 100 sites left options and view counts behind on every site after the hundredth, and reported success. Network activation could fatal on the removed `wp_get_sites()`.
 * NOTE: The settings screen moved from `options-general.php?page=wp-postviews/postviews-options.php` to `options-general.php?page=wp-postviews`. Update any bookmark; the Settings → PostViews menu item is unchanged.
 * NOTE: Templates are now stored unslashed. Existing templates are migrated automatically the first time 2.0.0 loads.
-* NOTE: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()` are no longer global functions. They were never documented; they are now `PostViews_Display::should_be_displayed()`, `PostViews_Display::round_number()` and `PostViews_Display::snippet_text()`.
+* NOTE: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()` are no longer global functions. They were never documented; they are now `WP_PostViews_Display::should_be_displayed()`, `WP_PostViews_Display::round_number()` and `WP_PostViews_Display::snippet_text()`.
 
 ### 1.78.1
 * NEW: WordPress 7.0
@@ -110,7 +110,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 ## Upgrade Notice
 
 ### 2.0.0
-Requires WordPress 6.0 and PHP 7.4. Your template tags and settings carry over untouched, but the settings screen has a new URL — reach it from Settings → PostViews. If your theme calls `should_views_be_displayed()`, `postviews_round_number()` or `snippet_text()` directly, those three undocumented helpers are now methods on `PostViews_Display`.
+Requires WordPress 6.0 and PHP 7.4. Your template tags and settings carry over untouched, but the settings screen has a new URL — reach it from Settings → PostViews. If your theme calls `should_views_be_displayed()`, `postviews_round_number()` or `snippet_text()` directly, those three undocumented helpers are now methods on `WP_PostViews_Display`.
 
 ## Screenshots
 

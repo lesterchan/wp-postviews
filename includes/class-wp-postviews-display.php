@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Single post view count output.
  */
-class PostViews_Display {
+class WP_PostViews_Display {
 
 	/**
 	 * Hook registration.
@@ -52,7 +52,7 @@ class PostViews_Display {
 
 		// The template is HTML by design and is run through wp_kses_post() when
 		// it is saved, so it is echoed as-is.
-		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by PostViews_Settings on save.
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by WP_PostViews_Settings on save.
 	}
 
 	/**
@@ -73,7 +73,7 @@ class PostViews_Display {
 			$id = get_the_ID();
 		}
 
-		/** This filter is documented in includes/class-postviews-display.php */
+		/** This filter is documented in includes/class-wp-postviews-display.php */
 		return apply_filters( 'the_views', self::render_count_template( $id ) );
 	}
 
@@ -89,7 +89,7 @@ class PostViews_Display {
 		return str_replace(
 			array( '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ),
 			array( number_format_i18n( $post_views ), self::round_number( $post_views ) ),
-			(string) PostViews_Options::get( 'template', '' )
+			(string) WP_PostViews_Options::get( 'template', '' )
 		);
 	}
 
@@ -118,7 +118,7 @@ class PostViews_Display {
 			$key = 'display_other';
 		}
 
-		$display_option = PostViews_Options::get_int( $key );
+		$display_option = WP_PostViews_Options::get_int( $key );
 
 		return 0 === $display_option || ( 1 === $display_option && is_user_logged_in() );
 	}

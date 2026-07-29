@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Query var sorting, publish hook and REST exposure.
  */
-class PostViews_Core {
+class WP_PostViews_Core {
 
 	/**
 	 * Hook registration.

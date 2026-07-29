@@ -34,46 +34,74 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
 // Exit if accessed directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-
-// Version.
+/**
+ * WP-PostViews version. Compared against the 'plugin' marker in wp_postviews_version.
+ */
 define( 'WP_POSTVIEWS_VERSION', '2.0.0' );
+
+/**
+ * Schema counter. Compared against the 'db' marker in wp_postviews_version.
+ *
+ * Starts at 1: the plugin owns no table, and the row it did keep before 2.0.0
+ * held a plugin version string rather than a counter, so there is no earlier
+ * number an install could be told it had gone backwards from.
+ */
+define( 'WP_POSTVIEWS_DB_VERSION', '1' );
+
+/**
+ * Plugin slug, text domain and menu slug.
+ */
+define( 'WP_POSTVIEWS_SLUG', 'wp-postviews' );
+
+/**
+ * WP-PostViews main file.
+ */
 define( 'WP_POSTVIEWS_MAIN_FILE', __FILE__ );
+
+/**
+ * Filesystem path of the plugin directory, with a trailing slash.
+ */
+define( 'WP_POSTVIEWS_DIR', plugin_dir_path( __FILE__ ) );
+
+/**
+ * URL of the plugin directory, with a trailing slash.
+ */
+define( 'WP_POSTVIEWS_URL', plugin_dir_url( __FILE__ ) );
 
 // Classes. Required at file load because the activation hook and the option
 // accessor are both reached before any action fires.
-require_once __DIR__ . '/includes/class-postviews-options.php';
-require_once __DIR__ . '/includes/class-postviews-display.php';
-require_once __DIR__ . '/includes/class-postviews-query.php';
-require_once __DIR__ . '/includes/class-postviews-counter.php';
-require_once __DIR__ . '/includes/class-postviews-core.php';
-require_once __DIR__ . '/includes/class-postviews-widget.php';
-require_once __DIR__ . '/includes/class-postviews-admin.php';
-require_once __DIR__ . '/includes/class-postviews-settings.php';
-require_once __DIR__ . '/includes/template-tags.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-options.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-display.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-query.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-counter.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-core.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-widget.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-admin.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-settings.php';
+require_once WP_POSTVIEWS_DIR . 'includes/template-tags.php';
 
-PostViews_Options::init();
-PostViews_Display::init();
-PostViews_Counter::init();
-PostViews_Core::init();
-PostViews_Admin::init();
-PostViews_Settings::init();
+WP_PostViews_Options::init();
+WP_PostViews_Display::init();
+WP_PostViews_Counter::init();
+WP_PostViews_Core::init();
+WP_PostViews_Admin::init();
+WP_PostViews_Settings::init();
 
 add_action(
 	'widgets_init',
 	function () {
-		register_widget( 'PostViews_Widget' );
+		register_widget( 'WP_PostViews_Widget' );
 	}
 );
 
 // register_activation_hook() has to be called while the plugin file is being
 // loaded, which is why this is here rather than inside a class initialiser.
-register_activation_hook( __FILE__, 'postviews_activate' );
+register_activation_hook( __FILE__, 'wp_postviews_activate' );
 
 /**
  * Seed the options row, on this site or across the network.
@@ -81,7 +109,7 @@ register_activation_hook( __FILE__, 'postviews_activate' );
  * @param bool $network_wide Whether the plugin is being activated network wide.
  * @return void
  */
-function postviews_activate( $network_wide ) {
+function wp_postviews_activate( $network_wide ) {
 	if ( is_multisite() && $network_wide ) {
 		// wp_get_sites() was removed in WP 5.1. 'number' => 0 lifts
 		// WP_Site_Query's default cap of 100 sites.
@@ -94,12 +122,12 @@ function postviews_activate( $network_wide ) {
 
 		foreach ( $site_ids as $site_id ) {
 			switch_to_blog( (int) $site_id );
-			PostViews_Options::install();
+			WP_PostViews_Options::install();
 			restore_current_blog();
 		}
 
 		return;
 	}
 
-	PostViews_Options::install();
+	WP_PostViews_Options::install();
 }

@@ -9,7 +9,7 @@
 /**
  * Single post output.
  */
-class Test_PostViews_Display extends PostViews_TestCase {
+class Test_PostViews_Display extends WP_PostViews_TestCase {
 
 	/**
 	 * The template tag substitutes the count.
@@ -225,7 +225,7 @@ class Test_PostViews_Display extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_is_multibyte_safe() {
-		$this->assertSame( '日本語のタ...', PostViews_Display::snippet_text( '日本語のタイトルです', 5 ) );
+		$this->assertSame( '日本語のタ...', WP_PostViews_Display::snippet_text( '日本語のタイトルです', 5 ) );
 	}
 
 	/**
@@ -234,9 +234,9 @@ class Test_PostViews_Display extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_ascii() {
-		$this->assertSame( 'Other...', PostViews_Display::snippet_text( 'Other Page', 5 ) );
-		$this->assertSame( 'Other Page', PostViews_Display::snippet_text( 'Other Page', 50 ) );
-		$this->assertSame( 'Other Page', PostViews_Display::snippet_text( 'Other Page', 10 ) );
+		$this->assertSame( 'Other...', WP_PostViews_Display::snippet_text( 'Other Page', 5 ) );
+		$this->assertSame( 'Other Page', WP_PostViews_Display::snippet_text( 'Other Page', 50 ) );
+		$this->assertSame( 'Other Page', WP_PostViews_Display::snippet_text( 'Other Page', 10 ) );
 	}
 
 	/**
@@ -315,8 +315,8 @@ class Test_PostViews_Display extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_round_trips_entities() {
-		$this->assertSame( 'Tom &amp; Jerry', PostViews_Display::snippet_text( 'Tom &amp; Jerry', 50 ) );
-		$this->assertSame( 'Tom &amp; Jerry', PostViews_Display::snippet_text( 'Tom & Jerry', 50 ) );
+		$this->assertSame( 'Tom &amp; Jerry', WP_PostViews_Display::snippet_text( 'Tom &amp; Jerry', 50 ) );
+		$this->assertSame( 'Tom &amp; Jerry', WP_PostViews_Display::snippet_text( 'Tom & Jerry', 50 ) );
 	}
 
 	/**
@@ -326,7 +326,7 @@ class Test_PostViews_Display extends PostViews_TestCase {
 	 */
 	public function test_snippet_text_counts_decoded_characters() {
 		// "Tom & Jerry" is 11 characters once decoded, so a limit of 5 cuts it.
-		$this->assertSame( 'Tom &amp;...', PostViews_Display::snippet_text( 'Tom &amp; Jerry', 5 ) );
+		$this->assertSame( 'Tom &amp;...', WP_PostViews_Display::snippet_text( 'Tom &amp; Jerry', 5 ) );
 	}
 
 	/**
@@ -338,7 +338,7 @@ class Test_PostViews_Display extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_with_a_zero_limit() {
-		$this->assertSame( '...', PostViews_Display::snippet_text( 'Anything', 0 ) );
+		$this->assertSame( '...', WP_PostViews_Display::snippet_text( 'Anything', 0 ) );
 	}
 
 	/**
@@ -348,13 +348,13 @@ class Test_PostViews_Display extends PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_round_number_arguments() {
-		$this->assertSame( '2.5M', PostViews_Display::round_number( 2500000 ) );
+		$this->assertSame( '2.5M', WP_PostViews_Display::round_number( 2500000 ) );
 		// A higher minimum keeps the number in full for longer.
-		$this->assertSame( '5,000', PostViews_Display::round_number( 5000, 10000 ) );
+		$this->assertSame( '5,000', WP_PostViews_Display::round_number( 5000, 10000 ) );
 		// More decimal places.
-		$this->assertSame( '1.23K', PostViews_Display::round_number( 1234, 1000, 2 ) );
+		$this->assertSame( '1.23K', WP_PostViews_Display::round_number( 1234, 1000, 2 ) );
 		// No decimal places.
-		$this->assertSame( '1K', PostViews_Display::round_number( 1234, 1000, 0 ) );
+		$this->assertSame( '1K', WP_PostViews_Display::round_number( 1234, 1000, 0 ) );
 	}
 
 	/**

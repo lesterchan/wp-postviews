@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Decides whether a request counts, and records it.
  */
-class PostViews_Counter {
+class WP_PostViews_Counter {
 
 	/**
 	 * Hook registration.
@@ -92,7 +92,7 @@ class PostViews_Counter {
 		$should_count = false;
 		$user_id      = get_current_user_id();
 
-		switch ( PostViews_Options::get_int( 'count' ) ) {
+		switch ( WP_PostViews_Options::get_int( 'count' ) ) {
 			case 0: // Everyone.
 				$should_count = true;
 				break;
@@ -109,7 +109,7 @@ class PostViews_Counter {
 				break;
 		}
 
-		if ( $should_count && 1 === PostViews_Options::get_int( 'exclude_bots' ) && self::is_bot() ) {
+		if ( $should_count && 1 === WP_PostViews_Options::get_int( 'exclude_bots' ) && self::is_bot() ) {
 			$should_count = false;
 		}
 
@@ -153,7 +153,7 @@ class PostViews_Counter {
 			return false;
 		}
 
-		return 0 !== PostViews_Options::get_int( 'use_ajax' );
+		return 0 !== WP_PostViews_Options::get_int( 'use_ajax' );
 	}
 
 	/**
@@ -235,7 +235,7 @@ class PostViews_Counter {
 
 		wp_enqueue_script(
 			'wp-postviews-cache',
-			plugins_url( 'js/wp-postviews-cache.js', WP_POSTVIEWS_MAIN_FILE ),
+			WP_POSTVIEWS_URL . 'js/wp-postviews-cache.js',
 			array(),
 			WP_POSTVIEWS_VERSION,
 			true

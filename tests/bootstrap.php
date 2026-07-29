@@ -27,14 +27,14 @@ require_once $_tests_dir . '/includes/functions.php';
  *
  * @return void
  */
-function _postviews_manually_load_plugin() {
+function _wp_postviews_manually_load_plugin() {
 	require dirname( __DIR__ ) . '/wp-postviews.php';
 
 	// register_activation_hook() never fires in the test environment, so the
 	// option row has to be seeded by hand.
-	PostViews_Options::install();
+	WP_PostViews_Options::install();
 }
-tests_add_filter( 'muplugins_loaded', '_postviews_manually_load_plugin' );
+tests_add_filter( 'muplugins_loaded', '_wp_postviews_manually_load_plugin' );
 
 require $_tests_dir . '/includes/bootstrap.php';
 

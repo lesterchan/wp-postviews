@@ -3,7 +3,7 @@
  * Admin surface: the Views column on the posts and pages list tables, sorting
  * by it, and the WP-Stats integration.
  *
- * The settings screen itself lives in PostViews_Settings.
+ * The settings screen itself lives in WP_PostViews_Settings.
  *
  * @package WP-PostViews
  */
@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * List table column and WP-Stats panels.
  */
-class PostViews_Admin {
+class WP_PostViews_Admin {
 
 	/**
 	 * Hook registration.
@@ -62,7 +62,7 @@ class PostViews_Admin {
 			return;
 		}
 
-		PostViews_Display::the_views( true, '', '', true );
+		WP_PostViews_Display::the_views( true, '', '', true );
 	}
 
 	/**
@@ -232,7 +232,7 @@ class PostViews_Admin {
 			return $content;
 		}
 
-		$total = PostViews_Display::get_totalviews( false );
+		$total = WP_PostViews_Display::get_totalviews( false );
 
 		$content .= '<p><strong>' . esc_html__( 'WP-PostViews', 'wp-postviews' ) . '</strong></p>' . "\n";
 		$content .= '<ul>' . "\n";
@@ -279,7 +279,7 @@ class PostViews_Admin {
 
 			$content .= '<p><strong>' . esc_html( sprintf( $heading, number_format_i18n( $limit ) ) ) . '</strong></p>' . "\n";
 			$content .= '<ul>' . "\n";
-			$content .= PostViews_Query::render(
+			$content .= WP_PostViews_Query::render(
 				array(
 					'mode'  => $post_type,
 					'limit' => $limit,

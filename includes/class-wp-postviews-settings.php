@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Registers the setting and renders the options screen.
  */
-class PostViews_Settings {
+class WP_PostViews_Settings {
 
 	/**
 	 * Settings group the screen posts under.
@@ -35,25 +35,32 @@ class PostViews_Settings {
 	const GROUP = 'views_options_group';
 
 	/**
-	 * Menu slug.
+	 * Menu and screen slug.
 	 *
 	 * @var string
 	 */
-	const SLUG = 'wp-postviews';
+	const PAGE = 'wp-postviews';
+
+	/**
+	 * Capability the screen is gated on, read through the wp_postviews_capability filter.
+	 *
+	 * @var string
+	 */
+	const CAPABILITY = 'manage_options';
 
 	/**
 	 * Section holding the counting and template rows.
 	 *
 	 * @var string
 	 */
-	const SECTION_GENERAL = 'views_general';
+	const SECTION_GENERAL = 'wp_postviews_general';
 
 	/**
 	 * Section holding the per context display matrix.
 	 *
 	 * @var string
 	 */
-	const SECTION_DISPLAY = 'views_display';
+	const SECTION_DISPLAY = 'wp_postviews_display';
 
 	/**
 	 * Hook registration.
@@ -66,6 +73,28 @@ class PostViews_Settings {
 	}
 
 	/**
+	 * The capability the screen is gated on.
+	 *
+	 * Read through one filter so a site that hands the settings screen to a
+	 * custom role changes it in a single place, rather than having to find every
+	 * current_user_can() call in the plugin.
+	 *
+	 * @param string $context What is being gated. Only 'settings' so far.
+	 * @return string
+	 */
+	public static function capability( $context = 'settings' ) {
+		/**
+		 * Filters the capability required to reach a WP-PostViews screen.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param string $capability The required capability.
+		 * @param string $context    What is being gated.
+		 */
+		return apply_filters( 'wp_postviews_capability', self::CAPABILITY, $context );
+	}
+
+	/**
 	 * Add the Settings submenu entry.
 	 *
 	 * @return void
@@ -74,8 +103,8 @@ class PostViews_Settings {
 		$hook = add_options_page(
 			__( 'PostViews', 'wp-postviews' ),
 			__( 'PostViews', 'wp-postviews' ),
-			'manage_options',
-			self::SLUG,
+			self::capability(),
+			self::PAGE,
 			array( __CLASS__, 'render' )
 		);
 
@@ -90,23 +119,23 @@ class PostViews_Settings {
 	public static function register() {
 		register_setting(
 			self::GROUP,
-			PostViews_Options::OPTION,
+			WP_PostViews_Options::OPTION,
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( __CLASS__, 'sanitize' ),
-				'default'           => PostViews_Options::defaults(),
+				'default'           => WP_PostViews_Options::defaults(),
 			)
 		);
 
 		// No title, so do_settings_sections() emits the table straight after the
 		// h1 the way the screen has always looked. No callback either.
-		add_settings_section( self::SECTION_GENERAL, '', '', self::SLUG );
+		add_settings_section( self::SECTION_GENERAL, '', '', self::PAGE );
 
 		add_settings_field(
 			'count',
 			__( 'Count Views From:', 'wp-postviews' ),
 			array( __CLASS__, 'field_select' ),
-			self::SLUG,
+			self::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'label_for' => 'views-count',
@@ -123,7 +152,7 @@ class PostViews_Settings {
 			'exclude_bots',
 			__( 'Exclude Bot Views:', 'wp-postviews' ),
 			array( __CLASS__, 'field_select' ),
-			self::SLUG,
+			self::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'label_for' => 'views-exclude_bots',
@@ -139,7 +168,7 @@ class PostViews_Settings {
 				'use_ajax',
 				__( 'Use AJAX To Update Views:', 'wp-postviews' ),
 				array( __CLASS__, 'field_select' ),
-				self::SLUG,
+				self::PAGE,
 				self::SECTION_GENERAL,
 				array(
 					'label_for'   => 'views-use_ajax',
@@ -154,7 +183,7 @@ class PostViews_Settings {
 			'template',
 			self::template_title( __( 'Views Template:', 'wp-postviews' ), 'views-template-template', array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ) ),
 			array( __CLASS__, 'field_template' ),
-			self::SLUG,
+			self::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'key'  => 'template',
@@ -184,7 +213,7 @@ class PostViews_Settings {
 				)
 			),
 			array( __CLASS__, 'field_template' ),
-			self::SLUG,
+			self::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'key'  => 'most_viewed_template',
@@ -197,7 +226,7 @@ class PostViews_Settings {
 			self::SECTION_DISPLAY,
 			__( 'Display Options', 'wp-postviews' ),
 			array( __CLASS__, 'display_section' ),
-			self::SLUG
+			self::PAGE
 		);
 
 		$contexts = array(
@@ -216,7 +245,7 @@ class PostViews_Settings {
 				$key,
 				$label,
 				array( __CLASS__, 'field_select' ),
-				self::SLUG,
+				self::PAGE,
 				self::SECTION_DISPLAY,
 				array(
 					'label_for' => 'views-' . $key,
@@ -271,7 +300,7 @@ class PostViews_Settings {
 	public static function enqueue_scripts() {
 		wp_enqueue_script(
 			'wp-postviews-admin',
-			plugins_url( 'js/wp-js/wp-postviews-admin.js', WP_POSTVIEWS_MAIN_FILE ),
+			WP_POSTVIEWS_URL . 'js/wp-postviews-admin.js',
 			array(),
 			WP_POSTVIEWS_VERSION,
 			true
@@ -281,8 +310,8 @@ class PostViews_Settings {
 			'wpPostViewsL10n',
 			array(
 				'defaults' => array(
-					'template'             => PostViews_Options::default_template( 'template' ),
-					'most_viewed_template' => PostViews_Options::default_template( 'most_viewed_template' ),
+					'template'             => WP_PostViews_Options::default_template( 'template' ),
+					'most_viewed_template' => WP_PostViews_Options::default_template( 'most_viewed_template' ),
 				),
 			)
 		);
@@ -299,7 +328,7 @@ class PostViews_Settings {
 	 * @return array
 	 */
 	public static function sanitize( $input ) {
-		$current = PostViews_Options::all();
+		$current = WP_PostViews_Options::all();
 
 		if ( ! is_array( $input ) ) {
 			return $current;
@@ -325,7 +354,7 @@ class PostViews_Settings {
 		}
 
 		// No flush needed here: update_option() fires update_option_views_options
-		// once the sanitised value is stored, and PostViews_Options listens for it.
+		// once the sanitised value is stored, and WP_PostViews_Options listens for it.
 		return $current;
 	}
 
@@ -351,9 +380,9 @@ class PostViews_Settings {
 	 */
 	public static function field_select( $args ) {
 		$key      = $args['key'];
-		$selected = PostViews_Options::get_int( $key );
+		$selected = WP_PostViews_Options::get_int( $key );
 		?>
-		<select name="<?php echo esc_attr( PostViews_Options::OPTION . '[' . $key . ']' ); ?>" id="views-<?php echo esc_attr( $key ); ?>" size="1">
+		<select name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[' . $key . ']' ); ?>" id="views-<?php echo esc_attr( $key ); ?>" size="1">
 			<?php foreach ( $args['choices'] as $value => $label ) : ?>
 				<option value="<?php echo esc_attr( $value ); ?>"<?php selected( $value, $selected ); ?>><?php echo esc_html( $label ); ?></option>
 			<?php endforeach; ?>
@@ -377,8 +406,8 @@ class PostViews_Settings {
 	public static function field_template( $args ) {
 		$key   = $args['key'];
 		$id    = $args['id'];
-		$name  = PostViews_Options::OPTION . '[' . $key . ']';
-		$value = PostViews_Options::get( $key, '' );
+		$name  = WP_PostViews_Options::OPTION . '[' . $key . ']';
+		$value = WP_PostViews_Options::get( $key, '' );
 
 		if ( 'textarea' === $args['type'] ) {
 			?>
@@ -454,7 +483,7 @@ class PostViews_Settings {
 	 * @return void
 	 */
 	public static function render() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( self::capability() ) ) {
 			return;
 		}
 
@@ -470,11 +499,11 @@ class PostViews_Settings {
 				// form omits keeps its stored value, so pin it off here.
 				if ( ! self::using_cache() ) {
 					?>
-					<input type="hidden" name="<?php echo esc_attr( PostViews_Options::OPTION . '[use_ajax]' ); ?>" value="0" />
+					<input type="hidden" name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[use_ajax]' ); ?>" value="0" />
 					<?php
 				}
 
-				do_settings_sections( self::SLUG );
+				do_settings_sections( self::PAGE );
 
 				submit_button();
 				?>

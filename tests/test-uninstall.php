@@ -14,7 +14,7 @@
 /**
  * Uninstall routine.
  */
-class Test_PostViews_Uninstall extends PostViews_TestCase {
+class Test_PostViews_Uninstall extends WP_PostViews_TestCase {
 
 	/**
 	 * The uninstall.php source, with comments stripped.
@@ -118,8 +118,8 @@ class Test_PostViews_Uninstall extends PostViews_TestCase {
 		}
 		require dirname( __DIR__ ) . '/uninstall.php';
 
-		$this->assertFalse( get_option( PostViews_Options::OPTION ) );
-		$this->assertFalse( get_option( PostViews_Options::VERSION_OPTION ) );
+		$this->assertFalse( get_option( WP_PostViews_Options::OPTION ) );
+		$this->assertFalse( get_option( WP_PostViews_Options::VERSION ) );
 		$this->assertFalse( get_option( 'widget_views' ) );
 		$this->assertSame( '', (string) get_post_meta( $post_id, 'views', true ) );
 

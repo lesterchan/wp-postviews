@@ -12,7 +12,7 @@
 /**
  * Widget rendering, saving and form.
  */
-class Test_PostViews_Widget extends PostViews_TestCase {
+class Test_PostViews_Widget extends WP_PostViews_TestCase {
 
 	/**
 	 * Standard sidebar wrappers.

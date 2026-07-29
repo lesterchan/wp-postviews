@@ -15,7 +15,7 @@
 /**
  * Network activation and uninstall.
  */
-class Test_PostViews_Multisite extends PostViews_TestCase {
+class Test_PostViews_Multisite extends WP_PostViews_TestCase {
 
 	/**
 	 * Skip the whole class on a single site install.
@@ -46,10 +46,10 @@ class Test_PostViews_Multisite extends PostViews_TestCase {
 		foreach ( $site_ids as $site_id ) {
 			switch_to_blog( $site_id );
 
-			update_option( PostViews_Options::OPTION, PostViews_Options::defaults() );
-			update_option( PostViews_Options::VERSION_OPTION, WP_POSTVIEWS_VERSION );
+			update_option( WP_PostViews_Options::OPTION, WP_PostViews_Options::defaults() );
+			update_option( WP_PostViews_Options::VERSION, WP_POSTVIEWS_VERSION );
 			update_option( 'widget_views', array( 'seeded' => 1 ) );
-			PostViews_Options::flush();
+			WP_PostViews_Options::flush();
 
 			$post_id = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 			update_post_meta( $post_id, 'views', 500 );
@@ -74,19 +74,19 @@ class Test_PostViews_Multisite extends PostViews_TestCase {
 
 		foreach ( $site_ids as $site_id ) {
 			switch_to_blog( $site_id );
-			delete_option( PostViews_Options::OPTION );
-			PostViews_Options::flush();
+			delete_option( WP_PostViews_Options::OPTION );
+			WP_PostViews_Options::flush();
 			restore_current_blog();
 		}
 
-		postviews_activate( true );
+		wp_postviews_activate( true );
 
 		foreach ( $site_ids as $site_id ) {
 			switch_to_blog( $site_id );
-			PostViews_Options::flush();
+			WP_PostViews_Options::flush();
 
 			$this->assertIsArray(
-				get_option( PostViews_Options::OPTION ),
+				get_option( WP_PostViews_Options::OPTION ),
 				"Site {$site_id} was not seeded by network activation."
 			);
 
@@ -103,13 +103,13 @@ class Test_PostViews_Multisite extends PostViews_TestCase {
 		$other = self::factory()->blog->create();
 
 		switch_to_blog( $other );
-		delete_option( PostViews_Options::OPTION );
+		delete_option( WP_PostViews_Options::OPTION );
 		restore_current_blog();
 
-		postviews_activate( false );
+		wp_postviews_activate( false );
 
 		switch_to_blog( $other );
-		$stored = get_option( PostViews_Options::OPTION );
+		$stored = get_option( WP_PostViews_Options::OPTION );
 		restore_current_blog();
 
 		$this->assertFalse( $stored, 'A per-site activation should not seed other sites.' );
@@ -158,10 +158,10 @@ class Test_PostViews_Multisite extends PostViews_TestCase {
 
 		foreach ( $site_ids as $site_id ) {
 			switch_to_blog( $site_id );
-			PostViews_Options::flush();
+			WP_PostViews_Options::flush();
 
-			$this->assertFalse( get_option( PostViews_Options::OPTION ), "views_options survived on site {$site_id}." );
-			$this->assertFalse( get_option( PostViews_Options::VERSION_OPTION ), "views_version survived on site {$site_id}." );
+			$this->assertFalse( get_option( WP_PostViews_Options::OPTION ), "views_options survived on site {$site_id}." );
+			$this->assertFalse( get_option( WP_PostViews_Options::VERSION ), "views_version survived on site {$site_id}." );
 			$this->assertFalse( get_option( 'widget_views' ), "widget_views survived on site {$site_id}." );
 
 			$this->assertSame(
