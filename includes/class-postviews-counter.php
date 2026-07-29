@@ -25,8 +25,11 @@ class PostViews_Counter {
 	public static function init() {
 		add_action( 'wp_head', array( __CLASS__, 'process' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
-		add_action( 'wp_ajax_postviews', array( __CLASS__, 'ajax_increment' ) );
-		add_action( 'wp_ajax_nopriv_postviews', array( __CLASS__, 'ajax_increment' ) );
+		// The action name carries the plugin prefix. A bare "postviews" is the
+		// kind of generic noun any plugin could have claimed, and neither
+		// WordPress nor admin-ajax.php detects the collision.
+		add_action( 'wp_ajax_wp_postviews', array( __CLASS__, 'ajax_increment' ) );
+		add_action( 'wp_ajax_nopriv_wp_postviews', array( __CLASS__, 'ajax_increment' ) );
 	}
 
 	/**
@@ -159,11 +162,15 @@ class PostViews_Counter {
 	 * @return WP_Post|null
 	 */
 	protected static function current_post() {
-		global $post;
+		// Read into a local rather than through `global $post`. Historically
+		// this global could arrive as a bare ID and the fix was to normalise it
+		// in place, but the loop global belongs to the request, not to this
+		// plugin: writing a WP_Post back over an ID another component chose to
+		// store is exactly the kind of action at a distance nobody can trace.
+		$post = $GLOBALS['post'] ?? null;
 
-		// Historically this global could arrive as a bare ID.
 		if ( is_int( $post ) ) {
-			$post = get_post( $post ); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			$post = get_post( $post );
 		}
 
 		if ( ! $post instanceof WP_Post ) {
@@ -235,11 +242,11 @@ class PostViews_Counter {
 		);
 		wp_localize_script(
 			'wp-postviews-cache',
-			'viewsCacheL10n',
+			'wpPostViewsL10n',
 			array(
-				'admin_ajax_url' => admin_url( 'admin-ajax.php' ),
-				'nonce'          => wp_create_nonce( 'wp_postviews_nonce' ),
-				'post_id'        => (int) $post->ID,
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'wp_postviews_nonce' ),
+				'postId'  => (int) $post->ID,
 			)
 		);
 	}

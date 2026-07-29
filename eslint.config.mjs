@@ -19,12 +19,19 @@ export default [
 			globals: {
 				...globals.browser,
 				// Localised into the page by wp_localize_script().
-				viewsCacheL10n: 'readonly',
-				postviewsAdminL10n: 'readonly',
+				wpPostViewsL10n: 'readonly',
 			},
 		},
 		settings: {
 			react: { version: '18.0' },
+		},
+	},
+	{
+		files: [ 'tests/js/**/*.test.js' ],
+		languageOptions: {
+			globals: {
+				...globals.node,
+			},
 		},
 	},
 ];

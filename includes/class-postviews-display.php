@@ -52,7 +52,7 @@ class PostViews_Display {
 
 		// The template is HTML by design and is run through wp_kses_post() when
 		// it is saved, so it is echoed as-is.
-		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by PostViews_Settings on save.
 	}
 
 	/**
@@ -194,7 +194,7 @@ class PostViews_Display {
 	public static function get_totalviews( $display = true ) {
 		global $wpdb;
 
-		$total_views = (int) $wpdb->get_var( "SELECT SUM(meta_value+0) FROM $wpdb->postmeta WHERE meta_key = 'views'" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$total_views = (int) $wpdb->get_var( "SELECT SUM(meta_value+0) FROM $wpdb->postmeta WHERE meta_key = 'views'" );
 
 		if ( ! $display ) {
 			return $total_views;

@@ -108,12 +108,13 @@ class PostViews_Core {
 	 *
 	 * The incoming clause is discarded rather than appended to: sorting by view
 	 * count is the whole point of the query var, so it replaces whatever
-	 * ordering was in place.
+	 * ordering was in place. The parameter list is therefore empty rather than
+	 * naming an argument nothing reads - PHP passes the clause and the query
+	 * object in and a callback simply ignores the extras.
 	 *
-	 * @param string $content The ORDER BY clause. Intentionally unused.
 	 * @return string
 	 */
-	public static function posts_orderby( $content ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public static function posts_orderby() {
 		$orderby = strtolower( trim( (string) get_query_var( 'v_orderby' ) ) );
 
 		// Validated against a fixed pair rather than escaped: this is

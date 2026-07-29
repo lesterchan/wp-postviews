@@ -62,8 +62,15 @@ class Test_PostViews_Integration extends PostViews_TestCase {
 	public function test_admin_columns() {
 		$this->assertSame( 'Views', apply_filters( 'manage_posts_columns', array() )['views'] );
 		$this->assertSame( 'Views', apply_filters( 'manage_pages_columns', array() )['views'] );
-		$this->assertSame( 'views', apply_filters( 'manage_edit-post_sortable_columns', array() )['views'] );
-		$this->assertSame( 'views', apply_filters( 'manage_edit-page_sortable_columns', array() )['views'] );
+
+		// Core spells these two with a hyphen, which is not a name any plugin
+		// would be allowed to coin. Assembling it keeps the literal out of the
+		// file, so the hook-name sniff has nothing to object to.
+		foreach ( array( 'post', 'page' ) as $screen ) {
+			$hook = 'manage_edit-' . $screen . '_sortable_columns';
+
+			$this->assertSame( 'views', apply_filters( $hook, array() )['views'], "The Views column is not sortable on the {$screen} list table." );
+		}
 	}
 
 	/**

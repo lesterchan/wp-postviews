@@ -676,7 +676,7 @@ class Test_PostViews_Counter extends PostViews_TestCase {
 		);
 
 		$_POST = array(
-			'action' => 'postviews',
+			'action' => 'wp_postviews',
 			'nonce'  => null === $nonce ? wp_create_nonce( 'wp_postviews_nonce' ) : $nonce,
 		);
 		if ( null !== $postviews_id ) {
@@ -689,7 +689,7 @@ class Test_PostViews_Counter extends PostViews_TestCase {
 
 		ob_start();
 		try {
-			do_action( 'wp_ajax_nopriv_postviews' );
+			do_action( 'wp_ajax_nopriv_wp_postviews' );
 		} catch ( WPDieException $e ) {
 			$died = $e->getMessage();
 		}

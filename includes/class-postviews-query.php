@@ -53,7 +53,7 @@ class PostViews_Query {
 			'order'          => $args['order'],
 			// A meta_key filter is what excludes posts that have never been
 			// viewed. Removing it would list them all at zero.
-			'meta_key'       => 'views', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			'meta_key'       => 'views', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- The meta key is what excludes never-viewed posts; without it the listing returns everything at zero.
 		);
 
 		if ( null !== $args['category'] ) {
@@ -140,6 +140,6 @@ class PostViews_Query {
 
 		// The template is HTML by design and is run through wp_kses_post() when
 		// it is saved, so it is echoed as-is.
-		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by PostViews_Settings on save.
 	}
 }

@@ -9,37 +9,39 @@
  * LiteSpeed Cache recipe in the readme uses; previously it told people to edit
  * this file, which every plugin update then overwrote.
  */
-fetch( viewsCacheL10n.admin_ajax_url, {
-	method: 'POST',
-	credentials: 'same-origin',
-	headers: {
-		'Content-Type': 'application/x-www-form-urlencoded',
-		'Cache-Control': 'no-cache',
-	},
-	body: new URLSearchParams( {
-		action: 'postviews',
-		nonce: viewsCacheL10n.nonce,
-		postviews_id: viewsCacheL10n.post_id,
-	} ),
-} )
-	.then( function( response ) {
-		return response.json();
+( function() {
+	fetch( wpPostViewsL10n.ajaxUrl, {
+		method: 'POST',
+		credentials: 'same-origin',
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Cache-Control': 'no-cache',
+		},
+		body: new URLSearchParams( {
+			action: 'wp_postviews',
+			nonce: wpPostViewsL10n.nonce,
+			postviews_id: wpPostViewsL10n.postId,
+		} ),
 	} )
-	.then( function( data ) {
-		if ( ! data || ! data.success || ! data.data ) {
-			return;
-		}
+		.then( function( response ) {
+			return response.json();
+		} )
+		.then( function( data ) {
+			if ( ! data || ! data.success || ! data.data ) {
+				return;
+			}
 
-		document.dispatchEvent(
-			new CustomEvent( 'postviews:updated', {
-				detail: {
-					views: data.data.views,
-					postId: viewsCacheL10n.post_id,
-				},
-			} ),
-		);
-	} )
-	.catch( function( error ) {
-		// eslint-disable-next-line no-console
-		console.log( 'WP-PostViews', error );
-	} );
+			document.dispatchEvent(
+				new CustomEvent( 'postviews:updated', {
+					detail: {
+						views: data.data.views,
+						postId: wpPostViewsL10n.postId,
+					},
+				} ),
+			);
+		} )
+		.catch( function( error ) {
+			// eslint-disable-next-line no-console
+			console.log( 'WP-PostViews', error );
+		} );
+}() );

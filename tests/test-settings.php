@@ -392,7 +392,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-admin']->deps );
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );
-		$this->assertStringContainsString( 'postviewsAdminL10n', $data );
+		$this->assertStringContainsString( 'wpPostViewsL10n', $data );
 		$this->assertStringContainsString( '%VIEW_COUNT%', $data );
 		$this->assertStringContainsString( '%POST_URL%', $data );
 	}
@@ -406,7 +406,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 		PostViews_Settings::enqueue_scripts();
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );
-		preg_match( '/postviewsAdminL10n = (\{.*\});/', $data, $matches );
+		preg_match( '/wpPostViewsL10n = (\{.*\});/', $data, $matches );
 		$decoded = json_decode( $matches[1], true );
 
 		$this->assertSame( PostViews_Options::default_template( 'template' ), $decoded['defaults']['template'] );

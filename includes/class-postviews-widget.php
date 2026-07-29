@@ -91,7 +91,7 @@ class PostViews_Widget extends WP_Widget {
 				break;
 		}
 
-		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $args['before_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sidebar chrome supplied by the theme; escaping it would print the wrapper instead of opening it.
 		if ( '' !== $title ) {
 			// Core already registers esc_html on the widget_title filter, so
 			// this is a second pass. It is kept because the filter is public
@@ -99,14 +99,14 @@ class PostViews_Widget extends WP_Widget {
 			// esc_html() passes $double_encode = false, so escaping an already
 			// escaped string is a no-op rather than turning &#038; into
 			// &amp;#038;.
-			echo $args['before_title'] . esc_html( $title ) . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $args['before_title'] . esc_html( $title ) . $args['after_title']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sidebar chrome supplied by the theme; the title between them is escaped.
 		}
 		echo '<ul>' . "\n";
 		// The listing is rendered from the user's own template, which is run
 		// through wp_kses_post() when it is saved.
-		echo PostViews_Query::render( $listing ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo PostViews_Query::render( $listing ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Stored template, filtered through wp_kses_post() by PostViews_Settings on save.
 		echo '</ul>' . "\n";
-		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo $args['after_widget']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sidebar chrome supplied by the theme; escaping it would print the wrapper instead of closing it.
 	}
 
 	/**

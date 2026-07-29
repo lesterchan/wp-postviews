@@ -278,7 +278,7 @@ class PostViews_Settings {
 		);
 		wp_localize_script(
 			'wp-postviews-admin',
-			'postviewsAdminL10n',
+			'wpPostViewsL10n',
 			array(
 				'defaults' => array(
 					'template'             => PostViews_Options::default_template( 'template' ),
