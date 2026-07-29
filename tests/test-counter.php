@@ -1,7 +1,7 @@
 <?php
 /**
  * Counting: the three "count views from" modes, bot exclusion, the
- * postviews_should_count filter and the AJAX endpoint.
+ * wp_postviews_should_count filter and the AJAX endpoint.
  *
  * @package WP-PostViews
  */
@@ -254,7 +254,7 @@ class Test_PostViews_Counter extends WP_PostViews_TestCase {
 
 		$seen = 0;
 		add_filter(
-			'postviews_should_count',
+			'wp_postviews_should_count',
 			function ( $should, $post_id ) use ( &$seen ) {
 				$seen = $post_id;
 
@@ -278,7 +278,7 @@ class Test_PostViews_Counter extends WP_PostViews_TestCase {
 		$this->set_options( array( 'count' => 2 ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
 
-		add_filter( 'postviews_should_count', '__return_true' );
+		add_filter( 'wp_postviews_should_count', '__return_true' );
 
 		$this->assertSame( 1, $this->hit( $this->post_id ) );
 	}
@@ -294,7 +294,7 @@ class Test_PostViews_Counter extends WP_PostViews_TestCase {
 
 		$fired = null;
 		add_action(
-			'postviews_increment_views',
+			'wp_postviews_increment_views',
 			function ( $views ) use ( &$fired ) {
 				$fired = $views;
 			}

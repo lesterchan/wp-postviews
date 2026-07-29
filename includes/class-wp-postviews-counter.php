@@ -116,10 +116,14 @@ class WP_PostViews_Counter {
 		/**
 		 * Filters whether the current request increments the view count.
 		 *
+		 * Called postviews_should_count up to 1.78.1.
+		 *
+		 * @since 2.0.0
+		 *
 		 * @param bool $should_count Whether to count this request.
 		 * @param int  $post_id      The post being viewed.
 		 */
-		return apply_filters( 'postviews_should_count', $should_count, $post_id );
+		return apply_filters( 'wp_postviews_should_count', $should_count, $post_id );
 	}
 
 	/**
@@ -211,7 +215,7 @@ class WP_PostViews_Counter {
 			return;
 		}
 
-		self::increment( (int) $post->ID, 'postviews_increment_views' );
+		self::increment( (int) $post->ID, 'wp_postviews_increment_views' );
 	}
 
 	/**
@@ -282,7 +286,7 @@ class WP_PostViews_Counter {
 			return;
 		}
 
-		$post_views = self::increment( $post_id, 'postviews_increment_views_ajax' );
+		$post_views = self::increment( $post_id, 'wp_postviews_increment_views_ajax' );
 
 		wp_send_json_success( array( 'views' => $post_views ) );
 	}
@@ -301,6 +305,14 @@ class WP_PostViews_Counter {
 
 		/**
 		 * Fires after a view has been recorded.
+		 *
+		 * The dynamic portion of the hook name is which path recorded it:
+		 * wp_postviews_increment_views during wp_head, or
+		 * wp_postviews_increment_views_ajax from the admin-ajax.php endpoint a
+		 * cached page uses instead. Both dropped their bare postviews_ prefix
+		 * in 2.0.0.
+		 *
+		 * @since 2.0.0
 		 *
 		 * @param int $post_views The new view count.
 		 */

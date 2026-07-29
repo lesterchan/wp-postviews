@@ -32,9 +32,18 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 
 ## Changelog
 ### 2.0.0
+* BREAKING: Requires WordPress 6.8 and PHP 8.2, up from 6.0 and 7.4. A site on an older stack will not be offered the update.
+* BREAKING: The `the_views` filter is now `wp_postviews_the_views`. The template tag `the_views()` is unchanged.
+* BREAKING: The `postviews_should_count` filter is now `wp_postviews_should_count`.
+* BREAKING: The `postviews_increment_views` and `postviews_increment_views_ajax` actions are now `wp_postviews_increment_views` and `wp_postviews_increment_views_ajax`.
+* BREAKING: The settings are stored in `wp_postviews_options` instead of `views_options`, and the upgrade markers in `wp_postviews_version` instead of `views_version`. Both are migrated automatically.
+* BREAKING: The WP-Stats toggles move out of the shared `stats_display` and `stats_mostlimit` rows into this plugin's own settings, and the shared rows are deleted. Update all seven WP-Stats plugins together.
+* BREAKING: The widget class `WP_Widget_PostViews` is now `WP_PostViews_Widget`. Configured widgets are unaffected.
+* BREAKING: The AJAX action a cached page posts to is now `wp_postviews` instead of `postviews`.
 * NEW: Restructured into `includes/` classes. The template tags — `the_views()`, `get_most_viewed()`, `get_least_viewed()`, and the category and tag variants — are unchanged and keep working exactly as before.
 * NEW: The options screen is rebuilt on the WordPress Settings API and no longer loads jQuery.
-* NEW: Requires WordPress 6.0 and PHP 7.4.
+* NEW: The WP-Stats section, and how many entries its most viewed lists carry, are now settings on Settings → PostViews.
+* CHANGED: WP-Stats now receives one Views section rather than three separately toggled panels, so the most viewed pages list appears alongside the posts list.
 * FIXED: `%VIEW_COUNT_ROUNDED%` picked its unit before rounding, so 999,950 displayed as "1000K" instead of "1M" and 999,999,999 as "1000M" instead of "1B".
 * FIXED: Titles were truncated on bytes rather than characters, because the multibyte branch was gated on `MB_OVERLOAD_STRING`, which PHP 8.0 removed. A CJK title cut mid-character disappeared from the most/least viewed lists entirely.
 * FIXED: The AJAX endpoint recorded views against post IDs that do not exist, letting anyone add rows to `wp_postmeta` indefinitely.
@@ -110,7 +119,21 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 ## Upgrade Notice
 
 ### 2.0.0
-Requires WordPress 6.0 and PHP 7.4. Your template tags and settings carry over untouched, but the settings screen has a new URL — reach it from Settings → PostViews. If your theme calls `should_views_be_displayed()`, `postviews_round_number()` or `snippet_text()` directly, those three undocumented helpers are now methods on `WP_PostViews_Display`.
+2.0.0 is the first release since 1.78.1 and it renames things. Your view counts, your templates and your settings all carry over on their own — nothing below asks you to re-enter anything — but a handful of names your theme or another plugin may be using have changed, and one of them is likely enough to matter that it comes first.
+
+**If your view counts stop appearing after the update, this is why.** The filter called `the_views` is now called `wp_postviews_the_views`. That old name was far too generic for a filter belonging to one plugin, and it had been public since 1.78.1, which means it is very probably sitting in a theme somewhere — in `functions.php`, in a child theme, or in a snippet a developer added years ago to wrap the count in your own markup. Search your theme for `the_views` and look at what you find. A line like `add_filter( 'the_views', … )` needs the name changed to `wp_postviews_the_views`; nothing else about it changes, and the arguments it receives are identical. A call to `the_views()` with brackets is the template tag, not the filter — leave that exactly as it is, it still works. The safe way to check is to look at a post before and after: if the count is there but your custom wrapper, prefix or wording has gone, you have found a filter that needs renaming. There is no compatibility shim, so the old name does nothing at all and fails silently rather than warning you.
+
+Three more hooks were renamed the same way, and for the same reason. `postviews_should_count` is now `wp_postviews_should_count`. `postviews_increment_views` and `postviews_increment_views_ajax` are now `wp_postviews_increment_views` and `wp_postviews_increment_views_ajax`. If you have never heard of any of these, you are not using them and there is nothing to do.
+
+**WordPress 6.8 and PHP 8.2 are now the minimum**, up from 6.0 and 7.4. This is the one that will stop you before anything else does: a site on an older WordPress or an older PHP is simply not offered the update, so if you cannot see 2.0.0 on your Plugins screen, check those two numbers first and ask your host about PHP.
+
+**If you also use WP-Stats, update all seven plugins together.** WP-PostViews, WP-Stats, WP-Polls, WP-PostRatings, WP-UserOnline, WP-EMail and WP-DownloadManager used to share two unlabelled settings rows, and each of them now keeps its own copy and deletes the shared one. Whichever you update first takes those rows away from the rest, so updating them piecemeal leaves the others reading settings that are no longer there. Nothing is lost either way — a plugin that finds the shared row gone assumes its section should still be shown — but the tidy way is to update all seven in one go. The view section is switched on or off on Settings → PostViews now, not on the WP-Stats options screen, and the same screen sets how many entries the most viewed lists carry. One other change to expect there: WP-Stats used to draw three separately switchable panels for this plugin and now receives a single Views section, so the most viewed **pages** list appears next to the posts list even if you had only ever asked for posts. Untick the whole section on Settings → PostViews if you would rather not see it.
+
+**The settings screen has moved.** It was `options-general.php?page=wp-postviews/postviews-options.php` and it is now `options-general.php?page=wp-postviews`. Update any bookmark. The Settings → PostViews menu item is where it always was.
+
+**Two settings rows were renamed**, from `views_options` and `views_version` to `wp_postviews_options` and `wp_postviews_version`. The migration runs by itself the first time 2.0.0 loads and deletes the old rows afterwards, so there is nothing for you to do — unless you have code, a WP-CLI script or an export that reads `views_options` directly, in which case point it at the new name.
+
+Finally, three functions that were never documented are gone: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()`. They are `WP_PostViews_Display::should_be_displayed()`, `::round_number()` and `::snippet_text()` now. The widget class `WP_Widget_PostViews` is `WP_PostViews_Widget`, which matters only if you were instantiating it yourself; widgets you have already placed in a sidebar are untouched.
 
 ## Screenshots
 

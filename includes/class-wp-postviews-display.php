@@ -42,9 +42,14 @@ class WP_PostViews_Display {
 		/**
 		 * Filters the rendered view count for a single post.
 		 *
-		 * @param string $output The rendered template.
+		 * Called the_views up to 1.78.1, which was generic enough to belong to
+		 * nobody.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param string $output The rendered template, prefix and postfix included.
 		 */
-		$output = apply_filters( 'the_views', $output );
+		$output = apply_filters( 'wp_postviews_the_views', $output );
 
 		if ( ! $display ) {
 			return $output;
@@ -74,7 +79,7 @@ class WP_PostViews_Display {
 		}
 
 		/** This filter is documented in includes/class-wp-postviews-display.php */
-		return apply_filters( 'the_views', self::render_count_template( $id ) );
+		return apply_filters( 'wp_postviews_the_views', self::render_count_template( $id ) );
 	}
 
 	/**

@@ -71,7 +71,7 @@ class Test_PostViews_Display extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * The the_views filter can rewrite the output.
+	 * The wp_postviews_the_views filter can rewrite the output.
 	 *
 	 * @return void
 	 */
@@ -81,7 +81,7 @@ class Test_PostViews_Display extends WP_PostViews_TestCase {
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
 		add_filter(
-			'the_views',
+			'wp_postviews_the_views',
 			function ( $output ) {
 				return '<b>' . $output . '</b>';
 			}
@@ -408,7 +408,7 @@ class Test_PostViews_Display extends WP_PostViews_TestCase {
 	/**
 	 * The prefix and postfix are inside what the filter receives.
 	 *
-	 * A theme filtering the_views sees the finished string, wrappers and all.
+	 * A theme filtering wp_postviews_the_views sees the finished string, wrappers and all.
 	 *
 	 * @return void
 	 */
@@ -419,7 +419,7 @@ class Test_PostViews_Display extends WP_PostViews_TestCase {
 
 		$seen = null;
 		add_filter(
-			'the_views',
+			'wp_postviews_the_views',
 			function ( $output ) use ( &$seen ) {
 				$seen = $output;
 				return $output;
