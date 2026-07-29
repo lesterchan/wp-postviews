@@ -271,7 +271,7 @@ class PostViews_Settings {
 	public static function enqueue_scripts() {
 		wp_enqueue_script(
 			'wp-postviews-admin',
-			plugins_url( 'postviews-admin.js', WP_POSTVIEWS_MAIN_FILE ),
+			plugins_url( 'js/wp-js/wp-postviews-admin.js', WP_POSTVIEWS_MAIN_FILE ),
 			array(),
 			WP_POSTVIEWS_VERSION,
 			true
@@ -369,7 +369,7 @@ class PostViews_Settings {
 	 * button.
 	 *
 	 * The button carries the option key and the field id as data attributes;
-	 * that pairing is the whole contract with postviews-admin.js.
+	 * that pairing is the whole contract with js/wp-postviews-admin.js.
 	 *
 	 * @param array $args Field args: key, id, and type of text or textarea.
 	 * @return void

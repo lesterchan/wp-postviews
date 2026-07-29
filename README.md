@@ -220,7 +220,7 @@ Requires WordPress 6.0 and PHP 7.4. Your template tags and settings carry over u
 Use: `<div id="postviews_lscwp"></div>` to replace `<?php if(function_exists('the_views')) { the_views(); } ?>`.
 NOTE: The id can be changed, but the div id and the script must match.
 
-`postviews-cache.js` already posts the view and receives the new count back, so you only need to write that count into your div. Add this to your theme, or to a small script of your own enqueued after `wp-postviews-cache`:
+`js/wp-postviews-cache.js` already posts the view and receives the new count back, so you only need to write that count into your div. Add this to your theme, or to a small script of your own enqueued after `wp-postviews-cache`:
 
 ```javascript
 document.addEventListener( 'postviews:updated', function ( event ) {

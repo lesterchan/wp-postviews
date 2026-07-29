@@ -339,7 +339,7 @@ class Test_PostViews_Settings extends PostViews_TestCase {
 	 * The reset buttons carry the data attributes the script keys off.
 	 *
 	 * The pairing between the button and its field is the whole contract
-	 * between the markup and postviews-admin.js.
+	 * between the markup and js/wp-postviews-admin.js.
 	 *
 	 * @return void
 	 */

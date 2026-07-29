@@ -1,43 +1,32 @@
 #!/usr/bin/env bash
 #
-# Run the PHPUnit suite inside wp-env.
+# Run the PHPUnit suite against a real WordPress install, single site.
 #
-# Requires Docker to be running. First run takes a few minutes while wp-env
-# pulls the WordPress, MySQL and PHPUnit images.
+# Docker is the only prerequisite: wp-env brings up WordPress, MySQL and the
+# WordPress test library. Dev dependencies are installed INSIDE the container,
+# so vendor/ never appears in the repo.
 #
-#   bin/test.sh              run the suite on a single site install
-#   bin/test.sh --multisite  run it against a network instead
-#   bin/test.sh --filter X   pass extra args straight to phpunit
+#   bash bin/test.sh                 # whole suite
+#   bash bin/test.sh --filter Escaping
 #
-# Test_PostViews_Multisite skips itself unless --multisite is given, and
-# Test_PostViews_Uninstall skips its functional test when it is, so the two
-# modes cover the branch each of them owns. Run both before a release.
+# For the network run use bin/test-multisite.sh. Override the stack with
+# WP_ENV_PHP_VERSION / WP_ENV_CORE, exactly as CI does.
+
 set -euo pipefail
 
-cd "$( dirname "${BASH_SOURCE[0]}" )/.."
+SLUG=wp-postviews
+CONFIG="${PHPUNIT_CONFIG:-phpunit.xml.dist}"
+CWD=wp-content/plugins/$SLUG
 
-MULTISITE=0
-ARGS=()
-for arg in "$@"; do
-	if [ "$arg" = "--multisite" ]; then
-		MULTISITE=1
-	else
-		ARGS+=( "$arg" )
-	fi
-done
+cd "$(dirname "$0")/.."
 
-if ! docker info >/dev/null 2>&1; then
-	echo "Docker is not running. Start Docker Desktop and try again." >&2
-	exit 1
-fi
-
-# Bring the environment up (idempotent).
+echo "==> Starting wp-env (PHP ${WP_ENV_PHP_VERSION:-default}, core ${WP_ENV_CORE:-default})"
 npx --yes @wordpress/env start
 
-# Dev dependencies live inside the container, so nothing lands in the repo.
-npx --yes @wordpress/env run tests-cli --env-cwd=wp-content/plugins/wp-postviews \
+echo "==> Installing dev dependencies inside the tests container"
+npx --yes @wordpress/env run tests-cli --env-cwd="$CWD" \
 	composer install --no-interaction --no-progress
 
-# WP_MULTISITE is what the WordPress test bootstrap reads to install a network.
-npx --yes @wordpress/env run tests-cli --env-cwd=wp-content/plugins/wp-postviews \
-	env "WP_MULTISITE=${MULTISITE}" vendor/bin/phpunit ${ARGS[@]+"${ARGS[@]}"}
+echo "==> Running PHPUnit ($CONFIG)"
+npx --yes @wordpress/env run tests-cli --env-cwd="$CWD" \
+	vendor/bin/phpunit -c "$CONFIG" "$@"

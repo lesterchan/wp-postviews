@@ -228,7 +228,7 @@ class PostViews_Counter {
 
 		wp_enqueue_script(
 			'wp-postviews-cache',
-			plugins_url( 'postviews-cache.js', WP_POSTVIEWS_MAIN_FILE ),
+			plugins_url( 'js/wp-postviews-cache.js', WP_POSTVIEWS_MAIN_FILE ),
 			array(),
 			WP_POSTVIEWS_VERSION,
 			true
