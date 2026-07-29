@@ -18,6 +18,11 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit();
 }
 
+// WordPress loads this file and nothing else of the plugin when the plugin is
+// deleted, so the option list has to be pulled in explicitly. Reading it from
+// the class the migration reads it from is what stops the two drifting apart.
+require_once __DIR__ . '/includes/class-wp-postviews-options.php';
+
 if ( ! function_exists( 'wp_postviews_uninstall_site' ) ) {
 	/**
 	 * Delete this plugin's data from the current site.
@@ -28,15 +33,7 @@ if ( ! function_exists( 'wp_postviews_uninstall_site' ) ) {
 	 * @return void
 	 */
 	function wp_postviews_uninstall_site() {
-		$option_names = array(
-			'views_options',
-			'views_version',
-			'widget_views',
-			// Retired long ago, but still on disk wherever it was written.
-			'widget_views_most_viewed',
-		);
-
-		foreach ( $option_names as $option_name ) {
+		foreach ( WP_PostViews_Options::all_option_names() as $option_name ) {
 			delete_option( $option_name );
 		}
 

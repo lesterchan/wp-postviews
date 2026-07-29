@@ -66,6 +66,31 @@ abstract class WP_PostViews_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Execute uninstall.php, the real file, every time.
+	 *
+	 * It lives here rather than in a test class because only one file per plugin
+	 * may require the uninstaller: it declares a global function, and a second
+	 * include from a second test file fatals on the redeclare. Three test classes
+	 * want it, so all three come through this.
+	 *
+	 * The script guards its declaration with function_exists() and declares
+	 * before dispatching, so requiring it repeatedly re-runs the dispatch. That
+	 * matters: a helper that reimplemented the loop would be testing the copy,
+	 * and the copy cannot carry the bug.
+	 *
+	 * @return void
+	 */
+	protected function run_uninstall() {
+		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+			define( 'WP_UNINSTALL_PLUGIN', 'wp-postviews/wp-postviews.php' );
+		}
+
+		require dirname( __DIR__ ) . '/uninstall.php';
+
+		WP_PostViews_Options::flush();
+	}
+
+	/**
 	 * Merge values into the option row.
 	 *
 	 * @param array $overrides Values to set.

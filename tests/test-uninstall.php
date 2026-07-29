@@ -111,19 +111,42 @@ class Test_PostViews_Uninstall extends WP_PostViews_TestCase {
 		$post_id = $this->make_post( array(), 500 );
 		update_post_meta( $post_id, 'keep_me', 'do not delete' );
 		update_option( 'widget_views', array( 'test' => 1 ) );
-		update_option( 'views_version', WP_POSTVIEWS_VERSION );
+		update_option( WP_PostViews_Options::LEGACY_OPTION, array( 'count' => 1 ) );
+		update_option( WP_PostViews_Options::LEGACY_VERSION, '1.78.1' );
+		WP_PostViews_Options::update_markers();
 
-		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-			define( 'WP_UNINSTALL_PLUGIN', 'wp-postviews/wp-postviews.php' );
-		}
-		require dirname( __DIR__ ) . '/uninstall.php';
+		$this->run_uninstall();
 
 		$this->assertFalse( get_option( WP_PostViews_Options::OPTION ) );
 		$this->assertFalse( get_option( WP_PostViews_Options::VERSION ) );
 		$this->assertFalse( get_option( 'widget_views' ) );
 		$this->assertSame( '', (string) get_post_meta( $post_id, 'views', true ) );
 
+		// An upgrade that never ran leaves the pre-2.0.0 rows on disk, so
+		// uninstall has to clear those too.
+		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_OPTION ) );
+		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_VERSION ) );
+
 		$this->assertSame( 'do not delete', get_post_meta( $post_id, 'keep_me', true ) );
 		$this->assertNotNull( get_post( $post_id ) );
+	}
+
+	/**
+	 * The shared WP-Stats rows are left for the siblings still reading them.
+	 *
+	 * @return void
+	 */
+	public function test_uninstall_spares_the_shared_wp_stats_rows() {
+		update_option( WP_PostViews_Options::LEGACY_STATS_DISPLAY, array( 'polls' => 1 ) );
+
+		$this->run_uninstall();
+
+		$this->assertSame(
+			array( 'polls' => 1 ),
+			get_option( WP_PostViews_Options::LEGACY_STATS_DISPLAY ),
+			"Deleting one plugin must not reconfigure a sibling's WP-Stats block."
+		);
+
+		delete_option( WP_PostViews_Options::LEGACY_STATS_DISPLAY );
 	}
 }

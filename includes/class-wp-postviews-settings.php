@@ -63,6 +63,13 @@ class WP_PostViews_Settings {
 	const SECTION_DISPLAY = 'wp_postviews_display';
 
 	/**
+	 * Section holding this plugin's half of the WP-Stats contract.
+	 *
+	 * @var string
+	 */
+	const SECTION_WPSTATS = 'wp_postviews_wpstats';
+
+	/**
 	 * Hook registration.
 	 *
 	 * @return void
@@ -254,6 +261,31 @@ class WP_PostViews_Settings {
 				)
 			);
 		}
+
+		add_settings_section(
+			self::SECTION_WPSTATS,
+			__( 'WP-Stats Options', 'wp-postviews' ),
+			array( __CLASS__, 'wpstats_section' ),
+			self::PAGE
+		);
+
+		add_settings_field(
+			'stats_display',
+			__( 'Show A Views Section On The Stats Page?', 'wp-postviews' ),
+			array( __CLASS__, 'field_stats_display' ),
+			self::PAGE,
+			self::SECTION_WPSTATS,
+			array( 'label_for' => 'views-stats_display' )
+		);
+
+		add_settings_field(
+			'stats_most_limit',
+			__( 'Number Of Entries In Each Most Viewed List:', 'wp-postviews' ),
+			array( __CLASS__, 'field_stats_most_limit' ),
+			self::PAGE,
+			self::SECTION_WPSTATS,
+			array( 'label_for' => 'views-stats_most_limit' )
+		);
 	}
 
 	/**
@@ -353,7 +385,17 @@ class WP_PostViews_Settings {
 			}
 		}
 
-		// No flush needed here: update_option() fires update_option_views_options
+		// Stored as a bool, which is what WP_PostViews_WPStats reads. A checkbox
+		// posts nothing at all when it is unticked, so the WP-Stats section is
+		// the one row this callback reads as absent-means-off rather than
+		// absent-means-unchanged: field_stats_display() always renders it.
+		$current['stats_display'] = ! empty( $input['stats_display'] );
+
+		if ( isset( $input['stats_most_limit'] ) ) {
+			$current['stats_most_limit'] = max( 1, (int) $input['stats_most_limit'] );
+		}
+
+		// No flush needed here: update_option() fires update_option_wp_postviews_options
 		// once the sanitised value is stored, and WP_PostViews_Options listens for it.
 		return $current;
 	}
@@ -423,6 +465,53 @@ class WP_PostViews_Settings {
 			<button type="button" class="button" data-postviews-reset="<?php echo esc_attr( $key ); ?>" data-postviews-target="<?php echo esc_attr( $id ); ?>">
 				<?php esc_html_e( 'Restore Default Template', 'wp-postviews' ); ?>
 			</button>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Field callback: whether to offer a section to the WP-Stats page.
+	 *
+	 * Always rendered, unlike use_ajax, which is why the sanitiser can read an
+	 * absent value as "unticked" for this one row: a checkbox posts nothing when
+	 * it is off, so a field that is always on screen is the only kind that can
+	 * be turned off at all.
+	 *
+	 * @return void
+	 */
+	public static function field_stats_display() {
+		?>
+		<input type="checkbox" id="views-stats_display"
+			name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[stats_display]' ); ?>"
+			value="1" <?php checked( (bool) WP_PostViews_Options::get( 'stats_display' ) ); ?> />
+		<p class="description">
+			<?php esc_html_e( 'WP-PostViews owns this setting now. Before 2.0.0 it lived in a row shared with WP-Stats and five other plugins, where whichever plugin saved last wrote the whole thing.', 'wp-postviews' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Field callback: how many entries each most viewed listing carries.
+	 *
+	 * @return void
+	 */
+	public static function field_stats_most_limit() {
+		?>
+		<input type="number" class="small-text" min="1" step="1" id="views-stats_most_limit"
+			name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[stats_most_limit]' ); ?>"
+			value="<?php echo esc_attr( WP_PostViews_Options::get_int( 'stats_most_limit' ) ); ?>" />
+		<?php
+	}
+
+	/**
+	 * Section callback: what the WP-Stats section contains.
+	 *
+	 * @return void
+	 */
+	public static function wpstats_section() {
+		?>
+		<p>
+			<?php esc_html_e( 'If WP-Stats is installed, WP-PostViews offers it one section holding the total view count and the most viewed posts and pages. These settings do nothing without WP-Stats.', 'wp-postviews' ); ?>
 		</p>
 		<?php
 	}

@@ -1,6 +1,8 @@
 <?php
 /**
- * WP_PostViews_Options: defaults, the runtime cache, and the 2.0.0 migration.
+ * WP_PostViews_Options: the defaults, the accessors and the runtime cache.
+ *
+ * The 2.0.0 migration and the two upgrade markers have their own file.
  *
  * @package WP-PostViews
  */
@@ -18,11 +20,40 @@ class Test_PostViews_Options extends WP_PostViews_TestCase {
 	public function test_defaults_cover_every_key() {
 		$defaults = WP_PostViews_Options::defaults();
 
-		foreach ( array( 'count', 'exclude_bots', 'use_ajax', 'template', 'most_viewed_template' ) as $key ) {
+		foreach ( array( 'count', 'exclude_bots', 'use_ajax', 'template', 'most_viewed_template', 'stats_display', 'stats_most_limit' ) as $key ) {
 			$this->assertArrayHasKey( $key, $defaults );
 		}
 		foreach ( $this->display_keys as $key ) {
 			$this->assertArrayHasKey( $key, $defaults );
+		}
+	}
+
+	/**
+	 * The WP-Stats block is on by default, and its limit is a sensible number.
+	 *
+	 * On, because the shared row it replaces defaulted to on. Shipping it off
+	 * would take the views block away from every site that upgrades.
+	 *
+	 * @return void
+	 */
+	public function test_the_wp_stats_block_defaults_to_on() {
+		$defaults = WP_PostViews_Options::defaults();
+
+		$this->assertTrue( $defaults['stats_display'], 'The WP-Stats section must be offered by default.' );
+		$this->assertSame( 10, $defaults['stats_most_limit'] );
+	}
+
+	/**
+	 * The settings row holds no upgrade marker, ever.
+	 *
+	 * The markers live in wp_postviews_version. A key called version, db_version
+	 * or versions in here is the bug §2.1 was written to make impossible.
+	 *
+	 * @return void
+	 */
+	public function test_the_settings_row_carries_no_upgrade_marker() {
+		foreach ( array( 'version', 'db_version', 'versions' ) as $key ) {
+			$this->assertArrayNotHasKey( $key, WP_PostViews_Options::defaults(), $key . ' belongs in the marker row.' );
 		}
 	}
 
@@ -84,67 +115,6 @@ class Test_PostViews_Options extends WP_PostViews_TestCase {
 		add_option( WP_PostViews_Options::OPTION, array( 'count' => 2 ) );
 
 		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
-	}
-
-	/**
-	 * The migration unslashes a legacy template.
-	 *
-	 * @return void
-	 */
-	public function test_migration_unslashes_stored_templates() {
-		update_option(
-			WP_PostViews_Options::OPTION,
-			array_merge(
-				WP_PostViews_Options::defaults(),
-				array(
-					'template'             => "it\\'s %VIEW_COUNT% views",
-					'most_viewed_template' => "<li>it\\'s %POST_TITLE%</li>",
-				)
-			)
-		);
-		delete_option( WP_PostViews_Options::VERSION );
-		WP_PostViews_Options::flush();
-
-		WP_PostViews_Options::maybe_upgrade();
-
-		$this->assertSame( "it's %VIEW_COUNT% views", WP_PostViews_Options::get( 'template' ) );
-		$this->assertSame( "<li>it's %POST_TITLE%</li>", WP_PostViews_Options::get( 'most_viewed_template' ) );
-		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( WP_PostViews_Options::VERSION ) );
-	}
-
-	/**
-	 * The migration is gated on the version, not on the content.
-	 *
-	 * An already-migrated site whose template legitimately contains a
-	 * backslash must keep it. Gating on "does it still look slashed" would
-	 * strip it on every load.
-	 *
-	 * @return void
-	 */
-	public function test_migration_does_not_rerun_on_a_current_install() {
-		update_option( WP_PostViews_Options::VERSION, WP_POSTVIEWS_VERSION );
-		$this->set_options( array( 'template' => 'C:\\path %VIEW_COUNT%' ) );
-
-		WP_PostViews_Options::maybe_upgrade();
-
-		$this->assertSame( 'C:\\path %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ) );
-	}
-
-	/**
-	 * Running the migration twice is a no-op the second time.
-	 *
-	 * @return void
-	 */
-	public function test_migration_is_idempotent() {
-		$this->set_options( array( 'template' => "it\\'s" ) );
-		delete_option( WP_PostViews_Options::VERSION );
-
-		WP_PostViews_Options::maybe_upgrade();
-		$once = WP_PostViews_Options::get( 'template' );
-
-		WP_PostViews_Options::maybe_upgrade();
-
-		$this->assertSame( $once, WP_PostViews_Options::get( 'template' ) );
 	}
 
 	/**
@@ -228,48 +198,5 @@ class Test_PostViews_Options extends WP_PostViews_TestCase {
 			WP_PostViews_Options::default_template( 'template' ),
 			WP_PostViews_Options::default_template( 'anything_else' )
 		);
-	}
-
-	/**
-	 * The migration leaves a corrupt row alone rather than fatal.
-	 *
-	 * @return void
-	 */
-	public function test_migration_survives_a_non_array_row() {
-		update_option( WP_PostViews_Options::OPTION, 'not an array' );
-		delete_option( WP_PostViews_Options::VERSION );
-		WP_PostViews_Options::flush();
-
-		WP_PostViews_Options::maybe_upgrade();
-
-		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( WP_PostViews_Options::VERSION ) );
-	}
-
-	/**
-	 * A template with no slashes is untouched by the migration.
-	 *
-	 * @return void
-	 */
-	public function test_migration_leaves_clean_templates_alone() {
-		$this->set_options( array( 'template' => 'Plain %VIEW_COUNT%' ) );
-		delete_option( WP_PostViews_Options::VERSION );
-		WP_PostViews_Options::flush();
-
-		WP_PostViews_Options::maybe_upgrade();
-
-		$this->assertSame( 'Plain %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ) );
-	}
-
-	/**
-	 * Activation records the version, so the migration does not run again.
-	 *
-	 * @return void
-	 */
-	public function test_install_records_the_version() {
-		delete_option( WP_PostViews_Options::VERSION );
-
-		WP_PostViews_Options::install();
-
-		$this->assertSame( WP_POSTVIEWS_VERSION, get_option( WP_PostViews_Options::VERSION ) );
 	}
 }

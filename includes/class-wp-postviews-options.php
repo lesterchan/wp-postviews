@@ -2,16 +2,20 @@
 /**
  * Option storage for WP-PostViews.
  *
- * Everything the plugin configures already lived in a single wp_options row,
- * views_options, so 2.0.0 does not consolidate anything - it just puts one
- * accessor in front of the row instead of a get_option() call at each of the
- * dozen sites that used to read it. The keys are deliberately left flat and
- * unchanged: themes and other plugins read this option directly, and there is
- * no row count to win by nesting them.
+ * Two rows, and only two: wp_postviews_options for everything a site owner can
+ * change, and wp_postviews_version for the two upgrade markers. The markers sit
+ * in their own row rather than inside the settings because a sanitize callback
+ * is a function from what the form posted to what gets stored, and the settings
+ * form never posts an upgrade marker - anything living in that array has to be
+ * rescued from the stored value on every save, which is a step somebody
+ * eventually forgets.
  *
- * One companion row is kept separate: views_version. It is read to decide
- * whether views_options needs migrating, so it cannot live inside the thing
- * being migrated.
+ * Both names changed with 2.0.0. views_options and views_version were named
+ * after the "views" noun rather than after the plugin, which is a name any
+ * plugin could have taken; they are folded into the prefixed rows and deleted.
+ * The two shared, unprefixed rows WP-Stats and five siblings met in are folded
+ * in at the same time - see legacy_stats_display() for why an absent one has to
+ * mean on.
  *
  * @package WP-PostViews
  */
@@ -19,7 +23,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Reads and writes the views_options row.
+ * Reads and writes the wp_postviews_options row.
  */
 class WP_PostViews_Options {
 
@@ -28,14 +32,42 @@ class WP_PostViews_Options {
 	 *
 	 * @var string
 	 */
-	const OPTION = 'views_options';
+	const OPTION = 'wp_postviews_options';
 
 	/**
-	 * Row holding the version the stored data was last migrated to.
+	 * Row holding the 'plugin' and 'db' upgrade markers, and nothing else.
 	 *
 	 * @var string
 	 */
-	const VERSION = 'views_version';
+	const VERSION = 'wp_postviews_version';
+
+	/**
+	 * The pre-2.0.0 settings row.
+	 *
+	 * @var string
+	 */
+	const LEGACY_OPTION = 'views_options';
+
+	/**
+	 * The pre-2.0.0 version marker, which held a plugin version string.
+	 *
+	 * @var string
+	 */
+	const LEGACY_VERSION = 'views_version';
+
+	/**
+	 * WP-Stats' shared, unprefixed toggle row, which seven plugins wrote into.
+	 *
+	 * @var string
+	 */
+	const LEGACY_STATS_DISPLAY = 'stats_display';
+
+	/**
+	 * WP-Stats' shared, unprefixed row saying how many "most" entries to list.
+	 *
+	 * @var string
+	 */
+	const LEGACY_STATS_MOST_LIMIT = 'stats_mostlimit';
 
 	/**
 	 * Runtime cache, so a page render reads the row once rather than per lookup.
@@ -50,11 +82,11 @@ class WP_PostViews_Options {
 	 * @return void
 	 */
 	public static function init() {
-		// On 'init' rather than 'admin_init': the 2.0.0 migration changes how
-		// templates are stored, and until it has run a legacy template renders
-		// with its backslashes showing. Waiting for an administrator to load a
-		// screen would leave that visible to every front end visitor in the
-		// meantime. The version gate means this writes at most once.
+		// On 'init' rather than 'admin_init': the 2.0.0 migration moves the row
+		// itself, and until it has run the plugin is reading defaults over a
+		// name nothing has written. Waiting for an administrator to load a
+		// screen would leave every front end visitor looking at a stock template
+		// in the meantime. The marker gate means this writes at most once.
 		add_action( 'init', array( __CLASS__, 'maybe_upgrade' ), 1 );
 
 		// Before 2.0.0 every read went straight to get_option(), so anything
@@ -68,8 +100,10 @@ class WP_PostViews_Options {
 	/**
 	 * Default value for every key.
 	 *
-	 * These mirror the pre-2.0.0 activation routine exactly. Changing any of
-	 * them silently changes what a fresh install looks like.
+	 * These mirror the pre-2.0.0 activation routine exactly, apart from the two
+	 * WP-Stats keys, which had no default of their own before because they lived
+	 * in somebody else's row. Changing any of them silently changes what a fresh
+	 * install looks like.
 	 *
 	 * @return array
 	 */
@@ -86,6 +120,13 @@ class WP_PostViews_Options {
 			'use_ajax'             => 1,
 			'template'             => self::default_template( 'template' ),
 			'most_viewed_template' => self::default_template( 'most_viewed_template' ),
+			// Whether WP-PostViews contributes a section to the WP-Stats page,
+			// and how many entries its "most viewed" lists carry. Owned here
+			// rather than in the row seven plugins used to write into at once,
+			// so no plugin can read or clobber another's toggle. On by default,
+			// which is what the shared row defaulted to.
+			'stats_display'        => true,
+			'stats_most_limit'     => 10,
 		);
 	}
 
@@ -173,6 +214,64 @@ class WP_PostViews_Options {
 	}
 
 	/**
+	 * The two upgrade markers, normalised.
+	 *
+	 * Always exactly those two keys whatever the row holds, so no caller has to
+	 * guard against a partial or absent value.
+	 *
+	 * @return array
+	 */
+	public static function markers() {
+		$stored = get_option( self::VERSION, array() );
+		$stored = is_array( $stored ) ? $stored : array();
+
+		return array(
+			'plugin' => isset( $stored['plugin'] ) ? (string) $stored['plugin'] : '',
+			'db'     => isset( $stored['db'] ) ? (string) $stored['db'] : '',
+		);
+	}
+
+	/**
+	 * Record both markers in one write.
+	 *
+	 * One write, both markers, at the end of the upgrade routine, so a
+	 * half-finished upgrade never records itself as complete.
+	 *
+	 * @return void
+	 */
+	public static function update_markers() {
+		update_option(
+			self::VERSION,
+			array(
+				'plugin' => WP_POSTVIEWS_VERSION,
+				'db'     => WP_POSTVIEWS_DB_VERSION,
+			)
+		);
+	}
+
+	/**
+	 * Every option row this plugin owns, for uninstall.
+	 *
+	 * The two legacy names are included so uninstalling after an upgrade that
+	 * never ran still clears them. The shared WP-Stats rows are deliberately
+	 * absent: they were never this plugin's alone, and a sibling that has not
+	 * upgraded yet is still reading them.
+	 *
+	 * @return array
+	 */
+	public static function all_option_names() {
+		return array(
+			self::OPTION,
+			self::VERSION,
+			self::LEGACY_OPTION,
+			self::LEGACY_VERSION,
+			'widget_views',
+			// Retired long ago, but still on disk wherever it was written.
+			'widget_views_most_viewed',
+		);
+	}
+
+	/**
 	 * Seed the row on activation.
 	 *
 	 * @return void
@@ -184,7 +283,7 @@ class WP_PostViews_Options {
 	}
 
 	/**
-	 * Run any outstanding data migrations and record the version.
+	 * Run any outstanding data migration and record the markers.
 	 *
 	 * Activation does not fire on plugin *update*, which is the usual reason a
 	 * migration never runs, so this is driven from 'init' as well.
@@ -192,21 +291,55 @@ class WP_PostViews_Options {
 	 * @return void
 	 */
 	public static function maybe_upgrade() {
-		$installed = get_option( self::VERSION );
+		$markers = self::markers();
 
-		if ( WP_POSTVIEWS_VERSION === $installed ) {
+		if ( WP_POSTVIEWS_VERSION === $markers['plugin'] && WP_POSTVIEWS_DB_VERSION === $markers['db'] ) {
 			return;
 		}
 
-		// Gated on the recorded version rather than on "do the stored templates
+		// Gated on the recorded marker rather than on "do the stored templates
 		// still contain backslashes". A template with no apostrophe in it is
 		// indistinguishable before and after, so a content check would rerun
 		// the migration forever on some sites and never mark others done.
-		if ( empty( $installed ) || version_compare( $installed, '2.0.0', '<' ) ) {
-			self::migrate_template_slashes();
+		if ( '' === $markers['plugin'] || version_compare( $markers['plugin'], '2.0.0', '<' ) ) {
+			self::migrate();
 		}
 
-		update_option( self::VERSION, WP_POSTVIEWS_VERSION );
+		self::update_markers();
+	}
+
+	/**
+	 * Fold the four pre-2.0.0 rows into wp_postviews_options and delete them.
+	 *
+	 * The row views_options held the settings under a name that belonged to no
+	 * plugin in particular. views_version held a plugin version string, which the
+	 * marker row replaces. And stats_display and stats_mostlimit were shared with
+	 * WP-Stats and five other plugins, so each of the seven keeps its own copy of
+	 * them now.
+	 *
+	 * @return void
+	 */
+	public static function migrate() {
+		self::flush();
+
+		// Seeded from all() rather than from defaults(), so a site that has
+		// already been migrated - or one that wrote the new row by hand - is not
+		// reset by a second run.
+		$values = self::all();
+
+		$legacy_row = get_option( self::LEGACY_OPTION, null );
+		if ( is_array( $legacy_row ) ) {
+			$values = array_merge( $values, $legacy_row );
+		}
+
+		$values = self::migrate_template_slashes( $values );
+		$values = self::migrate_stats_settings( $values );
+
+		self::save( $values );
+
+		foreach ( array( self::LEGACY_OPTION, self::LEGACY_VERSION, self::LEGACY_STATS_DISPLAY, self::LEGACY_STATS_MOST_LIMIT ) as $legacy_name ) {
+			delete_option( $legacy_name );
+		}
 	}
 
 	/**
@@ -214,37 +347,90 @@ class WP_PostViews_Options {
 	 *
 	 * Up to 1.78.1 the settings screen wrote $_POST straight through without
 	 * wp_unslash(), so templates were stored slashed and every read path undid
-	 * that with stripslashes(). 2.0.0 unslashes on save instead, which means
-	 * the read paths must stop stripping - and that in turn means the rows
-	 * already on disk have to be corrected once.
+	 * that with stripslashes(). 2.0.0 unslashes on save instead, which means the
+	 * read paths must stop stripping - and that in turn means the rows already
+	 * on disk have to be corrected once.
 	 *
 	 * Doing it the other way round, keeping stripslashes() on read, would eat a
 	 * backslash the user genuinely wanted: a template containing a Windows path
 	 * arrives unslashed, gets stripped again on output and loses the separator.
 	 *
-	 * @return void
+	 * Which is why this consults the legacy marker rather than just stripping.
+	 * An install that ran an earlier 2.0.0 build already stores its templates
+	 * unslashed, and stripping those a second time is exactly the bug above.
+	 *
+	 * @param array $values Settings assembled so far.
+	 * @return array
 	 */
-	public static function migrate_template_slashes() {
-		$stored = get_option( self::OPTION );
+	public static function migrate_template_slashes( $values ) {
+		$legacy_version = get_option( self::LEGACY_VERSION, '' );
 
-		if ( ! is_array( $stored ) ) {
-			return;
+		if ( is_string( $legacy_version ) && '' !== $legacy_version && version_compare( $legacy_version, '2.0.0', '>=' ) ) {
+			return $values;
 		}
 
-		$changed = false;
 		foreach ( array( 'template', 'most_viewed_template' ) as $key ) {
-			if ( isset( $stored[ $key ] ) && is_string( $stored[ $key ] ) ) {
-				$unslashed = stripslashes( $stored[ $key ] );
-				if ( $unslashed !== $stored[ $key ] ) {
-					$stored[ $key ] = $unslashed;
-					$changed        = true;
-				}
+			if ( isset( $values[ $key ] ) && is_string( $values[ $key ] ) ) {
+				$values[ $key ] = stripslashes( $values[ $key ] );
 			}
 		}
 
-		if ( $changed ) {
-			update_option( self::OPTION, $stored );
-			self::flush();
+		return $values;
+	}
+
+	/**
+	 * Take this plugin's share of the two rows it used to hold jointly.
+	 *
+	 * @param array $values Settings assembled so far.
+	 * @return array
+	 */
+	public static function migrate_stats_settings( $values ) {
+		// An ABSENT row means a sibling upgraded first and deleted it, not that
+		// the site switched this block off: all seven migrations delete these
+		// two, so only the first one to run ever sees them. Reading absence as
+		// an opt-out would make the views block vanish from the WP-Stats page,
+		// silently and with nothing in any log to explain it, on every site that
+		// happened to update WP-Stats before WP-PostViews. The worst case under
+		// this rule is a block the owner switches off again.
+		$values['stats_display'] = self::legacy_stats_display( get_option( self::LEGACY_STATS_DISPLAY, null ) );
+
+		// The limit is only a number and its default is a sensible one, so an
+		// absent row simply leaves the default in place.
+		$legacy_limit = get_option( self::LEGACY_STATS_MOST_LIMIT, null );
+		if ( null !== $legacy_limit && false !== $legacy_limit && '' !== $legacy_limit ) {
+			$values['stats_most_limit'] = max( 1, (int) $legacy_limit );
 		}
+
+		return $values;
+	}
+
+	/**
+	 * Whether the shared WP-Stats row had the views block switched on.
+	 *
+	 * The row is an array keyed per plugin, not a bare boolean: a site chose
+	 * which blocks to show, and casting a non-empty array to bool would turn
+	 * back on a block its owner had deliberately switched off. Both array shapes
+	 * are in the wild - array( 'views' => 1 ), which is what the checkbox posts
+	 * once WP-Stats has normalised it, and array( 'views' ), which is what a
+	 * bare name="stats_display[]" posts - so both are read here.
+	 *
+	 * @param mixed $legacy The stats_display row as stored, or null if absent.
+	 * @return bool
+	 */
+	public static function legacy_stats_display( $legacy ) {
+		if ( null === $legacy ) {
+			// A sibling has already migrated it away. Absent means on.
+			return true;
+		}
+
+		if ( ! is_array( $legacy ) ) {
+			return (bool) $legacy;
+		}
+
+		if ( array_key_exists( 'views', $legacy ) ) {
+			return (bool) $legacy['views'];
+		}
+
+		return in_array( 'views', $legacy, true );
 	}
 }

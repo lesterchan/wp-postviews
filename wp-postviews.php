@@ -83,6 +83,7 @@ require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-core.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-widget.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-admin.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-settings.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-wpstats.php';
 require_once WP_POSTVIEWS_DIR . 'includes/template-tags.php';
 
 WP_PostViews_Options::init();
@@ -91,6 +92,11 @@ WP_PostViews_Counter::init();
 WP_PostViews_Core::init();
 WP_PostViews_Admin::init();
 WP_PostViews_Settings::init();
+
+// Loaded and initialised unconditionally. WP-Stats may not be installed, in
+// which case nothing fires wp_stats_sections and this is inert - there is no
+// class_exists() probing between the two plugins.
+WP_PostViews_WPStats::init();
 
 add_action(
 	'widgets_init',

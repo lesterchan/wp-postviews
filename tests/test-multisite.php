@@ -47,7 +47,7 @@ class Test_PostViews_Multisite extends WP_PostViews_TestCase {
 			switch_to_blog( $site_id );
 
 			update_option( WP_PostViews_Options::OPTION, WP_PostViews_Options::defaults() );
-			update_option( WP_PostViews_Options::VERSION, WP_POSTVIEWS_VERSION );
+			WP_PostViews_Options::update_markers();
 			update_option( 'widget_views', array( 'seeded' => 1 ) );
 			WP_PostViews_Options::flush();
 
@@ -160,8 +160,8 @@ class Test_PostViews_Multisite extends WP_PostViews_TestCase {
 			switch_to_blog( $site_id );
 			WP_PostViews_Options::flush();
 
-			$this->assertFalse( get_option( WP_PostViews_Options::OPTION ), "views_options survived on site {$site_id}." );
-			$this->assertFalse( get_option( WP_PostViews_Options::VERSION ), "views_version survived on site {$site_id}." );
+			$this->assertFalse( get_option( WP_PostViews_Options::OPTION ), "wp_postviews_options survived on site {$site_id}." );
+			$this->assertFalse( get_option( WP_PostViews_Options::VERSION ), "wp_postviews_version survived on site {$site_id}." );
 			$this->assertFalse( get_option( 'widget_views' ), "widget_views survived on site {$site_id}." );
 
 			$this->assertSame(
@@ -249,24 +249,5 @@ class Test_PostViews_Multisite extends WP_PostViews_TestCase {
 		global $wpdb;
 
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = 'views'" );
-	}
-
-	/**
-	 * Execute uninstall.php, the real file, every time.
-	 *
-	 * The script guards its function declaration with function_exists() and
-	 * declares it before dispatching, so requiring it repeatedly re-runs the
-	 * dispatch instead of fataling on a redeclare. That matters here: a helper
-	 * that reimplemented the loop would be testing the copy, and the copy
-	 * cannot carry the bug.
-	 *
-	 * @return void
-	 */
-	protected function run_uninstall() {
-		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-			define( 'WP_UNINSTALL_PLUGIN', 'wp-postviews/wp-postviews.php' );
-		}
-
-		require dirname( __DIR__ ) . '/uninstall.php';
 	}
 }
