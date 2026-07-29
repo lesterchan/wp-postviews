@@ -1,34 +1,174 @@
 # WP-PostViews
 Contributors: GamerZ  
 Donate link: https://lesterchan.net/site/donation/  
-Tags: views, hits, counter, postviews  
+Tags: views, hits, counter, postviews, statistics  
 Requires at least: 6.8  
 Tested up to: 7.0  
 Stable tag: 2.0.0  
 Requires PHP: 8.2  
-License: GPLv2 or later
+License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Enables you to display how many times a post/page had been viewed.
 
 ## Description
 
-### Usage
-1. Open `wp-content/themes/<YOUR THEME NAME>/index.php`
-2. You may place it in archive.php, single.php, post.php or page.php also.
-3. Find: `<?php while (have_posts()) : the_post(); ?>`
-4. Add Anywhere Below It (The Place You Want The Views To Show): `<?php if(function_exists('the_views')) { the_views(); } ?>`
-5. Or you can use the shortcode `[views]` or `[views id="1"]` (where 1 is the post ID) in a post
-6. Go to `WP-Admin -> Settings -> PostViews` to configure the plugin.
+WP-PostViews counts how many times each post, page or custom post type has been read and gives you somewhere to show the number. The count is kept as post meta, so it sorts, queries and exports like anything else WordPress stores about a post.
 
-### Development
-[https://github.com/lesterchan/wp-postviews/](https://github.com/lesterchan/wp-postviews/ "https://github.com/lesterchan/wp-postviews/")
+### Features
 
-### Credits
-* Plugin icon by [Iconmoon](https://www.icomoon.io) from [Flaticon](https://www.flaticon.com)
+* A view count on any post, page or custom post type, printed by a template tag or by the `[views]` shortcode.
+* Two templates you edit yourself, with tokens for the count, the title, the date, the excerpt, the thumbnail, the author and more.
+* Choose who is counted -- everyone, guests only or logged in users only -- and leave known robots out.
+* Choose where the count appears, and to whom, separately for the home page, single posts, pages, archives, searches and everything else.
+* Template tags and a widget for the most and least viewed posts, optionally within a category or a tag.
+* A sortable Views column on the post and page list tables.
+* The count on the REST API as a `views` field, and an AJAX counting path for sites behind a page cache.
+* A section on the WP-Stats page when that plugin is installed.
 
 ### Donations
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
+
+## Usage
+
+The simplest way, and the only one that works in a block theme without editing template files, is the shortcode. Put it in the post or page whose count you want shown:
+
+* `[views]` shows the count for the post it appears in.
+* `[views id="1"]` shows the count for post 1, wherever you put it.
+
+To show the count on every post automatically, a classic theme calls the template tag from `index.php`, `archive.php`, `single.php` or `page.php`, anywhere inside the loop:
+
+```php
+<?php if ( function_exists( 'the_views' ) ) { the_views(); } ?>
+```
+
+The settings live at **WP-Admin -> Settings -> PostViews**, which is where you choose who gets counted, where the count is shown, what the two templates look like and whether WP-Stats is offered a Views section.
+
+## Frequently Asked Questions
+
+### How To View Stats With Widgets?
+* Go to `WP-Admin -> Appearance -> Widgets`
+* The widget name is Views.
+
+### To Display Least Viewed Posts
+
+```php
+<?php if (function_exists('get_least_viewed')): ?>
+	<ul>
+		<?php get_least_viewed(); ?>
+	</ul>
+<?php endif; ?>
+```
+
+* The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
+* The second value you pass in is the maximum number of post you want to get.
+* Default: get_least_viewed('both', 10);
+
+### To Display Most Viewed Posts
+
+```php
+<?php if (function_exists('get_most_viewed')): ?>
+	<ul>
+		<?php get_most_viewed(); ?>
+	</ul>
+<?php endif; ?>
+```
+
+* The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
+* The second value you pass in is the maximum number of post you want to get.
+* Default: get_most_viewed('both', 10);
+
+### To Display Least Viewed Posts By Tag
+
+```php
+<?php if (function_exists('get_least_viewed_tag')): ?>
+	<ul>
+		<?php get_least_viewed_tag(); ?>
+	</ul>
+<?php endif; ?>
+```
+
+* The first value you pass in is the tag id.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
+* The third value you pass in is the maximum number of post you want to get.
+* Default: get_least_viewed_tag(1, 'both', 10);
+
+### To Display Most Viewed Posts By Tag
+
+```php
+<?php if (function_exists('get_most_viewed_tag')): ?>
+	<ul>
+		<?php get_most_viewed_tag(); ?>
+	</ul>
+<?php endif; ?>
+```
+
+* The first value you pass in is the tag id.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
+* The third value you pass in is the maximum number of post you want to get.
+* Default: get_most_viewed_tag(1, 'both', 10);
+
+### To Display Least Viewed Posts For A Category
+
+```php
+<?php if (function_exists('get_least_viewed_category')): ?>
+	<ul>
+		<?php get_least_viewed_category(); ?>
+	</ul>
+<?php endif; ?>
+```
+
+* The first value you pass in is the category id.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
+* The third value you pass in is the maximum number of post you want to get.
+* Default: get_least_viewed_category(1, 'both', 10);
+
+### To Display Most Viewed Posts For A Category
+
+```php
+<?php if (function_exists('get_most_viewed_category')): ?>
+	<ul>
+		<?php get_most_viewed_category(); ?>
+	</ul>
+<?php endif; ?>
+```
+
+* The first value you pass in is the category id.
+* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
+* The third value you pass in is the maximum number of post you want to get.
+* Default: get_most_viewed_category(1, 'both', 10);
+
+### To Sort Most/Least Viewed Posts
+* You can use: `<?php query_posts( array( 'meta_key' => 'views', 'orderby' => 'meta_value_num', 'order' => 'DESC' ) ); ?>`
+* Or pass in the variables to the URL: `https://yoursite.com/?v_sortby=views&v_orderby=desc`
+* You can replace DESC with ASC if you want the least viewed posts.
+
+### To Display Updating View Count With LiteSpeed Cache
+Use: `<div id="postviews_lscwp"></div>` to replace `<?php if(function_exists('the_views')) { the_views(); } ?>`.
+NOTE: The id can be changed, but the div id and the script must match.
+
+The plugin's `js/wp-postviews-cache.js` already posts the view and receives the new count back, so you only need to write that count into your div. Add this to your theme, or to a small script of your own enqueued after `wp-postviews-cache`:
+
+```javascript
+document.addEventListener( 'postviews:updated', function ( event ) {
+	const target = document.getElementById( 'postviews_lscwp' );
+
+	if ( target ) {
+		target.textContent = event.detail.views + ' views';
+	}
+} );
+```
+
+Purge the cache to use the updated pages.
+
+### To Get Views With REST API
+You can obtain the number of post views by adding `views` to your `_fields` parameter:
+`/wp/v2/posts?_fields=views,title`
+
+## Screenshots
+
+1. PostViews
+2. Admin - PostViews Options
 
 ## Changelog
 ### 2.0.0
@@ -134,129 +274,3 @@ Three more hooks were renamed the same way, and for the same reason. `postviews_
 **Two settings rows were renamed**, from `views_options` and `views_version` to `wp_postviews_options` and `wp_postviews_version`. The migration runs by itself the first time 2.0.0 loads and deletes the old rows afterwards, so there is nothing for you to do — unless you have code, a WP-CLI script or an export that reads `views_options` directly, in which case point it at the new name.
 
 Finally, three functions that were never documented are gone: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()`. They are `WP_PostViews_Display::should_be_displayed()`, `::round_number()` and `::snippet_text()` now. The widget class `WP_Widget_PostViews` is `WP_PostViews_Widget`, which matters only if you were instantiating it yourself; widgets you have already placed in a sidebar are untouched.
-
-## Screenshots
-
-1. PostViews
-2. Admin - PostViews Options
-
-## Frequently Asked Questions
-
-### How To View Stats With Widgets?
-* Go to `WP-Admin -> Appearance -> Widgets`
-* The widget name is Views.
-
-### To Display Least Viewed Posts
-
-```php
-<?php if (function_exists('get_least_viewed')): ?>
-	<ul>
-		<?php get_least_viewed(); ?>
-	</ul>
-<?php endif; ?>
-```
- 
-* The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
-* The second value you pass in is the maximum number of post you want to get.
-* Default: get_least_viewed('both', 10);
-
-### To Display Most Viewed Posts
-
-```php
-<?php if (function_exists('get_most_viewed')): ?>
-	<ul>
-		<?php get_most_viewed(); ?>
-	</ul>
-<?php endif; ?>
-```
- 
-* The first value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
-* The second value you pass in is the maximum number of post you want to get.
-* Default: get_most_viewed('both', 10);
-
-### To Display Least Viewed Posts By Tag
-
-```php
-<?php if (function_exists('get_least_viewed_tag')): ?>
-	<ul>
-		<?php get_least_viewed_tag(); ?>
-	</ul>
-<?php endif; ?>
-```
- 
-* The first value you pass in is the tag id.
-* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
-* The third value you pass in is the maximum number of post you want to get.
-* Default: get_least_viewed_tag(1, 'both', 10);
-
-### To Display Most Viewed Posts By Tag
-
-```php
-<?php if (function_exists('get_most_viewed_tag')): ?>
-	<ul>
-		<?php get_most_viewed_tag(); ?>
-	</ul>
-<?php endif; ?>
-```
- 
-* The first value you pass in is the tag id.
-* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
-* The third value you pass in is the maximum number of post you want to get.
-* Default: get_most_viewed_tag(1, 'both', 10);
-
-### To Display Least Viewed Posts For A Category
-
-```php
-<?php if (function_exists('get_least_viewed_category')): ?>
-	<ul>
-		<?php get_least_viewed_category(); ?>
-	</ul>
-<?php endif; ?>
-```
- 
-* The first value you pass in is the category id.
-* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
-* The third value you pass in is the maximum number of post you want to get.
-* Default: get_least_viewed_category(1, 'both', 10);
-
-### To Display Most Viewed Posts For A Category
-
-```php
-<?php if (function_exists('get_most_viewed_category')): ?>
-	<ul>
-		<?php get_most_viewed_category(); ?>
-	</ul>
-<?php endif; ?>
-```
- 
-* The first value you pass in is the category id.
-* The second value you pass in is the post type that you want. If you want to get every post types, just use 'both'. It also supports PHP array: example `array('post', 'page')`.
-* The third value you pass in is the maximum number of post you want to get.
-* Default: get_most_viewed_category(1, 'both', 10);
-
-### To Sort Most/Least Viewed Posts
-* You can use: `<?php query_posts( array( 'meta_key' => 'views', 'orderby' => 'meta_value_num', 'order' => 'DESC' ) ); ?>`
-* Or pass in the variables to the URL: `https://yoursite.com/?v_sortby=views&v_orderby=desc`
-* You can replace DESC  with ASC if you want the least viewed posts.
-
-### To Display Updating View Count With LiteSpeed Cache
-Use: `<div id="postviews_lscwp"></div>` to replace `<?php if(function_exists('the_views')) { the_views(); } ?>`.
-NOTE: The id can be changed, but the div id and the script must match.
-
-`js/wp-postviews-cache.js` already posts the view and receives the new count back, so you only need to write that count into your div. Add this to your theme, or to a small script of your own enqueued after `wp-postviews-cache`:
-
-```javascript
-document.addEventListener( 'postviews:updated', function ( event ) {
-	const target = document.getElementById( 'postviews_lscwp' );
-
-	if ( target ) {
-		target.textContent = event.detail.views + ' views';
-	}
-} );
-```
-
-Purge the cache to use the updated pages.
-
-### To Get Views With REST API
-You can obtain the number of post views by adding `views` to your `_fields` parameter:
-`/wp/v2/posts?_fields=views,title`
