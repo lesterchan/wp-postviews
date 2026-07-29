@@ -1,15 +1,17 @@
 <?php
 /**
- * The Settings > PostViews screen.
+ * The one registered setting, its sections, its fields and its sanitiser.
  *
- * Replaces the hand-rolled form that posted back to itself and processed
- * $_POST inline. The Settings API does the nonce, the capability check, the
- * redirect and the "Settings saved" notice, so none of that is repeated here.
+ * WP_PostViews_Admin owns the menu and the screen; everything the Settings API
+ * needs to know about what that screen contains lives here. It replaces the
+ * hand-rolled form that posted back to itself and processed $_POST inline: the
+ * Settings API does the nonce, the capability check, the redirect and the
+ * "Settings saved" notice, so none of that is repeated anywhere.
  *
  * Every row is registered with add_settings_section() and add_settings_field()
  * and drawn by do_settings_sections(), so the form-table markup, the label
  * pairing and the row order all come from core rather than from a hand written
- * table in render().
+ * table.
  *
  * The screen slug changed with 2.0.0. It used to be the literal plugin file
  * path, wp-postviews/postviews-options.php, which is how menu pages were
@@ -23,7 +25,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Registers the setting and renders the options screen.
+ * Registers the setting, its sections, its fields and its sanitiser.
  */
 class WP_PostViews_Settings {
 
@@ -37,20 +39,6 @@ class WP_PostViews_Settings {
 	 * @var string
 	 */
 	const GROUP = 'wp_postviews_options';
-
-	/**
-	 * Menu and screen slug.
-	 *
-	 * @var string
-	 */
-	const PAGE = 'wp-postviews';
-
-	/**
-	 * Capability the screen is gated on, read through the wp_postviews_capability filter.
-	 *
-	 * @var string
-	 */
-	const CAPABILITY = 'manage_options';
 
 	/**
 	 * Section holding the counting and template rows.
@@ -79,47 +67,7 @@ class WP_PostViews_Settings {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ) );
 		add_action( 'admin_init', array( __CLASS__, 'register' ) );
-	}
-
-	/**
-	 * The capability the screen is gated on.
-	 *
-	 * Read through one filter so a site that hands the settings screen to a
-	 * custom role changes it in a single place, rather than having to find every
-	 * current_user_can() call in the plugin.
-	 *
-	 * @param string $context What is being gated. Only 'settings' so far.
-	 * @return string
-	 */
-	public static function capability( $context = 'settings' ) {
-		/**
-		 * Filters the capability required to reach a WP-PostViews screen.
-		 *
-		 * @since 2.0.0
-		 *
-		 * @param string $capability The required capability.
-		 * @param string $context    What is being gated.
-		 */
-		return apply_filters( 'wp_postviews_capability', self::CAPABILITY, $context );
-	}
-
-	/**
-	 * Add the Settings submenu entry.
-	 *
-	 * @return void
-	 */
-	public static function add_menu() {
-		$hook = add_options_page(
-			__( 'PostViews', 'wp-postviews' ),
-			__( 'PostViews', 'wp-postviews' ),
-			self::capability(),
-			self::PAGE,
-			array( __CLASS__, 'render' )
-		);
-
-		add_action( 'load-' . $hook, array( __CLASS__, 'enqueue' ) );
 	}
 
 	/**
@@ -140,13 +88,13 @@ class WP_PostViews_Settings {
 
 		// No title, so do_settings_sections() emits the table straight after the
 		// h1 the way the screen has always looked. No callback either.
-		add_settings_section( self::SECTION_GENERAL, '', '', self::PAGE );
+		add_settings_section( self::SECTION_GENERAL, '', '', WP_PostViews_Admin::PAGE );
 
 		add_settings_field(
 			'count',
 			__( 'Count Views From:', 'wp-postviews' ),
 			array( __CLASS__, 'field_select' ),
-			self::PAGE,
+			WP_PostViews_Admin::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'label_for' => 'views-count',
@@ -163,7 +111,7 @@ class WP_PostViews_Settings {
 			'exclude_bots',
 			__( 'Exclude Bot Views:', 'wp-postviews' ),
 			array( __CLASS__, 'field_select' ),
-			self::PAGE,
+			WP_PostViews_Admin::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'label_for' => 'views-exclude_bots',
@@ -179,7 +127,7 @@ class WP_PostViews_Settings {
 				'use_ajax',
 				__( 'Use AJAX To Update Views:', 'wp-postviews' ),
 				array( __CLASS__, 'field_select' ),
-				self::PAGE,
+				WP_PostViews_Admin::PAGE,
 				self::SECTION_GENERAL,
 				array(
 					'label_for'   => 'views-use_ajax',
@@ -194,7 +142,7 @@ class WP_PostViews_Settings {
 			'template',
 			self::template_title( __( 'Views Template:', 'wp-postviews' ), 'views-template-template', array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ) ),
 			array( __CLASS__, 'field_template' ),
-			self::PAGE,
+			WP_PostViews_Admin::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'key'  => 'template',
@@ -224,7 +172,7 @@ class WP_PostViews_Settings {
 				)
 			),
 			array( __CLASS__, 'field_template' ),
-			self::PAGE,
+			WP_PostViews_Admin::PAGE,
 			self::SECTION_GENERAL,
 			array(
 				'key'  => 'most_viewed_template',
@@ -237,7 +185,7 @@ class WP_PostViews_Settings {
 			self::SECTION_DISPLAY,
 			__( 'Display Options', 'wp-postviews' ),
 			array( __CLASS__, 'display_section' ),
-			self::PAGE
+			WP_PostViews_Admin::PAGE
 		);
 
 		$contexts = array(
@@ -256,7 +204,7 @@ class WP_PostViews_Settings {
 				$key,
 				$label,
 				array( __CLASS__, 'field_select' ),
-				self::PAGE,
+				WP_PostViews_Admin::PAGE,
 				self::SECTION_DISPLAY,
 				array(
 					'label_for' => 'views-' . $key,
@@ -270,14 +218,14 @@ class WP_PostViews_Settings {
 			self::SECTION_WPSTATS,
 			__( 'WP-Stats Options', 'wp-postviews' ),
 			array( __CLASS__, 'wpstats_section' ),
-			self::PAGE
+			WP_PostViews_Admin::PAGE
 		);
 
 		add_settings_field(
 			'stats_display',
 			__( 'Show A Views Section On The Stats Page?', 'wp-postviews' ),
 			array( __CLASS__, 'field_stats_display' ),
-			self::PAGE,
+			WP_PostViews_Admin::PAGE,
 			self::SECTION_WPSTATS,
 			array( 'label_for' => 'views-stats_display' )
 		);
@@ -286,7 +234,7 @@ class WP_PostViews_Settings {
 			'stats_most_limit',
 			__( 'Number Of Entries In Each Most Viewed List:', 'wp-postviews' ),
 			array( __CLASS__, 'field_stats_most_limit' ),
-			self::PAGE,
+			WP_PostViews_Admin::PAGE,
 			self::SECTION_WPSTATS,
 			array( 'label_for' => 'views-stats_most_limit' )
 		);
@@ -295,9 +243,13 @@ class WP_PostViews_Settings {
 	/**
 	 * Whether a page cache is in play.
 	 *
+	 * Public because it decides two things that have to agree: whether the
+	 * use_ajax row is registered at all, and whether the screen pins the stored
+	 * value off in its place.
+	 *
 	 * @return bool
 	 */
-	protected static function using_cache() {
+	public static function using_cache() {
 		return defined( 'WP_CACHE' ) && WP_CACHE;
 	}
 
@@ -310,46 +262,6 @@ class WP_PostViews_Settings {
 		return array(
 			0 => __( 'No', 'wp-postviews' ),
 			1 => __( 'Yes', 'wp-postviews' ),
-		);
-	}
-
-	/**
-	 * Load the screen's script.
-	 *
-	 * @return void
-	 */
-	public static function enqueue() {
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
-	}
-
-	/**
-	 * Enqueue the "Restore Default Template" behaviour.
-	 *
-	 * The defaults are handed over as data rather than being written into an
-	 * inline onclick attribute, which is what 1.78.1 did. That attribute ran
-	 * the translated default through esc_js( esc_attr() ) into a JavaScript
-	 * string literal, which is the kind of construction these plugins have
-	 * historically hidden their escaping bugs in.
-	 *
-	 * @return void
-	 */
-	public static function enqueue_scripts() {
-		wp_enqueue_script(
-			'wp-postviews-admin',
-			WP_POSTVIEWS_URL . 'js/wp-postviews-admin.js',
-			array(),
-			WP_POSTVIEWS_VERSION,
-			true
-		);
-		wp_localize_script(
-			'wp-postviews-admin',
-			'wpPostViewsL10n',
-			array(
-				'defaults' => array(
-					'template'             => WP_PostViews_Options::default_template( 'template' ),
-					'most_viewed_template' => WP_PostViews_Options::default_template( 'most_viewed_template' ),
-				),
-			)
 		);
 	}
 
@@ -567,41 +479,6 @@ class WP_PostViews_Settings {
 			);
 			?>
 		</p>
-		<?php
-	}
-
-	/**
-	 * Render the screen.
-	 *
-	 * @return void
-	 */
-	public static function render() {
-		if ( ! current_user_can( self::capability() ) ) {
-			return;
-		}
-
-		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Post Views Options', 'wp-postviews' ); ?></h1>
-
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( self::GROUP );
-
-				// There is no use_ajax field when nothing is cached, and a key the
-				// form omits keeps its stored value, so pin it off here.
-				if ( ! self::using_cache() ) {
-					?>
-					<input type="hidden" name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[use_ajax]' ); ?>" value="0" />
-					<?php
-				}
-
-				do_settings_sections( self::PAGE );
-
-				submit_button();
-				?>
-			</form>
-		</div>
 		<?php
 	}
 }

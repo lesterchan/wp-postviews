@@ -1,6 +1,9 @@
 <?php
 /**
- * The Settings API registration and its sanitize callback.
+ * The Settings API registration and the sanitize callback.
+ *
+ * The menu, the screen and the script it loads are WP_PostViews_Admin's, and are
+ * tested in test-admin.php.
  *
  * @package WP-PostViews
  */
@@ -37,24 +40,47 @@ class Test_PostViews_Settings extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * Both sections are registered against the screen do_settings_sections()
-	 * renders.
+	 * All three sections are registered against the screen Admin renders.
 	 *
 	 * @return void
 	 */
 	public function test_sections_are_registered() {
 		global $wp_settings_sections;
 
-		$this->assertArrayHasKey( WP_PostViews_Settings::PAGE, $wp_settings_sections );
+		$this->assertArrayHasKey( WP_PostViews_Admin::PAGE, $wp_settings_sections );
 
-		$sections = $wp_settings_sections[ WP_PostViews_Settings::PAGE ];
+		$sections = $wp_settings_sections[ WP_PostViews_Admin::PAGE ];
 
 		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_GENERAL, $sections );
 		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_DISPLAY, $sections );
+		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_WPSTATS, $sections );
 
 		// The first section has no heading of its own, so the table follows the
 		// h1 the way it always has.
 		$this->assertSame( '', $sections[ WP_PostViews_Settings::SECTION_GENERAL ]['title'] );
+	}
+
+	/**
+	 * Every section name is prefixed with the plugin slug.
+	 *
+	 * They are global keys in $wp_settings_sections, so views_general was one
+	 * collision away from another plugin's section.
+	 *
+	 * @return void
+	 */
+	public function test_section_names_are_prefixed() {
+		foreach ( array( WP_PostViews_Settings::SECTION_GENERAL, WP_PostViews_Settings::SECTION_DISPLAY, WP_PostViews_Settings::SECTION_WPSTATS ) as $section ) {
+			$this->assertStringStartsWith( 'wp_postviews_', $section );
+		}
+	}
+
+	/**
+	 * The settings group is the settings row name.
+	 *
+	 * @return void
+	 */
+	public function test_the_group_is_the_option_name() {
+		$this->assertSame( WP_PostViews_Options::OPTION, WP_PostViews_Settings::GROUP );
 	}
 
 	/**
@@ -66,7 +92,7 @@ class Test_PostViews_Settings extends WP_PostViews_TestCase {
 	public function test_every_option_key_has_a_registered_field() {
 		global $wp_settings_fields;
 
-		$fields = $wp_settings_fields[ WP_PostViews_Settings::PAGE ];
+		$fields = $wp_settings_fields[ WP_PostViews_Admin::PAGE ];
 
 		foreach ( array( 'count', 'exclude_bots', 'template', 'most_viewed_template' ) as $key ) {
 			$this->assertArrayHasKey( $key, $fields[ WP_PostViews_Settings::SECTION_GENERAL ], "No registered field for {$key}." );
@@ -74,6 +100,10 @@ class Test_PostViews_Settings extends WP_PostViews_TestCase {
 
 		foreach ( $this->display_keys as $key ) {
 			$this->assertArrayHasKey( $key, $fields[ WP_PostViews_Settings::SECTION_DISPLAY ], "No registered field for {$key}." );
+		}
+
+		foreach ( array( 'stats_display', 'stats_most_limit' ) as $key ) {
+			$this->assertArrayHasKey( $key, $fields[ WP_PostViews_Settings::SECTION_WPSTATS ], "No registered field for {$key}." );
 		}
 
 		// The AJAX row exists only under a page cache, same as the markup.
@@ -92,7 +122,7 @@ class Test_PostViews_Settings extends WP_PostViews_TestCase {
 	public function test_select_fields_declare_their_label_target() {
 		global $wp_settings_fields;
 
-		$fields = $wp_settings_fields[ WP_PostViews_Settings::PAGE ];
+		$fields = $wp_settings_fields[ WP_PostViews_Admin::PAGE ];
 
 		$this->assertSame( 'views-count', $fields[ WP_PostViews_Settings::SECTION_GENERAL ]['count']['args']['label_for'] );
 		$this->assertSame( 'views-display_home', $fields[ WP_PostViews_Settings::SECTION_DISPLAY ]['display_home']['args']['label_for'] );
@@ -237,207 +267,71 @@ class Test_PostViews_Settings extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * The screen is registered under Settings.
+	 * The WP-Stats toggle is stored as a bool, whatever the checkbox posted.
 	 *
 	 * @return void
 	 */
-	public function test_menu_is_registered() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		set_current_screen( 'dashboard' );
+	public function test_the_wp_stats_toggle_is_stored_as_a_bool() {
+		$sanitized = WP_PostViews_Settings::sanitize( array( 'stats_display' => '1' ) );
 
-		global $submenu;
-		$submenu = array();
-
-		WP_PostViews_Settings::add_menu();
-
-		$slugs = wp_list_pluck( $submenu['options-general.php'] ?? array(), 2 );
-		$this->assertContains( WP_PostViews_Settings::PAGE, $slugs );
-
-		set_current_screen( 'front' );
+		$this->assertTrue( $sanitized['stats_display'] );
 	}
 
 	/**
-	 * The screen renders nothing for a user without the capability.
+	 * An unticked WP-Stats checkbox switches the section off.
 	 *
-	 * WordPress already gates the menu via add_options_page(), but the callback is a public
-	 * static method and should not rely on that alone.
+	 * A checkbox posts nothing at all when it is off, so this is the one row the
+	 * callback reads as absent-means-off. Reading it as absent-means-unchanged
+	 * would make the section impossible to switch off from the screen.
 	 *
 	 * @return void
 	 */
-	public function test_render_requires_the_capability() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+	public function test_an_unticked_wp_stats_checkbox_turns_the_section_off() {
+		$this->set_options( array( 'stats_display' => true ) );
 
-		$this->assertSame(
-			'',
-			$this->capture(
-				function () {
-					WP_PostViews_Settings::render();
-				}
+		$sanitized = WP_PostViews_Settings::sanitize( array( 'template' => 'X' ) );
+
+		$this->assertFalse( $sanitized['stats_display'] );
+	}
+
+	/**
+	 * The most viewed limit is an integer of at least one.
+	 *
+	 * @return void
+	 */
+	public function test_the_most_viewed_limit_is_floored_at_one() {
+		$this->assertSame( 25, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '25' ) )['stats_most_limit'] );
+		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '0' ) )['stats_most_limit'] );
+		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => 'nonsense' ) )['stats_most_limit'] );
+	}
+
+	/**
+	 * The sanitiser never writes an upgrade marker into the settings row.
+	 *
+	 * This is the regression guard for the bug wp-useronline shipped: with the
+	 * markers inside the settings array every save had to rescue them by hand,
+	 * and the one that forgot made the upgrade re-run on every request. It fails
+	 * the moment somebody moves a marker back in.
+	 *
+	 * @return void
+	 */
+	public function test_settings_sanitizer_never_stores_version_markers() {
+		$clean = WP_PostViews_Settings::sanitize(
+			array(
+				'count'      => '2',
+				'version'    => '9.9.9',
+				'db_version' => '99',
+				'versions'   => array( 'plugin' => '9.9.9' ),
 			)
 		);
-	}
 
-	/**
-	 * An administrator gets the form.
-	 *
-	 * @return void
-	 */
-	public function test_render_outputs_the_form() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Settings::render();
-			}
-		);
-
-		$this->assertStringContainsString( 'action="options.php"', $html );
-		$this->assertStringContainsString( WP_PostViews_Settings::GROUP, $html );
-		$this->assertStringContainsString( 'views-template-template', $html );
-		$this->assertStringContainsString( 'views-template-most_viewed_template', $html );
-
-		// Every option key the screen owns has a field.
-		foreach ( array_merge( array( 'count', 'exclude_bots' ), $this->display_keys ) as $key ) {
-			$this->assertStringContainsString( WP_PostViews_Options::OPTION . '[' . $key . ']', $html, "No field for {$key}." );
+		foreach ( array( 'version', 'db_version', 'versions' ) as $key ) {
+			$this->assertArrayNotHasKey( $key, $clean, $key . ' reached the settings row.' );
 		}
-	}
 
-	/**
-	 * The rows are drawn by do_settings_sections(), so the tables, the heading
-	 * and the row order all come from the registered sections.
-	 *
-	 * @return void
-	 */
-	public function test_render_draws_the_registered_sections() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		WP_PostViews_Options::save( $clean );
+		WP_PostViews_Options::update_markers();
 
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Settings::render();
-			}
-		);
-
-		// One table per section, and nothing hand written alongside them.
-		$this->assertSame( 2, substr_count( $html, 'class="form-table"' ) );
-
-		// The second section's title, emitted by core from the registration.
-		// Matched loosely: WordPress 7.0 gives the heading an id attribute, 6.0
-		// does not.
-		$this->assertMatchesRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html );
-
-		// Its callback ran.
-		$this->assertStringContainsString( '<code>the_views()</code>', $html );
-
-		// Counting rows come before the display matrix.
-		$this->assertLessThan( strpos( $html, 'id="views-display_home"' ), strpos( $html, 'id="views-count"' ) );
-
-		// The variable list still sits in the template row's heading cell.
-		$this->assertStringContainsString( '<code>%POST_THUMBNAIL_URL%</code>', $html );
-	}
-
-	/**
-	 * The reset buttons carry the data attributes the script keys off.
-	 *
-	 * The pairing between the button and its field is the whole contract
-	 * between the markup and js/wp-postviews-admin.js.
-	 *
-	 * @return void
-	 */
-	public function test_render_emits_the_reset_buttons() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Settings::render();
-			}
-		);
-
-		$this->assertStringContainsString( 'data-postviews-reset="template"', $html );
-		$this->assertStringContainsString( 'data-postviews-target="views-template-template"', $html );
-		$this->assertStringContainsString( 'data-postviews-reset="most_viewed_template"', $html );
-		$this->assertStringContainsString( 'data-postviews-target="views-template-most_viewed_template"', $html );
-
-		// The inline handlers 2.0.0 removed must not come back.
-		$this->assertStringNotContainsString( 'onclick', $html );
-	}
-
-	/**
-	 * A stored template cannot break out of the field it is rendered into.
-	 *
-	 * @return void
-	 */
-	public function test_render_escapes_the_stored_templates() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-		$this->set_options( array( 'template' => '" onmouseover="alert(1)' ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Settings::render();
-			}
-		);
-
-		$this->assertStringNotContainsString( 'onmouseover="alert(1)"', $html );
-		$this->assertStringContainsString( '&quot;', $html );
-	}
-
-	/**
-	 * The admin script is enqueued with its defaults and without jQuery.
-	 *
-	 * @return void
-	 */
-	public function test_admin_script_is_enqueued_and_localised() {
-		WP_PostViews_Settings::enqueue_scripts();
-
-		$this->assertTrue( wp_script_is( 'wp-postviews-admin', 'enqueued' ) );
-		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-admin']->deps );
-
-		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );
-		$this->assertStringContainsString( 'wpPostViewsL10n', $data );
-		$this->assertStringContainsString( '%VIEW_COUNT%', $data );
-		$this->assertStringContainsString( '%POST_URL%', $data );
-	}
-
-	/**
-	 * The localised defaults are the same strings the reset button restores.
-	 *
-	 * @return void
-	 */
-	public function test_localised_defaults_match_the_option_defaults() {
-		WP_PostViews_Settings::enqueue_scripts();
-
-		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );
-		preg_match( '/wpPostViewsL10n = (\{.*\});/', $data, $matches );
-		$decoded = json_decode( $matches[1], true );
-
-		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), $decoded['defaults']['template'] );
-		$this->assertSame( WP_PostViews_Options::default_template( 'most_viewed_template' ), $decoded['defaults']['most_viewed_template'] );
-	}
-
-	/**
-	 * The AJAX row is only offered when a page cache is in play.
-	 *
-	 * @return void
-	 */
-	public function test_ajax_row_is_shown_under_wp_cache() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Settings::render();
-			}
-		);
-
-		$hidden_field = 'name="' . WP_PostViews_Options::OPTION . '[use_ajax]" value="0"';
-
-		if ( defined( 'WP_CACHE' ) && WP_CACHE ) {
-			// A visible select, and no hidden field forcing the value off.
-			$this->assertStringContainsString( 'id="views-use_ajax"', $html );
-			$this->assertStringNotContainsString( $hidden_field, $html );
-		} else {
-			// No select; a hidden field pins it off, because with no page
-			// cache the setting has no effect either way.
-			$this->assertStringNotContainsString( 'id="views-use_ajax"', $html );
-			$this->assertStringContainsString( $hidden_field, $html );
-		}
+		$this->assertSame( array( 'plugin', 'db' ), array_keys( (array) get_option( WP_PostViews_Options::VERSION ) ) );
 	}
 }
