@@ -582,7 +582,17 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$GLOBALS['post'] = $this->post_id;
 
 		$this->assertSame( 1, $this->hit( $this->post_id ) );
-		$this->assertInstanceOf( WP_Post::class, $GLOBALS['post'], 'The global should have been normalised to a WP_Post.' );
+
+		// And the global is left exactly as the theme set it. The counter used
+		// to write a hydrated WP_Post back over it, which is a side effect on
+		// the loop that nothing asked for -- current_post() reads it into a
+		// local now. Coping with a bare id is the requirement; rewriting the
+		// caller's global is not.
+		$this->assertSame(
+			$this->post_id,
+			$GLOBALS['post'],
+			'The counter must read the global, not overwrite it.'
+		);
 	}
 
 	/**

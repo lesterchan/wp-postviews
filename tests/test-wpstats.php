@@ -331,8 +331,11 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_the_shared_wp_stats_row_is_never_read() {
-		$source = (string) file_get_contents( dirname( __DIR__ ) . '/includes/class-wp-postviews-wpstats.php' );
+		// Comments stripped, because the one mention of get_option in this file
+		// is a comment explaining why it is not called. php_strip_whitespace()
+		// removes comments as well as whitespace, so it leaves code only.
+		$code = php_strip_whitespace( dirname( __DIR__ ) . '/includes/class-wp-postviews-wpstats.php' );
 
-		$this->assertStringNotContainsString( 'get_option', $source, 'The WP-Stats contributor must go through WP_PostViews_Options.' );
+		$this->assertStringNotContainsString( 'get_option', $code, 'The WP-Stats contributor must go through WP_PostViews_Options.' );
 	}
 }

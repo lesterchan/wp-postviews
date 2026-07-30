@@ -340,8 +340,14 @@ class WP_PostViews_Metadata_Test extends WP_PostViews_TestCase {
 			$this->assertSame( array(), $scripts->registered[ $handle ]->deps, $handle . ' declares a dependency; it should have none' );
 		}
 
+		// Comments stripped first. Both scripts carry a docblock recording that
+		// they replaced a jQuery call in 1.78.1, and the history of the fix is
+		// not the fix being absent. Match code, not English.
 		foreach ( glob( dirname( __DIR__ ) . '/js/*.js' ) as $file ) {
-			$this->assertDoesNotMatchRegularExpression( '/\bjQuery\b|\$\(/', (string) file_get_contents( $file ), basename( $file ) . ' uses jQuery' );
+			$code = (string) file_get_contents( $file );
+			$code = (string) preg_replace( '#/\*.*?\*/|//[^\n]*#s', '', $code );
+
+			$this->assertDoesNotMatchRegularExpression( '/\bjQuery\b|\$\(/', $code, basename( $file ) . ' uses jQuery' );
 		}
 	}
 
