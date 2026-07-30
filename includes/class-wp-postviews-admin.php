@@ -144,7 +144,7 @@ class WP_PostViews_Admin {
 	public static function add_menu() {
 		$hook = add_options_page(
 			__( 'PostViews', 'wp-postviews' ),
-			__( 'PostViews', 'wp-postviews' ),
+			__( 'WP-PostViews', 'wp-postviews' ),
 			self::capability(),
 			self::PAGE,
 			array( __CLASS__, 'render_page' )
