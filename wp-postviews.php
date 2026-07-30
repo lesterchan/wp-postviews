@@ -117,8 +117,9 @@ register_activation_hook( __FILE__, 'wp_postviews_activate' );
  */
 function wp_postviews_activate( $network_wide ) {
 	if ( is_multisite() && $network_wide ) {
-		// wp_get_sites() was removed in WP 5.1. 'number' => 0 lifts
-		// WP_Site_Query's default cap of 100 sites.
+		// get_sites(), not the wp_get_sites() this used to call: that one has
+		// been deprecated since WP 4.6 and returns only the first 100 sites.
+		// 'number' => 0 lifts WP_Site_Query's own default cap of 100 too.
 		$site_ids = get_sites(
 			array(
 				'fields' => 'ids',

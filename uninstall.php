@@ -48,7 +48,7 @@ if ( is_multisite() ) {
 	// network with more than a hundred sites silently keeps its options and
 	// its views meta on every site after the hundredth, and uninstall still
 	// reports success. wp_get_sites(), which the pre-2.0.0 ternary fell back
-	// to, was removed in WP 5.1 and fatals outright.
+	// to, has been deprecated since WP 4.6 and is capped at 100 the same way.
 	//
 	// restore_current_blog() belongs inside the loop: switch_to_blog() pushes
 	// onto a stack, so restoring once at the end unwinds it by exactly one.

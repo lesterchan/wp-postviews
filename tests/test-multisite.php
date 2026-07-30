@@ -4,8 +4,9 @@
  *
  * These only run under WP_MULTISITE=1 (see bin/test.sh --multisite). Up to
  * 2.0.0 this whole surface was unverified, and it held three separate bugs:
- * a call to wp_get_sites(), removed in WP 5.1; get_sites() left at its
- * default cap of 100 sites; and restore_current_blog() outside the loop.
+ * a call to wp_get_sites(), capped at 100 sites since it was deprecated in
+ * WP 4.6; get_sites() left at its own default cap of 100; and
+ * restore_current_blog() outside the loop.
  * All three fail silently - uninstall still reports success while leaving
  * data behind - which is exactly why they survived so long.
  *

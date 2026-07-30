@@ -20,7 +20,7 @@ class WP_PostViews_Uninstall_Test extends WP_PostViews_TestCase {
 	 * The uninstall.php source, with comments stripped.
 	 *
 	 * Matching the raw file would report the fix as the bug: the comment
-	 * explaining why wp_get_sites() was removed contains that very string.
+	 * explaining why wp_get_sites() is not used contains that very string.
 	 *
 	 * @return string
 	 */
@@ -58,15 +58,15 @@ class WP_PostViews_Uninstall_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * The function removed in WP 5.1 is not called.
+	 * The function deprecated in WP 4.6, and capped at 100 sites, is not called.
 	 *
 	 * @return void
 	 */
-	public function test_removed_function_is_not_called() {
+	public function test_deprecated_function_is_not_called() {
 		$this->assertStringNotContainsString(
 			'wp_get_sites',
 			$this->uninstall_source(),
-			'wp_get_sites() was removed in WP 5.1 and fatals on multisite uninstall.'
+			'wp_get_sites() is capped at 100 sites, so a larger network uninstalls in part.'
 		);
 	}
 
