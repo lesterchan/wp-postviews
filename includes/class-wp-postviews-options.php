@@ -98,12 +98,38 @@ class WP_PostViews_Options {
 	}
 
 	/**
+	 * Keys the plugin used to store and no longer does.
+	 *
+	 * Dropped wherever the row is written, so a retired setting cannot survive
+	 * the "keep what the screen did not render" merge in the sanitiser, nor ride
+	 * in on the legacy row the 2.0.0 migration folds in.
+	 *
+	 * The six display_* keys were a per-context matrix - home, single, page,
+	 * archive, search, other, each of them "everyone / registered only / never".
+	 * It is one filter now, wp_postviews_should_display, so there is nothing left
+	 * to store.
+	 *
+	 * @return array
+	 */
+	public static function retired_keys() {
+		return array(
+			'display_home',
+			'display_single',
+			'display_page',
+			'display_archive',
+			'display_search',
+			'display_other',
+		);
+	}
+
+	/**
 	 * Default value for every key.
 	 *
-	 * These mirror the pre-2.0.0 activation routine exactly, apart from the two
-	 * WP-Stats keys, which had no default of their own before because they lived
-	 * in somebody else's row. Changing any of them silently changes what a fresh
-	 * install looks like.
+	 * These mirror the pre-2.0.0 activation routine, apart from the two WP-Stats
+	 * keys, which had no default of their own before because they lived in
+	 * somebody else's row, and the six retired_keys(), which are not stored at
+	 * all any more. Changing any of them silently changes what a fresh install
+	 * looks like.
 	 *
 	 * @return array
 	 */
@@ -111,12 +137,6 @@ class WP_PostViews_Options {
 		return array(
 			'count'                => 1,
 			'exclude_bots'         => 0,
-			'display_home'         => 0,
-			'display_single'       => 0,
-			'display_page'         => 0,
-			'display_archive'      => 0,
-			'display_search'       => 0,
-			'display_other'        => 0,
 			'use_ajax'             => 1,
 			'template'             => self::default_template( 'template' ),
 			'most_viewed_template' => self::default_template( 'most_viewed_template' ),
@@ -195,11 +215,18 @@ class WP_PostViews_Options {
 	/**
 	 * Replace the whole option.
 	 *
+	 * Retired keys are dropped here rather than only in the sanitiser, because
+	 * this is the path the 2.0.0 migration writes through and register_setting()
+	 * has not run by then: maybe_upgrade() is on 'init' and the Settings API
+	 * registration is on 'admin_init', so the sanitize_option_ filter that would
+	 * otherwise clean them is not attached yet, and on the front end never is.
+	 *
 	 * @param array $values Full option array.
 	 * @return bool
 	 */
 	public static function save( $values ) {
-		self::$cache = array_merge( self::defaults(), (array) $values );
+		$values      = array_diff_key( (array) $values, array_flip( self::retired_keys() ) );
+		self::$cache = array_merge( self::defaults(), $values );
 
 		return update_option( self::OPTION, self::$cache );
 	}

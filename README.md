@@ -20,7 +20,6 @@ WP-PostViews counts how many times each post, page or custom post type has been 
 * A view count on any post, page or custom post type, printed by a template tag or by the `[views]` shortcode.
 * Two templates you edit yourself, with tokens for the count, the title, the date, the excerpt, the thumbnail, the author and more.
 * Choose who is counted -- everyone, guests only or logged in users only -- and leave known robots out.
-* Choose where the count appears, and to whom, separately for the home page, single posts, pages, archives, searches and everything else.
 * Template tags and a widget for the most and least viewed posts, optionally within a category or a tag.
 * A sortable Views column on the post and page list tables.
 * The count on the REST API as a `views` field, and an AJAX counting path for sites behind a page cache.
@@ -42,7 +41,15 @@ To show the count on every post automatically, a classic theme calls the templat
 <?php if ( function_exists( 'the_views' ) ) { the_views(); } ?>
 ```
 
-The settings live at **WP-Admin -> Settings -> PostViews**, which is where you choose who gets counted, where the count is shown, what the two templates look like and whether WP-Stats is offered a Views section.
+The settings live at **WP-Admin -> Settings -> WP-PostViews**, on two tabs. **Settings** is where you choose who gets counted and whether WP-Stats is offered a Views section; **Templates** is where you edit the markup a count is rendered with.
+
+Where the count appears is decided by where your theme calls `the_views()` or where you put the shortcode. To hide it somewhere in particular, answer the `wp_postviews_should_display` filter:
+
+```php
+add_filter( 'wp_postviews_should_display', function ( $show ) {
+	return ! is_archive() && ! is_search();
+} );
+```
 
 ## Frequently Asked Questions
 
@@ -168,7 +175,7 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 ## Screenshots
 
 1. PostViews
-2. Admin - PostViews Options
+2. Admin - Post Views Settings
 
 ## Changelog
 ### 2.0.0
@@ -180,9 +187,13 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 * BREAKING: The WP-Stats toggles move out of the shared `stats_display` and `stats_mostlimit` rows into this plugin's own settings, and the shared rows are deleted. Update all seven WP-Stats plugins together.
 * BREAKING: The widget class `WP_Widget_PostViews` is now `WP_PostViews_Widget`. Configured widgets are unaffected.
 * BREAKING: The AJAX action a cached page posts to is now `wp_postviews` instead of `postviews`.
+* BREAKING: The six Display Options settings — home page, single posts, pages, archives, searches and other pages — are removed, and the stored keys are dropped on upgrade. Their replacement is the `wp_postviews_should_display` filter.
 * NEW: Restructured into `includes/` classes. The template tags — `the_views()`, `get_most_viewed()`, `get_least_viewed()`, and the category and tag variants — are unchanged and keep working exactly as before.
 * NEW: The options screen is rebuilt on the WordPress Settings API and no longer loads jQuery.
-* NEW: The WP-Stats section, and how many entries its most viewed lists carry, are now settings on Settings → PostViews.
+* NEW: The WP-Stats section, and how many entries its most viewed lists carry, are now settings on Settings → WP-PostViews.
+* NEW: The `wp_postviews_should_display` filter decides whether a count is shown. It is read by `the_views()` only; the `[views]` shortcode and the admin Views column are explicit requests and ignore it.
+* CHANGED: The settings screen is two tabs, Settings and Templates, over one settings group and one option row.
+* CHANGED: The settings screen is titled "Post Views Settings", matching the other settings screens in this family.
 * CHANGED: WP-Stats now receives one Views section rather than three separately toggled panels, so the most viewed pages list appears alongside the posts list.
 * FIXED: `%VIEW_COUNT_ROUNDED%` picked its unit before rounding, so 999,950 displayed as "1000K" instead of "1M" and 999,999,999 as "1000M" instead of "1B".
 * FIXED: Titles were truncated on bytes rather than characters, because the multibyte branch was gated on `MB_OVERLOAD_STRING`, which PHP 8.0 removed. A CJK title cut mid-character disappeared from the most/least viewed lists entirely.
@@ -191,7 +202,7 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 * FIXED: The widget silently discarded changes made in the block widget editor and the customizer, because it required a hidden form field neither of them sends.
 * FIXED: The widget warned about undefined array keys when rendered from the block widget editor or the customizer.
 * FIXED: Uninstalling on a network of more than 100 sites left options and view counts behind on every site after the hundredth, and reported success. Network activation could fatal on the removed `wp_get_sites()`.
-* NOTE: The settings screen moved from `options-general.php?page=wp-postviews/postviews-options.php` to `options-general.php?page=wp-postviews`. Update any bookmark; the Settings → PostViews menu item is unchanged.
+* NOTE: The settings screen moved from `options-general.php?page=wp-postviews/postviews-options.php` to `options-general.php?page=wp-postviews`. Update any bookmark; the Settings → WP-PostViews menu item is where it always was.
 * NOTE: Templates are now stored unslashed. Existing templates are migrated automatically the first time 2.0.0 loads.
 * NOTE: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()` are no longer global functions. They were never documented; they are now `WP_PostViews_Display::should_be_displayed()`, `WP_PostViews_Display::round_number()` and `WP_PostViews_Display::snippet_text()`.
 
@@ -207,10 +218,34 @@ View counts, templates and settings all carry over on their own.
 
 Three more were renamed the same way: `postviews_should_count` is now `wp_postviews_should_count`, and `postviews_increment_views` and `postviews_increment_views_ajax` are now `wp_postviews_increment_views` and `wp_postviews_increment_views_ajax`.
 
-**Update all seven WP-Stats plugins together.** WP-PostViews, WP-Stats, WP-Polls, WP-PostRatings, WP-UserOnline, WP-EMail and WP-DownloadManager shared two unprefixed rows; each keeps its own copy now and deletes the shared ones, so whichever you update first takes them from the rest. A missing row means "show", so a section you had hidden may reappear. The views section is toggled on **Settings -> PostViews** now, which also sets how many entries the most viewed lists carry. WP-Stats receives one Views section rather than three separately switchable panels, so the most viewed *pages* list appears beside the posts list even if you had only ever asked for posts; untick the whole section if you would rather not see it.
+**Update all seven WP-Stats plugins together.** WP-PostViews, WP-Stats, WP-Polls, WP-PostRatings, WP-UserOnline, WP-EMail and WP-DownloadManager shared two unprefixed rows; each keeps its own copy now and deletes the shared ones, so whichever you update first takes them from the rest. A missing row means "show", so a section you had hidden may reappear. The views section is toggled on **Settings -> WP-PostViews** now, which also sets how many entries the most viewed lists carry. WP-Stats receives one Views section rather than three separately switchable panels, so the most viewed *pages* list appears beside the posts list even if you had only ever asked for posts; untick the whole section if you would rather not see it.
 
-**The settings screen is `options-general.php?page=wp-postviews`**, not `options-general.php?page=wp-postviews/postviews-options.php`. The Settings -> PostViews menu item is where it always was.
+**The settings screen is `options-general.php?page=wp-postviews`**, not `options-general.php?page=wp-postviews/postviews-options.php`. The Settings -> WP-PostViews menu item is where it always was.
 
 **Two rows are renamed** on the first load after updating — `views_options` to `wp_postviews_options` and `views_version` to `wp_postviews_version` — and the old rows are deleted afterwards. Point any code, WP-CLI script or export reading `views_options` at the new name.
 
 **Three undocumented functions are gone.** `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()` are now `WP_PostViews_Display::should_be_displayed()`, `::round_number()` and `::snippet_text()`. The widget class `WP_Widget_PostViews` is `WP_PostViews_Widget`, which matters only if you were instantiating it yourself; widgets already placed in a sidebar are untouched.
+
+**The Display Options settings are gone, and counts you had hidden will start appearing.** The six rows — Home Page, Single Posts, Pages, Archive Pages, Search Pages, Other Pages, each of them "Display to everyone / Display to registered users only / Don't display" — are removed, and the stored `display_home`, `display_single`, `display_page`, `display_archive`, `display_search` and `display_other` keys are dropped on upgrade. If you had set any of them to anything other than "Display to everyone", that choice is not carried over: a site that hid the count on archives or on search results will show it there from the first page load after updating.
+
+Restore the gate with the `wp_postviews_should_display` filter, which is the documented replacement and receives `true`. Return false to hide the count. All the conditional tags are available, so the old settings map across one for one:
+
+```php
+add_filter( 'wp_postviews_should_display', function ( $show ) {
+	// "Don't display on archive pages" and "Don't display on search pages".
+	if ( is_archive() || is_search() ) {
+		return false;
+	}
+
+	// "Display to registered users only", for wherever you had chosen it.
+	if ( is_home() ) {
+		return is_user_logged_in();
+	}
+
+	return $show;
+} );
+```
+
+`WP_PostViews_Display::should_be_displayed()` is unchanged as a public method and now returns what that filter answers, so anything calling it directly keeps working. The `[views]` shortcode and the admin Views column deliberately do not consult the filter: both are explicit requests for the number.
+
+**The settings screen is two tabs now**, Settings and Templates, at the same URL. The two template fields moved to the Templates tab; everything else stayed. It is still one option row and one Save Changes button per tab, and saving one tab does not disturb the other.

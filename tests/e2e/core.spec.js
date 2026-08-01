@@ -12,6 +12,26 @@
 const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
 const { clearAllViews, resetOptions, setViews, views } = require( './helpers.js' );
 
+/** What every post this file creates is called, so they can be told apart. */
+const FIXTURE_PREFIX = 'Sortable';
+
+/**
+ * The titles of this file's own fixture posts, in the order the loop rendered
+ * them.
+ *
+ * Filtered rather than taken whole. These tests are about the *order* the query
+ * vars produce, and reading every article on the front page made that order
+ * depend on nothing else in the suite having left a published post behind --
+ * which is not something a spec can promise about a shared install, and is how
+ * a hostile fixture from security.spec.js once decided this file's assertions.
+ *
+ * @param {import('@playwright/test').Page} page Page showing the loop.
+ * @return {import('@playwright/test').Locator} The fixture titles, in order.
+ */
+function fixtureTitles( page ) {
+	return page.locator( 'main article .entry-title' ).filter( { hasText: FIXTURE_PREFIX } );
+}
+
 test.describe( 'Query vars and the REST field', () => {
 	let popular;
 	let middling;
@@ -42,7 +62,11 @@ test.describe( 'Query vars and the REST field', () => {
 		} );
 	} );
 
-	test.afterAll( async () => {
+	test.afterAll( async ( { requestUtils } ) => {
+		// Taken away again rather than left for the next file. beforeAll clears
+		// the install before it builds this fixture; clearing after it as well
+		// is what stops these three deciding somebody else's ordering.
+		await requestUtils.deleteAllPosts();
 		resetOptions();
 	} );
 
@@ -62,7 +86,7 @@ test.describe( 'Query vars and the REST field', () => {
 		// The unsorted front page, so the tests below are demonstrably changing
 		// the order rather than agreeing with one that was already there.
 		await page.goto( '/' );
-		await expect( page.locator( 'main article .entry-title' ) ).toHaveText( [
+		await expect( fixtureTitles( page ) ).toHaveText( [
 			'Sortable popular post',
 			'Sortable middling post',
 			'Sortable unloved post',
@@ -76,7 +100,7 @@ test.describe( 'Query vars and the REST field', () => {
 
 		await page.goto( '/?v_sortby=views&v_orderby=asc' );
 
-		await expect( page.locator( 'main article .entry-title' ) ).toHaveText( [
+		await expect( fixtureTitles( page ) ).toHaveText( [
 			'Sortable unloved post',
 			'Sortable middling post',
 			'Sortable popular post',
@@ -91,7 +115,7 @@ test.describe( 'Query vars and the REST field', () => {
 
 		await page.goto( '/?v_sortby=views&v_orderby=desc' );
 
-		await expect( page.locator( 'main article .entry-title' ).first() ).toHaveText(
+		await expect( fixtureTitles( page ).first() ).toHaveText(
 			'Sortable unloved post',
 		);
 	} );
@@ -106,7 +130,7 @@ test.describe( 'Query vars and the REST field', () => {
 		// else has to become "desc" -- and the page has to still render.
 		await page.goto( '/?v_sortby=views&v_orderby=asc%3B+DROP' );
 
-		await expect( page.locator( 'main article .entry-title' ).first() ).toHaveText(
+		await expect( fixtureTitles( page ).first() ).toHaveText(
 			'Sortable unloved post',
 		);
 	} );
@@ -117,10 +141,10 @@ test.describe( 'Query vars and the REST field', () => {
 		// every later query on the request to postmeta, so the honest check is
 		// that an ordinary page after a sorted one still renders normally.
 		await page.goto( '/?v_sortby=views&v_orderby=asc' );
-		await expect( page.locator( 'main article .entry-title' ) ).toHaveCount( 3 );
+		await expect( fixtureTitles( page ) ).toHaveCount( 3 );
 
 		await page.goto( '/' );
-		await expect( page.locator( 'main article .entry-title' ) ).toHaveText( [
+		await expect( fixtureTitles( page ) ).toHaveText( [
 			'Sortable popular post',
 			'Sortable middling post',
 			'Sortable unloved post',

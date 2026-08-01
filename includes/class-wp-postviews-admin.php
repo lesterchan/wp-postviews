@@ -68,9 +68,10 @@ class WP_PostViews_Admin {
 	/**
 	 * Render the Views cell.
 	 *
-	 * $always is true because the display matrix governs the front end only.
-	 * Letting it apply here blanked the admin column for anyone who had chosen
-	 * "Don't display", which is what went wrong in 1.65.
+	 * $always is true because the wp_postviews_should_display gate governs the
+	 * front end only. Letting it apply here blanked the admin column for anyone
+	 * who had chosen "Don't display", which is what went wrong in 1.65, and a
+	 * filter written for the front end would do it again.
 	 *
 	 * @param string $column_name The column being rendered.
 	 * @return void
@@ -143,7 +144,7 @@ class WP_PostViews_Admin {
 	 */
 	public static function add_menu() {
 		$hook = add_options_page(
-			__( 'PostViews', 'wp-postviews' ),
+			__( 'Post Views Settings', 'wp-postviews' ),
 			__( 'WP-PostViews', 'wp-postviews' ),
 			self::capability(),
 			self::PAGE,
@@ -196,6 +197,16 @@ class WP_PostViews_Admin {
 	/**
 	 * Render the settings screen.
 	 *
+	 * Two tabs over one settings group and one option row. §4.1: more than one
+	 * group of settings becomes tabs on the single page, never a second submenu
+	 * entry.
+	 *
+	 * No settings_errors() call of its own. This screen is a child of
+	 * options-general.php, and wp-admin/admin-header.php loads options-head.php
+	 * for every such screen, which calls settings_errors() already - on whichever
+	 * tab the save came back to. A second call here would print "Settings saved."
+	 * twice.
+	 *
 	 * @return void
 	 */
 	public static function render_page() {
@@ -203,23 +214,63 @@ class WP_PostViews_Admin {
 			return;
 		}
 
+		$tab = WP_PostViews_Settings::current_tab();
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Post Views Options', 'wp-postviews' ); ?></h1>
+			<h1><?php esc_html_e( 'Post Views Settings', 'wp-postviews' ); ?></h1>
+
+			<nav class="nav-tab-wrapper">
+				<?php foreach ( WP_PostViews_Settings::tabs() as $slug => $label ) : ?>
+					<?php
+					$tab_url = add_query_arg(
+						array(
+							'page' => self::PAGE,
+							'tab'  => $slug,
+						),
+						admin_url( 'options-general.php' )
+					);
+					?>
+					<a href="<?php echo esc_url( $tab_url ); ?>"
+						class="nav-tab<?php echo $slug === $tab ? ' nav-tab-active' : ''; ?>">
+						<?php echo esc_html( $label ); ?>
+					</a>
+				<?php endforeach; ?>
+			</nav>
 
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( WP_PostViews_Settings::GROUP );
 
+				/*
+				 * The tab is carried through the save, so options.php sends the
+				 * browser back to the tab it was submitted from rather than to the
+				 * first one. settings_fields() has already emitted a
+				 * _wp_http_referer built from REQUEST_URI; this one comes after it
+				 * and wins, because PHP keeps the last value for a repeated name.
+				 */
+				printf(
+					'<input type="hidden" name="_wp_http_referer" value="%s" />',
+					esc_url(
+						add_query_arg(
+							array(
+								'page' => self::PAGE,
+								'tab'  => $tab,
+							),
+							admin_url( 'options-general.php' )
+						)
+					)
+				);
+
 				// There is no use_ajax field when nothing is cached, and a key the
-				// form omits keeps its stored value, so pin it off here.
-				if ( ! WP_PostViews_Settings::using_cache() ) {
+				// form omits keeps its stored value, so pin it off here - on the
+				// tab that owns the row, not on both.
+				if ( 'settings' === $tab && ! WP_PostViews_Settings::using_cache() ) {
 					?>
 					<input type="hidden" name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[use_ajax]' ); ?>" value="0" />
 					<?php
 				}
 
-				do_settings_sections( self::PAGE );
+				do_settings_sections( WP_PostViews_Settings::tab_page( $tab ) );
 
 				submit_button();
 				?>

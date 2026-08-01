@@ -3,21 +3,24 @@
  * sorting it offers, the settings screen's own script, and the capability that
  * gates the lot.
  *
- * The column is the one place the plugin renders a count with the display
- * matrix deliberately switched off, so the tests here pin that: 1.65 shipped
- * with the matrix applied to the column too, and every site that had chosen
- * "Don't display" lost the numbers from wp-admin as well.
+ * The column is the one place the plugin renders a count with the display gate
+ * deliberately switched off, so the tests here pin that: 1.65 shipped with the
+ * gate applied to the column too, and every site that had chosen "Don't
+ * display" lost the numbers from wp-admin as well. The gate is the
+ * wp_postviews_should_display filter now, and a site answering it false is the
+ * modern spelling of exactly that setting.
  */
 
 const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
 const {
-	DISPLAY,
 	PAGES_URL,
 	POSTS_URL,
 	SETTINGS_URL,
 	clearAllViews,
-	openSettings,
+	installDisplayGate,
+	openTemplates,
 	option,
+	removeDisplayGate,
 	resetOptions,
 	saveSettings,
 	setOptions,
@@ -116,24 +119,21 @@ test.describe( 'The admin column and screen', () => {
 		await expect( viewsCell( page, 'Column page' ) ).toHaveText( '77 views' );
 	} );
 
-	test( 'the column still shows a count when the display matrix says nobody sees one', async ( {
+	test( 'the column still shows a count when the display filter says nobody sees one', async ( {
 		page,
 	} ) => {
-		// The 1.65 regression. The matrix governs the front end; letting it
-		// reach the column blanked wp-admin for every site that had turned the
-		// counts off for visitors.
-		setOptions( {
-			display_home: parseInt( DISPLAY.never, 10 ),
-			display_single: parseInt( DISPLAY.never, 10 ),
-			display_page: parseInt( DISPLAY.never, 10 ),
-			display_archive: parseInt( DISPLAY.never, 10 ),
-			display_search: parseInt( DISPLAY.never, 10 ),
-			display_other: parseInt( DISPLAY.never, 10 ),
-		} );
+		// The 1.65 regression. The gate governs the front end; letting it reach
+		// the column blanked wp-admin for every site that had turned the counts
+		// off for visitors.
+		installDisplayGate( 'false' );
 
-		await page.goto( POSTS_URL );
+		try {
+			await page.goto( POSTS_URL );
 
-		await expect( viewsCell( page, 'Column popular post' ) ).toHaveText( '500 views' );
+			await expect( viewsCell( page, 'Column popular post' ) ).toHaveText( '500 views' );
+		} finally {
+			removeDisplayGate();
+		}
 	} );
 
 	test( 'the column renders through the Views Template like the front end does', async ( {
@@ -182,7 +182,7 @@ test.describe( 'The admin column and screen', () => {
 			.getByRole( 'link', { name: 'WP-PostViews', exact: true } )
 			.click();
 
-		await expect( page.getByRole( 'heading', { name: 'Post Views Options' } ) ).toBeVisible();
+		await expect( page.getByRole( 'heading', { name: 'Post Views Settings' } ) ).toBeVisible();
 		expect( page.url() ).toContain( 'options-general.php?page=wp-postviews' );
 	} );
 
@@ -191,7 +191,7 @@ test.describe( 'The admin column and screen', () => {
 	} ) => {
 		setOptions( { template: 'something else entirely' } );
 
-		await openSettings( page );
+		await openTemplates( page );
 		await expect( page.locator( '#views-template-template' ) ).toHaveValue(
 			'something else entirely',
 		);
@@ -214,7 +214,7 @@ test.describe( 'The admin column and screen', () => {
 	} ) => {
 		setOptions( { template: 'kept as is', most_viewed_template: '<li>replaced</li>' } );
 
-		await openSettings( page );
+		await openTemplates( page );
 		await page
 			.locator(
 				'[data-postviews-reset="most_viewed_template"][data-postviews-target="views-template-most_viewed_template"]',
@@ -240,7 +240,7 @@ test.describe( 'The admin column and screen', () => {
 		await expect( page.locator( '#adminmenu' ) ).toContainText( 'WP-PostViews' );
 
 		await page.goto( SETTINGS_URL );
-		await expect( page.getByRole( 'heading', { name: 'Post Views Options' } ) ).toBeVisible();
+		await expect( page.getByRole( 'heading', { name: 'Post Views Settings' } ) ).toBeVisible();
 
 		await requestUtils
 			.rest( {

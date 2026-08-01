@@ -23,9 +23,52 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 		foreach ( array( 'count', 'exclude_bots', 'use_ajax', 'template', 'most_viewed_template', 'stats_display', 'stats_most_limit' ) as $key ) {
 			$this->assertArrayHasKey( $key, $defaults );
 		}
-		foreach ( $this->display_keys as $key ) {
-			$this->assertArrayHasKey( $key, $defaults );
+	}
+
+	/**
+	 * A retired key has no default, and is dropped by every write path.
+	 *
+	 * The six display_* keys were a per-context matrix; the gate is the
+	 * wp_postviews_should_display filter now. A site upgrading carries them in
+	 * its stored row, and save() is the path the 2.0.0 migration writes through,
+	 * so they have to go there rather than only in the Settings API sanitiser --
+	 * which is not even attached until 'admin_init'.
+	 *
+	 * @return void
+	 */
+	public function test_retired_keys_are_not_stored() {
+		$defaults = WP_PostViews_Options::defaults();
+
+		foreach ( WP_PostViews_Options::retired_keys() as $key ) {
+			$this->assertArrayNotHasKey( $key, $defaults, $key . ' is retired and must have no default.' );
 		}
+
+		WP_PostViews_Options::save(
+			array_merge(
+				array_fill_keys( WP_PostViews_Options::retired_keys(), 2 ),
+				array( 'template' => 'KEPT' )
+			)
+		);
+
+		$stored = get_option( WP_PostViews_Options::OPTION );
+
+		foreach ( WP_PostViews_Options::retired_keys() as $key ) {
+			$this->assertArrayNotHasKey( $key, $stored, $key . ' must not survive a write.' );
+		}
+
+		$this->assertSame( 'KEPT', $stored['template'], 'Dropping the retired keys must not disturb the rest.' );
+	}
+
+	/**
+	 * Every retired key really is one of the six display rows.
+	 *
+	 * @return void
+	 */
+	public function test_the_retired_keys_are_the_six_display_rows() {
+		$this->assertSame(
+			array( 'display_home', 'display_single', 'display_page', 'display_archive', 'display_search', 'display_other' ),
+			WP_PostViews_Options::retired_keys()
+		);
 	}
 
 	/**

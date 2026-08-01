@@ -41,18 +41,18 @@ class WP_PostViews_Settings {
 	const GROUP = 'wp_postviews_options';
 
 	/**
-	 * Section holding the counting and template rows.
+	 * Section holding the counting rows.
 	 *
 	 * @var string
 	 */
 	const SECTION_GENERAL = 'wp_postviews_general';
 
 	/**
-	 * Section holding the per context display matrix.
+	 * Section holding the two templates.
 	 *
 	 * @var string
 	 */
-	const SECTION_DISPLAY = 'wp_postviews_display';
+	const SECTION_TEMPLATES = 'wp_postviews_templates';
 
 	/**
 	 * Section holding this plugin's half of the WP-Stats contract.
@@ -71,11 +71,65 @@ class WP_PostViews_Settings {
 	}
 
 	/**
+	 * The tabs on the settings screen, in the order they are drawn.
+	 *
+	 * Two, because the templates are long free-text fields with a list of
+	 * allowed variables above each of them, and putting them beside four
+	 * one-line selects left the settings a site owner actually changes below a
+	 * screenful of markup.
+	 *
+	 * Named for what they hold and nothing else: the h1 above already says which
+	 * plugin's screen this is.
+	 *
+	 * @return array
+	 */
+	public static function tabs() {
+		return array(
+			'settings'  => __( 'Settings', 'wp-postviews' ),
+			'templates' => __( 'Templates', 'wp-postviews' ),
+		);
+	}
+
+	/**
+	 * Which tab is being shown.
+	 *
+	 * Public because WP_PostViews_Admin draws the screen and this class owns
+	 * what is on it: §4.2 splits them, and the tab is the one fact both halves
+	 * need.
+	 *
+	 * @return string
+	 */
+	public static function current_tab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Choosing which tab to draw; nothing is read from the request beyond that and nothing is written.
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'settings';
+
+		return array_key_exists( $tab, self::tabs() ) ? $tab : 'settings';
+	}
+
+	/**
+	 * The Settings API page a tab's sections are registered against.
+	 *
+	 * Each tab is its own settings page as far as do_settings_sections() is
+	 * concerned, which is what stops one tab drawing the other's fields. There
+	 * is still one register_setting(), one group and one option row: the split
+	 * is in the drawing, not in the storage.
+	 *
+	 * @param string $tab Tab slug.
+	 * @return string
+	 */
+	public static function tab_page( $tab ) {
+		return WP_PostViews_Admin::PAGE . '-' . $tab;
+	}
+
+	/**
 	 * Register the one setting, and the sections and fields that edit it.
 	 *
 	 * @return void
 	 */
 	public static function register() {
+		$settings  = self::tab_page( 'settings' );
+		$templates = self::tab_page( 'templates' );
+
 		register_setting(
 			self::GROUP,
 			WP_PostViews_Options::OPTION,
@@ -87,14 +141,14 @@ class WP_PostViews_Settings {
 		);
 
 		// No title, so do_settings_sections() emits the table straight after the
-		// h1 the way the screen has always looked. No callback either.
-		add_settings_section( self::SECTION_GENERAL, '', '', WP_PostViews_Admin::PAGE );
+		// tab nav the way the screen has always looked. No callback either.
+		add_settings_section( self::SECTION_GENERAL, '', '', $settings );
 
 		add_settings_field(
 			'count',
 			__( 'Count Views From:', 'wp-postviews' ),
 			array( __CLASS__, 'field_select' ),
-			WP_PostViews_Admin::PAGE,
+			$settings,
 			self::SECTION_GENERAL,
 			array(
 				'label_for' => 'views-count',
@@ -111,7 +165,7 @@ class WP_PostViews_Settings {
 			'exclude_bots',
 			__( 'Exclude Bot Views:', 'wp-postviews' ),
 			array( __CLASS__, 'field_select' ),
-			WP_PostViews_Admin::PAGE,
+			$settings,
 			self::SECTION_GENERAL,
 			array(
 				'label_for' => 'views-exclude_bots',
@@ -121,13 +175,13 @@ class WP_PostViews_Settings {
 		);
 
 		// Without a page cache the setting has no effect, so the row is not
-		// offered at all; render() pins the stored value off instead.
+		// offered at all; render_page() pins the stored value off instead.
 		if ( self::using_cache() ) {
 			add_settings_field(
 				'use_ajax',
 				__( 'Use AJAX To Update Views:', 'wp-postviews' ),
 				array( __CLASS__, 'field_select' ),
-				WP_PostViews_Admin::PAGE,
+				$settings,
 				self::SECTION_GENERAL,
 				array(
 					'label_for'   => 'views-use_ajax',
@@ -138,12 +192,44 @@ class WP_PostViews_Settings {
 			);
 		}
 
+		add_settings_section(
+			self::SECTION_WPSTATS,
+			__( 'WP-Stats Options', 'wp-postviews' ),
+			array( __CLASS__, 'wpstats_section' ),
+			$settings
+		);
+
+		add_settings_field(
+			'stats_display',
+			__( 'Show A Views Section On The Stats Page?', 'wp-postviews' ),
+			array( __CLASS__, 'field_stats_display' ),
+			$settings,
+			self::SECTION_WPSTATS,
+			array( 'label_for' => 'views-stats_display' )
+		);
+
+		add_settings_field(
+			'stats_most_limit',
+			__( 'Number Of Entries In Each Most Viewed List:', 'wp-postviews' ),
+			array( __CLASS__, 'field_stats_most_limit' ),
+			$settings,
+			self::SECTION_WPSTATS,
+			array( 'label_for' => 'views-stats_most_limit' )
+		);
+
+		add_settings_section(
+			self::SECTION_TEMPLATES,
+			'',
+			array( __CLASS__, 'templates_section' ),
+			$templates
+		);
+
 		add_settings_field(
 			'template',
 			self::template_title( __( 'Views Template:', 'wp-postviews' ), 'views-template-template', array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ) ),
 			array( __CLASS__, 'field_template' ),
-			WP_PostViews_Admin::PAGE,
-			self::SECTION_GENERAL,
+			$templates,
+			self::SECTION_TEMPLATES,
 			array(
 				'key'  => 'template',
 				'id'   => 'views-template-template',
@@ -172,71 +258,13 @@ class WP_PostViews_Settings {
 				)
 			),
 			array( __CLASS__, 'field_template' ),
-			WP_PostViews_Admin::PAGE,
-			self::SECTION_GENERAL,
+			$templates,
+			self::SECTION_TEMPLATES,
 			array(
 				'key'  => 'most_viewed_template',
 				'id'   => 'views-template-most_viewed_template',
 				'type' => 'textarea',
 			)
-		);
-
-		add_settings_section(
-			self::SECTION_DISPLAY,
-			__( 'Display Options', 'wp-postviews' ),
-			array( __CLASS__, 'display_section' ),
-			WP_PostViews_Admin::PAGE
-		);
-
-		$contexts = array(
-			'display_home'    => array( __( 'Home Page:', 'wp-postviews' ), __( "Don't display on home page", 'wp-postviews' ) ),
-			'display_single'  => array( __( 'Single Posts:', 'wp-postviews' ), __( "Don't display on single posts", 'wp-postviews' ) ),
-			'display_page'    => array( __( 'Pages:', 'wp-postviews' ), __( "Don't display on pages", 'wp-postviews' ) ),
-			'display_archive' => array( __( 'Archive Pages:', 'wp-postviews' ), __( "Don't display on archive pages", 'wp-postviews' ) ),
-			'display_search'  => array( __( 'Search Pages:', 'wp-postviews' ), __( "Don't display on search pages", 'wp-postviews' ) ),
-			'display_other'   => array( __( 'Other Pages:', 'wp-postviews' ), __( "Don't display on other pages", 'wp-postviews' ) ),
-		);
-
-		foreach ( $contexts as $key => $labels ) {
-			list( $label, $never_label ) = $labels;
-
-			add_settings_field(
-				$key,
-				$label,
-				array( __CLASS__, 'field_select' ),
-				WP_PostViews_Admin::PAGE,
-				self::SECTION_DISPLAY,
-				array(
-					'label_for' => 'views-' . $key,
-					'key'       => $key,
-					'choices'   => self::display_choices( $never_label ),
-				)
-			);
-		}
-
-		add_settings_section(
-			self::SECTION_WPSTATS,
-			__( 'WP-Stats Options', 'wp-postviews' ),
-			array( __CLASS__, 'wpstats_section' ),
-			WP_PostViews_Admin::PAGE
-		);
-
-		add_settings_field(
-			'stats_display',
-			__( 'Show A Views Section On The Stats Page?', 'wp-postviews' ),
-			array( __CLASS__, 'field_stats_display' ),
-			WP_PostViews_Admin::PAGE,
-			self::SECTION_WPSTATS,
-			array( 'label_for' => 'views-stats_display' )
-		);
-
-		add_settings_field(
-			'stats_most_limit',
-			__( 'Number Of Entries In Each Most Viewed List:', 'wp-postviews' ),
-			array( __CLASS__, 'field_stats_most_limit' ),
-			WP_PostViews_Admin::PAGE,
-			self::SECTION_WPSTATS,
-			array( 'label_for' => 'views-stats_most_limit' )
 		);
 	}
 
@@ -268,9 +296,20 @@ class WP_PostViews_Settings {
 	/**
 	 * Validate what the screen submitted.
 	 *
-	 * Merges into the stored value rather than replacing it, so a key the form
-	 * did not render - and there is one, use_ajax when WP_CACHE is off - keeps
-	 * whatever it had.
+	 * Merges into the stored value rather than replacing it, so a key this
+	 * submission did not carry keeps whatever it had. That is not a nicety: the
+	 * screen is two tabs posting disjoint sets of fields into one option row, so
+	 * a callback that returned only what it was handed would empty the Templates
+	 * tab every time somebody saved the Settings tab, and the other way round.
+	 * The Settings API hands a sanitize callback the submitted array and nothing
+	 * else; it has no idea another tab exists.
+	 *
+	 * Every key is therefore absent-means-unchanged, with no exceptions -
+	 * including the stats_display checkbox, which posts nothing at all when it
+	 * is unticked and so is paired with a hidden zero in field_stats_display().
+	 * Reading absence as "off" instead would have been correct on a one page
+	 * screen and silently switches the WP-Stats section off the first time
+	 * anyone saves the Templates tab.
 	 *
 	 * @param mixed $input Submitted values.
 	 * @return array
@@ -282,11 +321,9 @@ class WP_PostViews_Settings {
 			return $current;
 		}
 
-		foreach ( array( 'count', 'display_home', 'display_single', 'display_page', 'display_archive', 'display_search', 'display_other' ) as $key ) {
-			if ( isset( $input[ $key ] ) ) {
-				// Every one of these is a three way choice.
-				$current[ $key ] = min( 2, max( 0, (int) $input[ $key ] ) );
-			}
+		if ( isset( $input['count'] ) ) {
+			// A three way choice: everyone, guests only, registered users only.
+			$current['count'] = min( 2, max( 0, (int) $input['count'] ) );
 		}
 
 		foreach ( array( 'exclude_bots', 'use_ajax' ) as $key ) {
@@ -301,33 +338,25 @@ class WP_PostViews_Settings {
 			}
 		}
 
-		// Stored as a bool, which is what WP_PostViews_WPStats reads. A checkbox
-		// posts nothing at all when it is unticked, so the WP-Stats section is
-		// the one row this callback reads as absent-means-off rather than
-		// absent-means-unchanged: field_stats_display() always renders it.
-		$current['stats_display'] = ! empty( $input['stats_display'] );
+		// Stored as a bool, which is what WP_PostViews_WPStats reads. Absent means
+		// "the Templates tab was saved", not "unticked" - see the hidden zero in
+		// field_stats_display() for how an unticked box still posts.
+		if ( isset( $input['stats_display'] ) ) {
+			$current['stats_display'] = ! empty( $input['stats_display'] );
+		}
 
 		if ( isset( $input['stats_most_limit'] ) ) {
 			$current['stats_most_limit'] = max( 1, (int) $input['stats_most_limit'] );
 		}
 
+		// A key the screen no longer renders keeps its stored value, which is what
+		// use_ajax relies on - so a key the plugin has deliberately retired has to
+		// be taken back out, or the merge above would carry it forever.
+		$current = array_diff_key( $current, array_flip( WP_PostViews_Options::retired_keys() ) );
+
 		// No flush needed here: update_option() fires update_option_wp_postviews_options
 		// once the sanitised value is stored, and WP_PostViews_Options listens for it.
 		return $current;
-	}
-
-	/**
-	 * The three way "who sees this" choice used by every display option.
-	 *
-	 * @param string $never_label Wording of the third choice, which differs per context.
-	 * @return array
-	 */
-	protected static function display_choices( $never_label ) {
-		return array(
-			0 => __( 'Display to everyone', 'wp-postviews' ),
-			1 => __( 'Display to registered users only', 'wp-postviews' ),
-			2 => $never_label,
-		);
 	}
 
 	/**
@@ -388,15 +417,18 @@ class WP_PostViews_Settings {
 	/**
 	 * Field callback: whether to offer a section to the WP-Stats page.
 	 *
-	 * Always rendered, unlike use_ajax, which is why the sanitiser can read an
-	 * absent value as "unticked" for this one row: a checkbox posts nothing when
-	 * it is off, so a field that is always on screen is the only kind that can
-	 * be turned off at all.
+	 * The hidden zero in front of the checkbox is what makes the row tab-safe. A
+	 * checkbox posts nothing when it is unticked, so the sanitiser cannot tell
+	 * "unticked on the Settings tab" from "the Templates tab was saved" unless
+	 * something is always posted alongside it. The hidden field is always
+	 * posted; the checkbox overrides it when it is ticked, because PHP takes the
+	 * last value for a repeated name.
 	 *
 	 * @return void
 	 */
 	public static function field_stats_display() {
 		?>
+		<input type="hidden" name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[stats_display]' ); ?>" value="0" />
 		<input type="checkbox" id="views-stats_display"
 			name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[stats_display]' ); ?>"
 			value="1" <?php checked( (bool) WP_PostViews_Options::get( 'stats_display' ) ); ?> />
@@ -416,6 +448,25 @@ class WP_PostViews_Settings {
 		<input type="number" class="small-text" min="1" step="1" id="views-stats_most_limit"
 			name="<?php echo esc_attr( WP_PostViews_Options::OPTION . '[stats_most_limit]' ); ?>"
 			value="<?php echo esc_attr( WP_PostViews_Options::get_int( 'stats_most_limit' ) ); ?>" />
+		<?php
+	}
+
+	/**
+	 * Section callback: what the Templates tab is for.
+	 *
+	 * @return void
+	 */
+	public static function templates_section() {
+		?>
+		<p>
+			<?php
+			printf(
+				/* translators: %s: the the_views() template tag, wrapped in a code element. */
+				esc_html__( 'The markup a view count is rendered with. The theme files must contain a call to %s for the first of these to appear at all; the second is used by the most viewed listings and the widget.', 'wp-postviews' ),
+				'<code>the_views()</code>'
+			);
+			?>
+		</p>
 		<?php
 	}
 
@@ -461,24 +512,5 @@ class WP_PostViews_Settings {
 		$title .= '</ul>';
 
 		return $title;
-	}
-
-	/**
-	 * Section callback: what the display matrix does.
-	 *
-	 * @return void
-	 */
-	public static function display_section() {
-		?>
-		<p>
-			<?php
-			printf(
-				/* translators: %s: the the_views() template tag, wrapped in a code element. */
-				esc_html__( 'These options specify where the view counts should be displayed and to whom. By default view counts will be displayed to all visitors. Note that the theme files must contain a call to %s in order for any view count to be displayed.', 'wp-postviews' ),
-				'<code>the_views()</code>'
-			);
-			?>
-		</p>
-		<?php
 	}
 }

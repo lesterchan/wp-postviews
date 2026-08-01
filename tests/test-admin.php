@@ -29,6 +29,31 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
+	 * Leave no tab selected for the next test.
+	 *
+	 * @return void
+	 */
+	public function tear_down() {
+		unset( $_GET['tab'] );
+
+		parent::tear_down();
+	}
+
+	/**
+	 * Render one tab of the settings screen as an administrator.
+	 *
+	 * @param string $tab Tab slug. The first tab when omitted.
+	 * @return string
+	 */
+	protected function render_tab( $tab = 'settings' ) {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$_GET['tab'] = $tab;
+
+		return $this->capture( array( 'WP_PostViews_Admin', 'render_page' ) );
+	}
+
+	/**
 	 * The screen is registered under Settings.
 	 *
 	 * @return void
@@ -75,23 +100,179 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_render_outputs_the_form() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Admin::render_page();
-			}
-		);
+		$html = $this->render_tab();
 
 		$this->assertStringContainsString( 'action="options.php"', $html );
 		$this->assertStringContainsString( WP_PostViews_Settings::GROUP, $html );
+
+		// Every option key this tab owns has a field.
+		foreach ( array( 'count', 'exclude_bots', 'stats_display', 'stats_most_limit' ) as $key ) {
+			$this->assertStringContainsString( WP_PostViews_Options::OPTION . '[' . $key . ']', $html, "No field for {$key}." );
+		}
+
+		// And none for a key the plugin retired.
+		foreach ( WP_PostViews_Options::retired_keys() as $key ) {
+			$this->assertStringNotContainsString( WP_PostViews_Options::OPTION . '[' . $key . ']', $html, "{$key} is retired and must not be on the screen." );
+		}
+	}
+
+	/**
+	 * The Templates tab draws the template fields, and only those.
+	 *
+	 * @return void
+	 */
+	public function test_render_outputs_the_templates_tab() {
+		$html = $this->render_tab( 'templates' );
+
+		$this->assertStringContainsString( 'action="options.php"', $html );
 		$this->assertStringContainsString( 'views-template-template', $html );
 		$this->assertStringContainsString( 'views-template-most_viewed_template', $html );
 
-		// Every option key the screen owns has a field.
-		foreach ( array_merge( array( 'count', 'exclude_bots' ), $this->display_keys ) as $key ) {
-			$this->assertStringContainsString( WP_PostViews_Options::OPTION . '[' . $key . ']', $html, "No field for {$key}." );
+		// The variable list sits in the template row's heading cell.
+		$this->assertStringContainsString( '<code>%POST_THUMBNAIL_URL%</code>', $html );
+
+		// One table, and none of the Settings tab's rows.
+		$this->assertSame( 1, substr_count( $html, 'class="form-table"' ) );
+		foreach ( array( 'count', 'exclude_bots', 'stats_display', 'stats_most_limit' ) as $key ) {
+			$this->assertStringNotContainsString( 'id="views-' . $key . '"', $html, "{$key} belongs to the Settings tab." );
 		}
+	}
+
+	/**
+	 * The two tabs draw disjoint sets of fields.
+	 *
+	 * The whole point of registering each tab as its own Settings API page: one
+	 * page string for both would put every field on both tabs.
+	 *
+	 * @return void
+	 */
+	public function test_the_tabs_draw_disjoint_fields() {
+		$settings  = $this->render_tab( 'settings' );
+		$templates = $this->render_tab( 'templates' );
+
+		$this->assertStringContainsString( 'id="views-count"', $settings );
+		$this->assertStringNotContainsString( 'id="views-count"', $templates );
+
+		$this->assertStringContainsString( 'id="views-template-template"', $templates );
+		$this->assertStringNotContainsString( 'id="views-template-template"', $settings );
+	}
+
+	/**
+	 * The tab nav is on both tabs, marks the one being shown, and links stay
+	 * inside this one screen.
+	 *
+	 * @return void
+	 */
+	public function test_the_tab_nav() {
+		foreach ( array( 'settings', 'templates' ) as $tab ) {
+			$html = $this->render_tab( $tab );
+
+			$this->assertStringContainsString( 'class="nav-tab-wrapper"', $html );
+			$this->assertMatchesRegularExpression( '#>\s*Settings\s*</a>#', $html );
+			$this->assertMatchesRegularExpression( '#>\s*Templates\s*</a>#', $html );
+
+			// One active tab, and it is this one.
+			$this->assertSame( 1, substr_count( $html, 'nav-tab-active' ), 'Exactly one tab is active.' );
+			$this->assertMatchesRegularExpression(
+				'#tab=' . $tab . '[^>]*class="nav-tab nav-tab-active"#',
+				$html,
+				"The {$tab} tab is not the active one."
+			);
+
+			// §4.1: tabs on one page, never a second submenu entry.
+			$this->assertStringContainsString( 'options-general.php?page=' . WP_PostViews_Admin::PAGE . '&#038;tab=settings', $html );
+			$this->assertStringContainsString( 'options-general.php?page=' . WP_PostViews_Admin::PAGE . '&#038;tab=templates', $html );
+		}
+	}
+
+	/**
+	 * Saving comes back to the tab it was saved from.
+	 *
+	 * The options.php handler redirects to _wp_http_referer, so without one
+	 * naming the tab a save on Templates would answer on Settings.
+	 *
+	 * @return void
+	 */
+	public function test_the_form_carries_the_tab_through_the_save() {
+		$html = $this->render_tab( 'templates' );
+
+		$this->assertMatchesRegularExpression(
+			'#name="_wp_http_referer" value="[^"]*page=' . WP_PostViews_Admin::PAGE . '[^"]*tab=templates"#',
+			$html
+		);
+
+		// It comes after the one settings_fields() emits, because the last value
+		// for a repeated name is the one PHP keeps.
+		$offsets = array();
+		preg_match_all( '#name="_wp_http_referer"#', $html, $matches, PREG_OFFSET_CAPTURE );
+		foreach ( $matches[0] as $match ) {
+			$offsets[] = $match[1];
+		}
+
+		$this->assertCount( 2, $offsets, 'settings_fields() emits one and the screen adds its own.' );
+		$this->assertLessThan( $offsets[1], strpos( $html, 'name="_wpnonce"' ) );
+	}
+
+	/**
+	 * The screen prints no settings notice of its own.
+	 *
+	 * Core's wp-admin/admin-header.php loads options-head.php for every child
+	 * of options-general.php, and that calls settings_errors() already. A second
+	 * call here would show "Settings saved." twice.
+	 *
+	 * @return void
+	 */
+	public function test_the_screen_does_not_print_the_notice_twice() {
+		add_settings_error( 'general', 'settings_updated', 'Settings saved.', 'success' );
+
+		$html = $this->render_tab();
+
+		$this->assertStringNotContainsString( 'Settings saved.', $html );
+	}
+
+	/**
+	 * The screen says what it is, in the form the other settings screens use.
+	 *
+	 * @return void
+	 */
+	public function test_render_names_the_screen() {
+		foreach ( array( 'settings', 'templates' ) as $tab ) {
+			$html = $this->render_tab( $tab );
+
+			$this->assertStringContainsString( '<h1>Post Views Settings</h1>', $html );
+			$this->assertStringNotContainsString( 'Post Views Options', $html );
+		}
+	}
+
+	/**
+	 * The page title matches the heading, and the menu entry is the plugin name.
+	 *
+	 * §4.1: the sidebar carries the WP- prefix so the family sorts together; the
+	 * page title and the h1 say what the screen is and never carry it.
+	 *
+	 * @return void
+	 */
+	public function test_the_menu_titles() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		set_current_screen( 'dashboard' );
+
+		global $submenu;
+		$submenu = array();
+
+		WP_PostViews_Admin::add_menu();
+
+		$entry = null;
+		foreach ( $submenu['options-general.php'] ?? array() as $row ) {
+			if ( WP_PostViews_Admin::PAGE === $row[2] ) {
+				$entry = $row;
+			}
+		}
+
+		$this->assertNotNull( $entry, 'The menu entry was not registered.' );
+		$this->assertSame( 'WP-PostViews', $entry[0], 'The sidebar carries the plugin name.' );
+		$this->assertSame( 'Post Views Settings', $entry[3], 'The page title says what the screen is.' );
+
+		set_current_screen( 'front' );
 	}
 
 	/**
@@ -101,33 +282,24 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_render_draws_the_registered_sections() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Admin::render_page();
-			}
-		);
+		$html = $this->render_tab();
 
 		// One table per section, and nothing hand written alongside them.
-		$this->assertSame( 3, substr_count( $html, 'class="form-table"' ), 'do_settings_sections() draws one table per section.' );
+		$this->assertSame( 2, substr_count( $html, 'class="form-table"' ), 'do_settings_sections() draws one table per section.' );
 
-		// The second and third section titles, emitted by core from the
-		// registration. Matched loosely: WordPress gives a settings heading an id
-		// attribute and the attribute has not always been there.
-		$this->assertMatchesRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html );
+		// The second section title, emitted by core from the registration.
+		// Matched loosely: WordPress gives a settings heading an id attribute and
+		// the attribute has not always been there.
 		$this->assertMatchesRegularExpression( '#<h2[^>]*>WP-Stats Options</h2>#', $html );
 
-		// Their callbacks ran.
-		$this->assertStringContainsString( '<code>the_views()</code>', $html );
+		// Display Options is gone, and so is the paragraph that introduced it.
+		$this->assertDoesNotMatchRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html );
+
+		// Its callback ran.
 		$this->assertStringContainsString( 'These settings do nothing without WP-Stats.', $html );
 
-		// Counting rows, then the display matrix, then WP-Stats.
-		$this->assertLessThan( strpos( $html, 'id="views-display_home"' ), strpos( $html, 'id="views-count"' ) );
-		$this->assertLessThan( strpos( $html, 'id="views-stats_display"' ), strpos( $html, 'id="views-display_home"' ) );
-
-		// The variable list still sits in the template row's heading cell.
-		$this->assertStringContainsString( '<code>%POST_THUMBNAIL_URL%</code>', $html );
+		// Counting rows, then WP-Stats.
+		$this->assertLessThan( strpos( $html, 'id="views-stats_display"' ), strpos( $html, 'id="views-count"' ) );
 	}
 
 	/**
@@ -139,13 +311,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_render_emits_the_reset_buttons() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Admin::render_page();
-			}
-		);
+		$html = $this->render_tab( 'templates' );
 
 		$this->assertStringContainsString( 'data-postviews-reset="template"', $html );
 		$this->assertStringContainsString( 'data-postviews-target="views-template-template"', $html );
@@ -162,14 +328,9 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_render_escapes_the_stored_templates() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		$this->set_options( array( 'template' => '" onmouseover="alert(1)' ) );
 
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Admin::render_page();
-			}
-		);
+		$html = $this->render_tab( 'templates' );
 
 		$this->assertStringNotContainsString( 'onmouseover="alert(1)"', $html );
 		$this->assertStringContainsString( '&quot;', $html );
@@ -214,13 +375,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_ajax_row_is_shown_under_wp_cache() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture(
-			function () {
-				WP_PostViews_Admin::render_page();
-			}
-		);
+		$html = $this->render_tab();
 
 		$hidden_field = 'name="' . WP_PostViews_Options::OPTION . '[use_ajax]" value="0"';
 
@@ -234,6 +389,10 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 			$this->assertStringNotContainsString( 'id="views-use_ajax"', $html );
 			$this->assertStringContainsString( $hidden_field, $html );
 		}
+
+		// Either way the pin belongs to the tab that owns the row. On Templates
+		// it would be a field from another tab riding along on every save.
+		$this->assertStringNotContainsString( $hidden_field, $this->render_tab( 'templates' ) );
 	}
 
 	/**
@@ -318,9 +477,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_render_draws_the_wp_stats_rows() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
-
-		$html = $this->capture( array( 'WP_PostViews_Admin', 'render_page' ) );
+		$html = $this->render_tab();
 
 		$this->assertStringContainsString( 'id="views-stats_display"', $html );
 		$this->assertStringContainsString( 'id="views-stats_most_limit"', $html );
@@ -336,14 +493,14 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_render_uses_core_classes_and_no_inline_attributes() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		foreach ( array( 'settings', 'templates' ) as $tab ) {
+			$html = $this->render_tab( $tab );
 
-		$html = $this->capture( array( 'WP_PostViews_Admin', 'render_page' ) );
+			foreach ( array( 'style=', 'valign=', 'align=', 'width=' ) as $attribute ) {
+				$this->assertStringNotContainsString( $attribute, $html, $attribute . ' has no business on a settings screen.' );
+			}
 
-		foreach ( array( 'style=', 'valign=', 'align=', 'width=' ) as $attribute ) {
-			$this->assertStringNotContainsString( $attribute, $html, $attribute . ' has no business on a settings screen.' );
+			$this->assertSame( 1, substr_count( $html, '<h1>' ), 'One h1 per screen.' );
 		}
-
-		$this->assertSame( 1, substr_count( $html, '<h1>' ), 'One h1 per screen.' );
 	}
 }

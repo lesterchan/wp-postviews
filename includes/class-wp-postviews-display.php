@@ -1,8 +1,8 @@
 <?php
 /**
  * Rendering the view count for a single post: the_views(), the [views]
- * shortcode, the display matrix that decides who sees a count on which kind of
- * page, and the two number helpers the templates use.
+ * shortcode, the wp_postviews_should_display gate, and the two number helpers
+ * the templates use.
  *
  * @package WP-PostViews
  */
@@ -29,7 +29,7 @@ class WP_PostViews_Display {
 	 * @param bool   $display Echo when true, return when false.
 	 * @param string $prefix  Prepended to the rendered template.
 	 * @param string $postfix Appended to the rendered template.
-	 * @param bool   $always  Ignore the display matrix. Used by the admin column.
+	 * @param bool   $always  Ignore the display gate. Used by the admin column.
 	 * @return string|void
 	 */
 	public static function the_views( $display = true, $prefix = '', $postfix = '', $always = false ) {
@@ -63,9 +63,9 @@ class WP_PostViews_Display {
 	/**
 	 * The [views] shortcode.
 	 *
-	 * Deliberately ignores the display matrix: dropping the shortcode into a
-	 * post is an explicit request for the count, not a themed sidebar the
-	 * matrix is there to govern.
+	 * Deliberately ignores the wp_postviews_should_display gate: dropping the
+	 * shortcode into a post is an explicit request for the count, not a themed
+	 * sidebar the gate is there to govern.
 	 *
 	 * @param array $atts Shortcode attributes.
 	 * @return string
@@ -101,31 +101,38 @@ class WP_PostViews_Display {
 	/**
 	 * Whether a count should be shown on the page currently being rendered.
 	 *
-	 * Each context has its own setting: 0 shows it to everyone, 1 only to
-	 * logged in users, 2 to nobody.
+	 * Up to 2.0.0 this read a six-row matrix - home, single, page, archive,
+	 * search, other, each of them "everyone / registered users only / never" -
+	 * which is a settings screen full of rows restating what a theme already
+	 * decided by where it called the_views(). Anything the matrix could express
+	 * a filter expresses in one line, and anything it could not - a post type, a
+	 * category, a specific template - it never could.
+	 *
+	 * The method stays. The 2.0.0 Upgrade Notice names it as the replacement for
+	 * the old global should_views_be_displayed(), and a release does not get to
+	 * break a promise it makes in the same release.
 	 *
 	 * Originally contributed as should_views_be_displayed() by David Potter.
 	 *
 	 * @return bool
 	 */
 	public static function should_be_displayed() {
-		if ( is_home() ) {
-			$key = 'display_home';
-		} elseif ( is_single() ) {
-			$key = 'display_single';
-		} elseif ( is_page() ) {
-			$key = 'display_page';
-		} elseif ( is_archive() ) {
-			$key = 'display_archive';
-		} elseif ( is_search() ) {
-			$key = 'display_search';
-		} else {
-			$key = 'display_other';
-		}
-
-		$display_option = WP_PostViews_Options::get_int( $key );
-
-		return 0 === $display_option || ( 1 === $display_option && is_user_logged_in() );
+		/**
+		 * Filters whether the view count is shown on the page being rendered.
+		 *
+		 * Replaces the display_home, display_single, display_page,
+		 * display_archive, display_search and display_other settings. Return
+		 * false to hide the count; the conditional tags are all available, so
+		 * `is_archive()` here does what "Don't display on archive pages" did.
+		 *
+		 * The [views] shortcode and the admin Views column do not consult this:
+		 * both are explicit requests for the number.
+		 *
+		 * @since 2.0.0
+		 *
+		 * @param bool $should_be_displayed Whether to show the count.
+		 */
+		return (bool) apply_filters( 'wp_postviews_should_display', true );
 	}
 
 	/**

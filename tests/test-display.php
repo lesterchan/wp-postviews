@@ -1,7 +1,7 @@
 <?php
 /**
- * Output for a single post: the_views(), the display matrix, the [views]
- * shortcode, and the two number helpers the templates rely on.
+ * Output for a single post: the_views(), the wp_postviews_should_display gate,
+ * the [views] shortcode, and the two number helpers the templates rely on.
  *
  * @package WP-PostViews
  */
@@ -91,86 +91,132 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * Every context and visibility combination.
+	 * Nothing hides the count unless something asks for it to be hidden.
 	 *
-	 * @dataProvider data_display_matrix
+	 * The six display_* settings this replaced all defaulted to "everyone", so
+	 * an unfiltered install showing the count on every context is the behaviour
+	 * being kept, not a new one.
 	 *
-	 * @param string $key       Option key under test.
-	 * @param array  $flags     Query flags describing the context.
-	 * @param int    $mode      0 everyone, 1 logged in only, 2 nobody.
-	 * @param bool   $logged_in Whether a user is signed in.
-	 * @param string $expected  Expected output.
+	 * @dataProvider data_contexts
+	 *
+	 * @param array $flags Query flags describing the context.
 	 * @return void
 	 */
-	public function test_display_matrix( $key, $flags, $mode, $logged_in, $expected ) {
+	public function test_the_count_is_displayed_in_every_context_by_default( $flags ) {
 		$post_id = $this->make_post( array(), 500 );
-
-		wp_set_current_user( $logged_in ? self::factory()->user->create( array( 'role' => 'editor' ) ) : 0 );
-
-		$this->set_options(
-			array_merge(
-				array_fill_keys( $this->display_keys, 2 ),
-				array(
-					$key       => $mode,
-					'template' => 'X',
-				)
-			)
-		);
+		$this->set_options( array( 'template' => 'X' ) );
 		$this->set_context( $flags, $post_id );
 
-		$this->assertSame( $expected, the_views( false ) );
+		$this->assertSame( 'X', the_views( false ) );
 	}
 
 	/**
-	 * Context, mode and login state, with the expected visibility.
+	 * The filter hides the count, in every context.
+	 *
+	 * @dataProvider data_contexts
+	 *
+	 * @param array $flags Query flags describing the context.
+	 * @return void
+	 */
+	public function test_the_should_display_filter_hides_the_count( $flags ) {
+		$post_id = $this->make_post( array(), 500 );
+		$this->set_options( array( 'template' => 'X' ) );
+		$this->set_context( $flags, $post_id );
+		$this->hide_views();
+
+		$this->assertSame( '', the_views( false ) );
+	}
+
+	/**
+	 * The six contexts the retired matrix had a row for each.
 	 *
 	 * @return array
 	 */
-	public function data_display_matrix() {
-		$contexts = array(
-			'display_home'    => array( 'is_home' ),
-			'display_single'  => array( 'is_single', 'is_singular' ),
-			'display_page'    => array( 'is_page', 'is_singular' ),
-			'display_archive' => array( 'is_archive' ),
-			'display_search'  => array( 'is_search' ),
-			'display_other'   => array(),
+	public function data_contexts() {
+		return array(
+			'home'    => array( array( 'is_home' ) ),
+			'single'  => array( array( 'is_single', 'is_singular' ) ),
+			'page'    => array( array( 'is_page', 'is_singular' ) ),
+			'archive' => array( array( 'is_archive' ) ),
+			'search'  => array( array( 'is_search' ) ),
+			'other'   => array( array() ),
 		);
-
-		$cases = array();
-		foreach ( $contexts as $key => $flags ) {
-			foreach ( array( 0, 1, 2 ) as $mode ) {
-				foreach ( array( false, true ) as $logged_in ) {
-					$visible = ( 0 === $mode || ( 1 === $mode && $logged_in ) );
-
-					$cases[ sprintf( '%s mode %d %s', $key, $mode, $logged_in ? 'logged in' : 'anonymous' ) ] = array(
-						$key,
-						$flags,
-						$mode,
-						$logged_in,
-						$visible ? 'X' : '',
-					);
-				}
-			}
-		}
-
-		return $cases;
 	}
 
 	/**
-	 * $always bypasses the matrix. The admin column depends on it, and it
+	 * The filter can decide per context, which is the whole of what the matrix
+	 * did and is the migration path the Upgrade Notice describes.
+	 *
+	 * @return void
+	 */
+	public function test_the_should_display_filter_can_decide_per_context() {
+		$post_id = $this->make_post( array(), 500 );
+		$this->set_options( array( 'template' => 'X' ) );
+
+		add_filter(
+			'wp_postviews_should_display',
+			static function () {
+				return ! is_archive();
+			}
+		);
+
+		$this->set_context( array( 'is_archive' ), $post_id );
+		$this->assertSame( '', the_views( false ) );
+
+		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+		$this->assertSame( 'X', the_views( false ) );
+	}
+
+	/**
+	 * Whatever the filter returns is read as a boolean.
+	 *
+	 * A filter returning 0, '' or null is a theme saying "no", and must not
+	 * become a PHP notice or a truthy string.
+	 *
+	 * @return void
+	 */
+	public function test_the_should_display_filter_is_cast_to_bool() {
+		add_filter( 'wp_postviews_should_display', '__return_zero' );
+		$this->assertFalse( WP_PostViews_Display::should_be_displayed() );
+
+		remove_filter( 'wp_postviews_should_display', '__return_zero' );
+		add_filter(
+			'wp_postviews_should_display',
+			static function () {
+				return 'yes';
+			}
+		);
+		$this->assertTrue( WP_PostViews_Display::should_be_displayed() );
+	}
+
+	/**
+	 * The should_be_displayed() method stays public.
+	 *
+	 * The 2.0.0 Upgrade Notice names it as the replacement for the old global
+	 * should_views_be_displayed(), so removing it would break a promise made in
+	 * the release that made it.
+	 *
+	 * @return void
+	 */
+	public function test_should_be_displayed_is_still_a_public_method() {
+		$method = new ReflectionMethod( 'WP_PostViews_Display', 'should_be_displayed' );
+
+		$this->assertTrue( $method->isPublic() );
+		$this->assertTrue( $method->isStatic() );
+		$this->assertTrue( WP_PostViews_Display::should_be_displayed(), 'Unfiltered, the answer is yes.' );
+	}
+
+	/**
+	 * $always bypasses the gate. The admin column depends on it, and it
 	 * regressed once before, in 1.65.
 	 *
 	 * @return void
 	 */
-	public function test_always_bypasses_the_display_matrix() {
+	public function test_always_bypasses_the_display_gate() {
 		$post_id = $this->make_post( array(), 500 );
-		$this->set_options(
-			array_merge(
-				array_fill_keys( $this->display_keys, 2 ),
-				array( 'template' => 'X' )
-			)
-		);
+		$this->set_options( array( 'template' => 'X' ) );
 		$this->set_context( array( 'is_home' ), $post_id );
+		$this->hide_views();
 
 		$this->assertSame( 'X', the_views( false, '', '', true ) );
 		$this->assertSame( '', the_views( false ) );
@@ -268,19 +314,15 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * The shortcode ignores the display matrix: it is an explicit request.
+	 * The shortcode ignores the display gate: it is an explicit request.
 	 *
 	 * @return void
 	 */
-	public function test_shortcode_ignores_the_display_matrix() {
+	public function test_shortcode_ignores_the_display_gate() {
 		$post_id = $this->make_post( array(), 500 );
-		$this->set_options(
-			array_merge(
-				array_fill_keys( $this->display_keys, 2 ),
-				array( 'template' => '%VIEW_COUNT% views' )
-			)
-		);
+		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
+		$this->hide_views();
 
 		$this->assertSame( '500 views', do_shortcode( '[views]' ) );
 	}
@@ -381,19 +423,15 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * When the matrix hides the count, echoing produces nothing at all.
+	 * When the gate hides the count, echoing produces nothing at all.
 	 *
 	 * @return void
 	 */
 	public function test_the_views_echoes_nothing_when_hidden() {
 		$post_id = $this->make_post( array(), 500 );
-		$this->set_options(
-			array_merge(
-				array_fill_keys( $this->display_keys, 2 ),
-				array( 'template' => 'SHOULD NOT APPEAR' )
-			)
-		);
+		$this->set_options( array( 'template' => 'SHOULD NOT APPEAR' ) );
 		$this->set_context( array( 'is_home' ), $post_id );
+		$this->hide_views();
 
 		$this->assertSame(
 			'',

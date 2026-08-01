@@ -243,7 +243,11 @@ test.describe( 'Hostile values in a post title', () => {
 		installProbe();
 	} );
 
-	test.afterAll( async () => {
+	test.afterAll( async ( { requestUtils } ) => {
+		// The hostile post is deleted here as well as recreated per test. It
+		// carries a script tag in its title, so left behind it is not just a
+		// stray row: it changes what every later spec's front page contains.
+		await requestUtils.deleteAllPosts();
 		removeProbe();
 		resetOptions();
 	} );
@@ -251,6 +255,10 @@ test.describe( 'Hostile values in a post title', () => {
 	test.beforeEach( async ( { requestUtils } ) => {
 		resetOptions();
 		clearAllViews();
+
+		// A post per test, and the previous one gone, so one test's hostile
+		// fixture is never another's starting point.
+		await requestUtils.deleteAllPosts();
 
 		hostile = await requestUtils.createPost( {
 			title: uniqueTitle( 'Hostile title' ),
@@ -278,13 +286,30 @@ test.describe( 'Hostile values in a post title', () => {
 		await asGuest( page, {}, async ( guest ) => {
 			await guest.goto( '/' );
 
+			/*
+			 * Scoped to the plugin's own container, not to the page.
+			 *
+			 * The front page runs the theme's loop, and the theme prints this
+			 * post's title with the_title(), which does not escape: markup in a
+			 * post title is a WordPress feature, not a bug in this plugin. So
+			 * the page-global sentinel is set here by core's output no matter
+			 * what WP-PostViews does, and asserting on it would be asserting
+			 * about WordPress.
+			 *
+			 * What this spec is about is what get_most_viewed() renders, so the
+			 * assertions are about that element: nothing executable inside it,
+			 * and the payload still present as text. A value eaten entirely
+			 * would pass the two counts on its own.
+			 */
+			const listing = guest.locator( '#pv-most-chars' );
+
 			// #pv-most-chars is the probe that passes a character limit, which
 			// is what routes the title through snippet_text() -- the plugin's
 			// own escaping for this value, and what the widget does by default.
-			expect( await pwned( guest ) ).toBe( false );
-			await expect( guest.locator( '#pv-most-chars script' ) ).toHaveCount( 0 );
-			await expect( guest.locator( '#pv-most-chars img' ) ).toHaveCount( 0 );
-			await expect( guest.locator( '#pv-most-chars' ) ).toContainText( 'Hostile' );
+			await expect( listing.locator( 'script' ) ).toHaveCount( 0 );
+			await expect( listing.locator( 'img' ) ).toHaveCount( 0 );
+			await expect( listing ).toContainText( 'Hostile' );
+			await expect( listing ).toContainText( 'window.__pwned' );
 		} );
 	} );
 

@@ -1,7 +1,7 @@
 /**
  * What a visitor sees: the_views(), the [views] shortcode, the template that
- * decides the wording, and the display matrix that decides who sees a count on
- * which kind of page.
+ * decides the wording, and the wp_postviews_should_display filter that decides
+ * whether a count appears at all.
  *
  * Nothing here would render at all without the probe mu-plugin. The plugin's
  * front end is a set of template tags a theme is expected to call, and
@@ -16,10 +16,11 @@
 
 const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
 const {
-	DISPLAY,
 	asGuest,
+	installDisplayGate,
 	installProbe,
-	openSettings,
+	openTemplates,
+	removeDisplayGate,
 	removeProbe,
 	resetOptions,
 	saveSettings,
@@ -60,24 +61,20 @@ test.describe( 'Displaying a view count', () => {
 
 	test.afterAll( async () => {
 		removeProbe();
+		removeDisplayGate();
 		resetOptions();
 	} );
 
 	test.beforeEach( async () => {
 		resetOptions();
-		// Everything visible by default, so a matrix test only has to change the
-		// one row it is about.
-		setOptions( {
-			display_home: 0,
-			display_single: 0,
-			display_page: 0,
-			display_archive: 0,
-			display_search: 0,
-			display_other: 0,
-		} );
+		// No gate in place unless a test installs one: unfiltered, every count
+		// is displayed, which is what the six display_* settings all defaulted
+		// to before they were removed.
+		removeDisplayGate();
 	} );
 
 	test.afterEach( async () => {
+		removeDisplayGate();
 		resetOptions();
 	} );
 
@@ -90,44 +87,46 @@ test.describe( 'Displaying a view count', () => {
 			await guest.goto( post.link );
 
 			// Both probes, because the rest of this file tells them apart: the
-			// plain one is what the matrix can blank, the $always one is what
-			// the admin column uses and the matrix never touches.
+			// plain one is what the gate can blank, the $always one is what
+			// the admin column uses and the gate never touches.
 			await expect( guest.locator( '#pv-views' ) ).toHaveText( '7 views' );
 			await expect( guest.locator( '#pv-views-always' ) ).toHaveText( '7 views' );
 		} );
 	} );
 
-	// One row of the matrix per context. Each sets its own row to "never" and
-	// leaves the others alone, so a context the plugin misidentifies shows up
-	// as this test failing rather than as a silent pass somewhere else.
+	// The six contexts the retired Display Options matrix had a row for. Each is
+	// now something the filter can decide, and the conditional tag it decides on
+	// is the same one the setting was named after -- so a context the plugin
+	// misidentifies shows up as this test failing rather than as a silent pass
+	// somewhere else.
 	const contexts = [
-		[ 'display_home', 'the front page', () => '/' ],
-		[ 'display_single', 'a single post', () => post.link ],
-		[ 'display_page', 'a page', () => staticPage.link ],
+		[ 'is_home()', 'the front page', () => '/' ],
+		[ 'is_single()', 'a single post', () => post.link ],
+		[ 'is_page()', 'a page', () => staticPage.link ],
 		// Query-var URLs, not pretty ones: the tests environment ships plain
 		// permalinks, so /category/... is a 404 there.
-		[ 'display_archive', 'a category archive', () => `/?cat=${ categoryId }` ],
-		[ 'display_search', 'a search results page', () => '/?s=Findable' ],
-		[ 'display_other', 'a page that is none of the above', () => '/?p=999999999' ],
+		[ 'is_archive()', 'a category archive', () => `/?cat=${ categoryId }` ],
+		[ 'is_search()', 'a search results page', () => '/?s=Findable' ],
+		[ 'is_404()', 'a page that is none of the above', () => '/?p=999999999' ],
 	];
 
-	for ( const [ key, description, url ] of contexts ) {
-		test( `"${ key }" governs whether a count appears on ${ description }`, async ( {
-			page,
-		} ) => {
+	for ( const [ conditional, description, url ] of contexts ) {
+		test( `the filter can hide the count on ${ description }`, async ( { page } ) => {
 			await asGuest( page, {}, async ( guest ) => {
-				// On by default from beforeEach: something is there to lose.
+				// Nothing filtering it from beforeEach: something is there to lose.
 				await guest.goto( url() );
 				await expect( guest.locator( '#pv-views' ) ).not.toHaveText( '' );
 
-				setOptions( { [ key ]: parseInt( DISPLAY.never, 10 ) } );
+				// The migration the Upgrade Notice describes: one conditional in
+				// place of one row of the old matrix.
+				installDisplayGate( `! ${ conditional }` );
 
 				await guest.goto( url() );
 
 				// Attached and empty, not absent. The theme still called
-				// the_views(); the matrix is what made it return nothing, and
-				// the $always probe beside it proves the tag itself still works
-				// on this very page.
+				// the_views(); the gate is what made it return nothing, and the
+				// $always probe beside it proves the tag itself still works on
+				// this very page.
 				await expect( guest.locator( '#pv-views' ) ).toBeAttached();
 				await expect( guest.locator( '#pv-views' ) ).toHaveText( '' );
 				await expect( guest.locator( '#pv-views-always' ) ).not.toHaveText( '' );
@@ -135,10 +134,25 @@ test.describe( 'Displaying a view count', () => {
 		} );
 	}
 
-	test( '"Display to registered users only" hides the count from a guest and shows it to an administrator', async ( {
+	test( 'the count is shown everywhere when nothing answers the filter', async ( { page } ) => {
+		// The default the six removed settings all carried. A site that upgrades
+		// and adds no filter sees its counts, including in the two places the
+		// Upgrade Notice warns about.
+		setViews( post.id, 5 );
+
+		await asGuest( page, {}, async ( guest ) => {
+			for ( const url of [ '/', post.link, `/?cat=${ categoryId }`, '/?s=Findable' ] ) {
+				await guest.goto( url );
+				await expect( guest.locator( '#pv-views' ) ).not.toHaveText( '' );
+			}
+		} );
+	} );
+
+	test( 'the filter can hide the count from guests and show it to an administrator', async ( {
 		page,
 	} ) => {
-		setOptions( { display_single: parseInt( DISPLAY.registeredOnly, 10 ) } );
+		// What "Display to registered users only" used to mean, in one line.
+		installDisplayGate( 'is_user_logged_in()' );
 		setViews( post.id, 12 );
 
 		await asGuest( page, {}, async ( guest ) => {
@@ -181,17 +195,17 @@ test.describe( 'Displaying a view count', () => {
 		} );
 	} );
 
-	test( 'the [views] shortcode ignores the display matrix', async ( { page, requestUtils } ) => {
+	test( 'the [views] shortcode ignores the display filter', async ( { page, requestUtils } ) => {
 		// Dropping the shortcode into a post is an explicit request for the
-		// count, so unlike the theme call it is not something the matrix gets a
+		// count, so unlike the theme call it is not something the filter gets a
 		// say in. Asserting both on the same page proves the difference is the
-		// shortcode and not the settings.
+		// shortcode and not the filter.
 		const shortcodePost = await requestUtils.createPost( {
-			title: uniqueTitle( 'Shortcode despite matrix' ),
+			title: uniqueTitle( 'Shortcode despite the gate' ),
 			content: 'Count: [views]',
 			status: 'publish',
 		} );
-		setOptions( { display_single: parseInt( DISPLAY.never, 10 ) } );
+		installDisplayGate( 'false' );
 		setViews( shortcodePost.id, 44 );
 
 		await asGuest( page, {}, async ( guest ) => {
@@ -223,7 +237,7 @@ test.describe( 'Displaying a view count', () => {
 	} );
 
 	test( 'the Views Template setting decides the wording on the front end', async ( { page } ) => {
-		await openSettings( page );
+		await openTemplates( page );
 		await page.locator( '#views-template-template' ).fill( 'Read %VIEW_COUNT% times' );
 		await saveSettings( page );
 

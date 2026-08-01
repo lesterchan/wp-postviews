@@ -74,22 +74,20 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * The column renders even when the display matrix says "never".
+	 * The column renders even when the display gate says nobody sees a count.
 	 *
-	 * The matrix governs the front end only. Letting it apply here blanked the
-	 * admin column, which is what went wrong in 1.65.
+	 * The gate governs the front end only. Letting it apply here blanked the
+	 * admin column, which is what went wrong in 1.65 -- and a site that answers
+	 * wp_postviews_should_display with a flat false is the modern spelling of
+	 * exactly that setting.
 	 *
 	 * @return void
 	 */
-	public function test_admin_column_ignores_the_display_matrix() {
+	public function test_admin_column_ignores_the_display_gate() {
 		$post_id = $this->make_post( array(), 500 );
-		$this->set_options(
-			array_merge(
-				array_fill_keys( $this->display_keys, 2 ),
-				array( 'template' => '%VIEW_COUNT% views' )
-			)
-		);
+		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array(), $post_id );
+		$this->hide_views();
 
 		$cell = $this->capture(
 			function () use ( $post_id ) {

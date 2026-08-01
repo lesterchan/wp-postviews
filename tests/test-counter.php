@@ -469,6 +469,69 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
+	 * Nothing is enqueued on a preview.
+	 *
+	 * The guard used to live in process() alone, so on a site using the AJAX
+	 * path an author refreshing their own draft inflated its figures: the script
+	 * went out, posted to admin-ajax.php, and the endpoint has no idea the
+	 * request came from a preview. Moving is_preview() into should_count() fixed
+	 * both paths at once, and this is the half of it the wp_head test cannot
+	 * see.
+	 *
+	 * @return void
+	 */
+	public function test_nothing_is_enqueued_on_a_preview() {
+		$this->set_options(
+			array(
+				'count'    => 0,
+				'use_ajax' => 1,
+			)
+		);
+		$this->set_context( array( 'is_single', 'is_singular', 'is_preview' ), $this->post_id );
+
+		$this->fire( 'wp_enqueue_scripts' );
+
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+
+		// And the same request without the preview flag does enqueue, so the
+		// assertion above is about is_preview() and not about the fixture.
+		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
+		$this->fire( 'wp_enqueue_scripts' );
+
+		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+	}
+
+	/**
+	 * The should_count() gate answers no on a preview whatever else is true.
+	 *
+	 * Checked before the wp_postviews_should_count filter deliberately: a
+	 * preview is not a view and that is not a decision to hand out. Both callers
+	 * read this one answer, which is the point -- two places deciding one fact,
+	 * and only one of them told, is how the AJAX path came to count previews.
+	 *
+	 * @return void
+	 */
+	public function test_should_count_rejects_a_preview_before_the_filter() {
+		$this->set_options( array( 'count' => 0 ) );
+		$this->set_context( array( 'is_single', 'is_singular', 'is_preview' ), $this->post_id );
+
+		$this->assertFalse( WP_PostViews_Counter::should_count( $this->post_id ) );
+
+		$seen = false;
+		add_filter(
+			'wp_postviews_should_count',
+			static function ( $should_count ) use ( &$seen ) {
+				$seen = true;
+
+				return $should_count;
+			}
+		);
+
+		$this->assertFalse( WP_PostViews_Counter::should_count( $this->post_id ) );
+		$this->assertFalse( $seen, 'A preview must not reach the filter at all.' );
+	}
+
+	/**
 	 * Nothing is enqueued when the count mode excludes this visitor, so a
 	 * cached page does not carry a request that the endpoint would reject.
 	 *

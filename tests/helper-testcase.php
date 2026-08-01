@@ -12,18 +12,17 @@
 abstract class WP_PostViews_TestCase extends WP_UnitTestCase {
 
 	/**
-	 * Every display context key, so a test can switch them all off at once.
+	 * Hide every view count, the way the retired display matrix used to.
 	 *
-	 * @var array
+	 * The gate is the wp_postviews_should_display filter now, so a test that
+	 * wants nothing displayed adds one rather than writing six option keys.
+	 * WP_UnitTestCase removes it again in tear_down().
+	 *
+	 * @return void
 	 */
-	protected $display_keys = array(
-		'display_home',
-		'display_single',
-		'display_page',
-		'display_archive',
-		'display_search',
-		'display_other',
-	);
+	protected function hide_views() {
+		add_filter( 'wp_postviews_should_display', '__return_false' );
+	}
 
 	/**
 	 * Reset to a known state.

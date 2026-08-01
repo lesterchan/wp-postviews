@@ -1,21 +1,26 @@
 /**
- * Settings > PostViews, and what each row stores.
+ * Settings > WP-PostViews, and what each row stores.
  *
  * A setting that saves but does nothing, and a setting that does something but
  * will not save, are the two failures a screenshot cannot tell apart. The
  * effect half of each row is proved elsewhere -- counting.spec.js for the
- * counting rows, display.spec.js for the matrix and the template -- so this
- * file is about the other half: that what the form posted is what the option
- * row ends up holding, through the sanitiser, and that reloading the screen
- * shows it back.
+ * counting rows, display.spec.js for the template and the display filter -- so
+ * this file is about the other half: that what the form posted is what the
+ * option row ends up holding, through the sanitiser, and that reloading the
+ * screen shows it back.
+ *
+ * The screen is two tabs over one option row, which is the failure mode this
+ * file has to watch: the Settings API hands the sanitiser only the fields the
+ * submitting form posted, so saving one tab is the moment the other tab's
+ * values are most likely to disappear.
  */
 
 const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
 const {
 	COUNT,
-	DISPLAY,
 	clearAllViews,
 	openSettings,
+	openTemplates,
 	option,
 	resetOptions,
 	saveSettings,
@@ -119,41 +124,118 @@ test.describe( 'The settings screen', () => {
 		expect( option( 'use_ajax' ) ).toBe( 1 );
 	} );
 
-	for ( const key of [
-		'display_home',
-		'display_single',
-		'display_page',
-		'display_archive',
-		'display_search',
-		'display_other',
-	] ) {
-		test( `the ${ key } row stores each of its three choices`, async ( { page } ) => {
-			for ( const value of Object.values( DISPLAY ) ) {
-				await openSettings( page );
-				await page.locator( `#views-${ key }` ).selectOption( value );
-				await saveSettings( page );
+	test( 'the retired Display Options rows are gone from the screen and from the row', async ( {
+		page,
+	} ) => {
+		const retired = [
+			'display_home',
+			'display_single',
+			'display_page',
+			'display_archive',
+			'display_search',
+			'display_other',
+		];
 
-				expect( option( key ) ).toBe( parseInt( value, 10 ) );
+		// On neither tab.
+		for ( const tab of [ 'settings', 'templates' ] ) {
+			await openSettings( page, tab );
+
+			for ( const key of retired ) {
+				await expect( page.locator( `#views-${ key }` ) ).toHaveCount( 0 );
 			}
-		} );
-	}
+
+			await expect( page.getByRole( 'heading', { name: 'Display Options' } ) ).toHaveCount( 0 );
+		}
+
+		// And a value written straight into the row -- which is what a site
+		// upgrading from 1.78.1 carries -- is dropped rather than kept.
+		setOptions( Object.fromEntries( retired.map( ( key ) => [ key, 2 ] ) ) );
+
+		const stored = wpEvalJson( 'get_option( "wp_postviews_options" )' );
+
+		for ( const key of retired ) {
+			expect( stored ).not.toHaveProperty( key );
+		}
+	} );
+
+	test( 'the screen has a Settings tab and a Templates tab, and each draws its own fields', async ( {
+		page,
+	} ) => {
+		await openSettings( page );
+
+		await expect( page.locator( '.nav-tab-wrapper' ) ).toBeVisible();
+		await expect( page.locator( '#views-count' ) ).toBeVisible();
+		await expect( page.locator( '#views-template-template' ) ).toHaveCount( 0 );
+
+		// Reached by clicking, not only by URL: a nav that renders and does not
+		// navigate looks identical in a screenshot.
+		await page.locator( '.nav-tab', { hasText: 'Templates' } ).click();
+
+		await expect( page.locator( '#views-template-template' ) ).toBeVisible();
+		await expect( page.locator( '#views-count' ) ).toHaveCount( 0 );
+		await expect( page.locator( '.nav-tab-active' ) ).toHaveText( /Templates/ );
+	} );
+
+	test( 'saving one tab leaves the other tab alone', async ( { page } ) => {
+		// The trap: the sanitiser is handed only what this form posted, so a
+		// Templates save is the moment the counting rows would silently revert.
+		await openSettings( page );
+		await page.locator( '#views-count' ).selectOption( COUNT.registeredOnly );
+		await page.locator( '#views-exclude_bots' ).selectOption( '1' );
+		await page.locator( '#views-stats_most_limit' ).fill( '17' );
+		await saveSettings( page );
+
+		await openTemplates( page );
+		await page.locator( '#views-template-template' ).fill( 'Tabbed %VIEW_COUNT%' );
+		await saveSettings( page );
+
+		expect( option( 'template' ) ).toBe( 'Tabbed %VIEW_COUNT%' );
+		expect( option( 'count' ) ).toBe( parseInt( COUNT.registeredOnly, 10 ) );
+		expect( option( 'exclude_bots' ) ).toBe( 1 );
+		expect( option( 'stats_most_limit' ) ).toBe( 17 );
+		expect( option( 'stats_display' ) ).toBe( true );
+
+		// And back the other way.
+		await openSettings( page );
+		await page.locator( '#views-count' ).selectOption( COUNT.everyone );
+		await saveSettings( page );
+
+		expect( option( 'count' ) ).toBe( parseInt( COUNT.everyone, 10 ) );
+		expect( option( 'template' ) ).toBe( 'Tabbed %VIEW_COUNT%' );
+	} );
+
+	test( 'saving comes back to the tab it was saved from, with the notice on it', async ( {
+		page,
+	} ) => {
+		await openTemplates( page );
+		await page.locator( '#views-template-template' ).fill( 'Still here %VIEW_COUNT%' );
+		await saveSettings( page );
+
+		// settings_errors() prints on this tab, not only on the first one, and
+		// the browser is still on Templates rather than back on Settings.
+		await expect( page.locator( '.nav-tab-active' ) ).toHaveText( /Templates/ );
+		await expect( page.locator( '#views-template-template' ) ).toHaveValue(
+			'Still here %VIEW_COUNT%',
+		);
+		expect( page.url() ).toContain( 'tab=templates' );
+	} );
 
 	test( 'the Views Template field stores what is typed into it', async ( { page } ) => {
-		await openSettings( page );
+		await openTemplates( page );
 
 		await page.locator( '#views-template-template' ).fill( '%VIEW_COUNT% reads' );
 		await saveSettings( page );
 
 		expect( option( 'template' ) ).toBe( '%VIEW_COUNT% reads' );
 
-		await openSettings( page );
+		await openTemplates( page );
 		await expect( page.locator( '#views-template-template' ) ).toHaveValue( '%VIEW_COUNT% reads' );
 	} );
 
 	test( 'the Most Viewed Template textarea stores multi-line markup', async ( { page } ) => {
 		const markup = '<li>\n\t<a href="%POST_URL%">%POST_TITLE%</a> (%VIEW_COUNT%)\n</li>';
 
-		await openSettings( page );
+		await openTemplates( page );
 		await page.locator( '#views-template-most_viewed_template' ).fill( markup );
 		await saveSettings( page );
 
@@ -173,7 +255,7 @@ test.describe( 'The settings screen', () => {
 	} ) => {
 		// Up to 1.78.1 the screen wrote $_POST through without wp_unslash(), so
 		// this arrived as "reader\'s" and every read path had to strip it again.
-		await openSettings( page );
+		await openTemplates( page );
 		await page.locator( '#views-template-template' ).fill( "%VIEW_COUNT% reader's views" );
 		await saveSettings( page );
 
@@ -184,12 +266,17 @@ test.describe( 'The settings screen', () => {
 		await openSettings( page );
 		await expect( page.locator( '#views-stats_display' ) ).toBeChecked();
 
+		// An unticked checkbox posts nothing at all, so the field pairs it with
+		// a hidden zero. Without that the sanitiser could not tell "unticked"
+		// from "the Templates tab was saved", and the box could be ticked and
+		// never unticked.
+		await expect(
+			page.locator( 'input[type="hidden"][name="wp_postviews_options[stats_display]"]' ),
+		).toHaveCount( 1 );
+
 		await page.locator( '#views-stats_display' ).uncheck();
 		await saveSettings( page );
 
-		// An unticked checkbox posts nothing at all, so this is the one row the
-		// sanitiser reads as absent-means-off. Getting that wrong gives a
-		// checkbox that can be ticked and never unticked.
 		expect( option( 'stats_display' ) ).toBe( false );
 		await openSettings( page );
 		await expect( page.locator( '#views-stats_display' ) ).not.toBeChecked();
@@ -338,14 +425,15 @@ test.describe( 'The settings screen', () => {
 		await saveSettings( page );
 
 		// The sanitiser merges into the stored value rather than replacing it,
-		// which is what lets a key the form did not render keep what it had.
+		// which is what lets a key this form did not render -- including every
+		// key on the other tab -- keep what it had.
 		expect( option( 'count' ) ).toBe( 0 );
 		expect( option( 'template' ) ).toBe( 'left alone %VIEW_COUNT%' );
 		expect( option( 'stats_most_limit' ) ).toBe( 7 );
 	} );
 
 	test( 'the screen lists the tokens each template accepts', async ( { page } ) => {
-		await openSettings( page );
+		await openTemplates( page );
 
 		// The token list is the only documentation a site owner has for what
 		// may go in these fields, and it is markup in a settings-field title,

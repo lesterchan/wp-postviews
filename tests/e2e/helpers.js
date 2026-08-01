@@ -43,13 +43,6 @@ const COUNT = {
 	registeredOnly: '2',
 };
 
-/** Values every row of the display matrix stores. */
-const DISPLAY = {
-	everyone: '0',
-	registeredOnly: '1',
-	never: '2',
-};
-
 /** A user agent from the plugin's own robot list, for the bot exclusion tests. */
 const BOT_USER_AGENT = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
 
@@ -172,17 +165,18 @@ function setViews( postId, count ) {
  *
  * Everything WP-PostViews renders on a front end comes from a template tag a
  * theme is expected to call. twentytwentyone calls none of them, so without
- * this the front end has nothing of the plugin's on it at all and the display
- * matrix -- which only the_views() consults -- could not be tested.
+ * this the front end has nothing of the plugin's on it at all and the
+ * wp_postviews_should_display gate -- which only the_views() consults -- could
+ * not be tested.
  *
- * wp_footer rather than the_content, because it fires on every kind of page:
- * the matrix has a separate setting for home, single, page, archive and search,
- * and the_content does not run on all of them.
+ * wp_footer rather than the_content, because it fires on every kind of page,
+ * and a filter answering the gate is free to look at any of them; the_content
+ * does not run on all of them.
  *
  * Two probes for the same tag on purpose. #pv-views is the ordinary call, which
- * the matrix can blank; #pv-views-always passes $always, which is how the admin
+ * the gate can blank; #pv-views-always passes $always, which is how the admin
  * column calls it. The element is emitted either way, so a test can tell "the
- * matrix suppressed the count" from "the theme call never happened" -- which an
+ * gate suppressed the count" from "the theme call never happened" -- which an
  * absent element cannot.
  */
 const PROBE_SOURCE = `<?php
@@ -321,6 +315,64 @@ function removeCountVeto() {
 }
 
 /**
+ * The mu-plugin that answers the wp_postviews_should_display filter.
+ *
+ * The filter replaced the six-row Display Options matrix in 2.0.0, and like
+ * wp_postviews_should_count it has no screen: a site owner puts a listener in
+ * place, so that is what a test does too.
+ *
+ * The condition is written into the file rather than passed at runtime, so each
+ * test installs the gate it actually wants to prove.
+ */
+const DISPLAY_GATE_FILE = 'wp-postviews-e2e-display-gate.php';
+
+/**
+ * Install a mu-plugin answering wp_postviews_should_display.
+ *
+ * @param {string} condition PHP expression returning the value the filter should give.
+ * @return {void}
+ */
+function installDisplayGate( condition = 'false' ) {
+	const source = `<?php
+/**
+ * Plugin Name: WP-PostViews E2E display gate
+ * Description: Answers wp_postviews_should_display, for one test.
+ */
+add_filter(
+	'wp_postviews_should_display',
+	function () {
+		return ${ condition };
+	},
+	99
+);
+`;
+	const encoded = Buffer.from( source, 'utf8' ).toString( 'base64' );
+
+	wpEval(
+		`if ( ! is_dir( WPMU_PLUGIN_DIR ) ) {
+			mkdir( WPMU_PLUGIN_DIR, 0777, true );
+		}
+		file_put_contents( WPMU_PLUGIN_DIR . '/${ DISPLAY_GATE_FILE }', base64_decode( '${ encoded }' ) );
+		echo '<<<done>>>';`,
+	);
+}
+
+/**
+ * Remove it again.
+ *
+ * @return {void}
+ */
+function removeDisplayGate() {
+	wpEval(
+		`$file = WPMU_PLUGIN_DIR . '/${ DISPLAY_GATE_FILE }';
+		if ( file_exists( $file ) ) {
+			unlink( $file );
+		}
+		echo '<<<done>>>';`,
+	);
+}
+
+/**
  * Whether any postmeta row exists for a post id under the views key.
  *
  * Different from views(), which reads 0 for both "counted zero times" and "no
@@ -415,15 +467,30 @@ function removeViewsWidget() {
 }
 
 /**
- * Open the settings screen.
+ * Open the settings screen, on one of its two tabs.
+ *
+ * @param {import('@playwright/test').Page} page Page under test.
+ * @param {string}                          tab  Tab slug: 'settings' or 'templates'.
+ * @return {Promise<void>} Resolves once the screen is up.
+ */
+async function openSettings( page, tab = 'settings' ) {
+	await page.goto( `${ SETTINGS_URL }&tab=${ tab }` );
+
+	await expect( page.getByRole( 'heading', { name: 'Post Views Settings' } ) ).toBeVisible();
+
+	// The tab nav is the screen: a spec that filled a field on the wrong tab
+	// would fail later and somewhere else.
+	await expect( page.locator( `.nav-tab-active[href*="tab=${ tab }"]` ) ).toBeVisible();
+}
+
+/**
+ * Open the Templates tab.
  *
  * @param {import('@playwright/test').Page} page Page under test.
  * @return {Promise<void>} Resolves once the screen is up.
  */
-async function openSettings( page ) {
-	await page.goto( SETTINGS_URL );
-
-	await expect( page.getByRole( 'heading', { name: 'Post Views Options' } ) ).toBeVisible();
+function openTemplates( page ) {
+	return openSettings( page, 'templates' );
 }
 
 /**
@@ -529,7 +596,6 @@ function uniqueTitle( base ) {
 module.exports = {
 	BOT_USER_AGENT,
 	COUNT,
-	DISPLAY,
 	PAGES_URL,
 	POSTS_URL,
 	SETTINGS_URL,
@@ -539,11 +605,14 @@ module.exports = {
 	countedViews,
 	counterScript,
 	installCountVeto,
+	installDisplayGate,
 	installProbe,
 	openSettings,
+	openTemplates,
 	option,
 	probeTerm,
 	removeCountVeto,
+	removeDisplayGate,
 	removeProbe,
 	removeViewsWidget,
 	resetOptions,
