@@ -362,7 +362,10 @@ class WP_PostViews_Metadata_Test extends WP_PostViews_TestCase {
 	 */
 	public function test_every_directory_has_an_index_php() {
 		$root   = dirname( __DIR__ );
-		$ignore = array( 'node_modules', 'vendor', '.git', '.github', 'languages' );
+		// artifacts/ is Playwright's: traces, screenshots and the stored admin
+		// session from a local run. It is gitignored and never shipped, so it
+		// has no index.php and no business being walked here.
+		$ignore = array( 'node_modules', 'vendor', '.git', '.github', 'languages', 'artifacts' );
 
 		$directories = array( $root );
 
