@@ -89,29 +89,50 @@ class WP_PostViews_Query {
 	protected static function render_item( $chars ) {
 		$post_views = get_post_meta( get_the_ID(), 'views', true );
 
+		/*
+		 * Escaped here rather than left to snippet_text(). Until 2.0.0 the only
+		 * escaping a title received was the htmlentities() inside that call,
+		 * which runs when $chars > 0 -- so escaping was a side effect of
+		 * truncation, and truncation is off by default. A post titled with a
+		 * script tag went to the page as one, including into the title="..."
+		 * attribute the stock template puts it in.
+		 *
+		 * The order matters: truncate first, then escape, or the entities count
+		 * towards the character limit and a title can be cut mid-entity.
+		 */
 		$post_title = get_the_title();
 		if ( $chars > 0 ) {
 			$post_title = WP_PostViews_Display::snippet_text( $post_title, $chars );
+		} else {
+			$post_title = esc_html( $post_title );
 		}
 
 		// The first category, or 0 for a post type that has none.
 		$categories       = get_the_category();
 		$post_category_id = empty( $categories ) ? 0 : $categories[0]->term_id;
 
+		/*
+		 * Three of these are markup on purpose -- the content, the excerpt and
+		 * the thumbnail's <img> -- and escaping them would print the tags. The
+		 * rest are values a person typed, so they are escaped here, at the one
+		 * place they enter the template, rather than left to whoever writes the
+		 * template to remember.
+		 */
 		$tokens = array(
 			'%VIEW_COUNT%'         => number_format_i18n( $post_views ),
 			'%VIEW_COUNT_ROUNDED%' => WP_PostViews_Display::round_number( $post_views ),
 			'%POST_TITLE%'         => $post_title,
 			'%POST_EXCERPT%'       => get_the_excerpt(),
 			'%POST_CONTENT%'       => get_the_content(),
-			'%POST_URL%'           => get_permalink(),
+			'%POST_URL%'           => esc_url( get_permalink() ),
 			'%POST_DATE%'          => get_the_time( get_option( 'date_format' ) ),
 			'%POST_TIME%'          => get_the_time( get_option( 'time_format' ) ),
 			'%POST_THUMBNAIL%'     => (string) get_the_post_thumbnail( null, 'thumbnail' ),
 			// Returns false when the post has no thumbnail.
-			'%POST_THUMBNAIL_URL%' => (string) get_the_post_thumbnail_url( null, 'thumbnail' ),
+			'%POST_THUMBNAIL_URL%' => esc_url( (string) get_the_post_thumbnail_url( null, 'thumbnail' ) ),
 			'%POST_CATEGORY_ID%'   => $post_category_id,
-			'%POST_AUTHOR%'        => get_the_author(),
+			// A display name is user supplied on any site that lets people register.
+			'%POST_AUTHOR%'        => esc_html( get_the_author() ),
 		);
 
 		return str_replace(

@@ -89,6 +89,20 @@ class WP_PostViews_Counter {
 	 * @return bool
 	 */
 	public static function should_count( $post_id ) {
+		/*
+		 * Here rather than in the callers. process() checked this and enqueue()
+		 * did not, so a preview was counted on any site using the AJAX path --
+		 * an author refreshing a draft inflated its own figures. Two places
+		 * deciding one fact, and only one of them told.
+		 *
+		 * Before the filter deliberately: a preview is not a view, and that is
+		 * not a decision to hand out. Anything wanting to count previews can
+		 * still increment() directly.
+		 */
+		if ( is_preview() ) {
+			return false;
+		}
+
 		$should_count = false;
 		$user_id      = get_current_user_id();
 
@@ -198,10 +212,6 @@ class WP_PostViews_Counter {
 	 * @return void
 	 */
 	public static function process() {
-		if ( is_preview() ) {
-			return;
-		}
-
 		$post = self::current_post();
 		if ( null === $post ) {
 			return;
