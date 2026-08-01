@@ -195,67 +195,6 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 * NOTE: Templates are now stored unslashed. Existing templates are migrated automatically the first time 2.0.0 loads.
 * NOTE: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()` are no longer global functions. They were never documented; they are now `WP_PostViews_Display::should_be_displayed()`, `WP_PostViews_Display::round_number()` and `WP_PostViews_Display::snippet_text()`.
 
-### 1.78.1
-* NEW: WordPress 7.0
-
-### 1.78
-* NEW: Add %POST_THUMBNAIL_URL% to template variables
-
-### 1.77
-* NEW: Use Vanilla JS. Props @JiveDig
-* NEW: Bump to WordPress 6.2
-* NEW: Support views under fields for Rest API. Props @vitro-mod
-
-### 1.76.1
-* NEW: Add Post Author in views template
-* NEW: Bump for WordPress 5.3
-
-### 1.76
-* NEW: Added postviews_should_count filter
-* FIXED: Change to (int) from intval() and use sanitize_key() with it.
-
-### 1.75
-* NEW: Use WP_Query() for most/least viewed posts
-
-### 1.74
-* NEW: Bump WordPress 4.7
-* NEW: Template variable %POST_CATEGORY_ID%. It returns Post's Category ID. If you are using Yoast SEO Plugin, it will return the priority Category ID. Props @FunFrog-BY
-
-### 1.73
-* FIXED: In preview mode, don't count views
-
-### 1.72
-* NEW: Add %POST_THUMBNAIL% to template variables
-
-### 1.71
-* FIXED: Notices in Widget Constructor for WordPress 4.3
-
-### 1.70
-* FIXED: Integration with WP-Stats
-
-### 1.69
-* NEW: Shortcode `[views]` or [views id="POST_ID"]` to embed view count into post
-* NEW: Added template variable `%VIEW_COUNT_ROUNDED%` to support rounded view count like 10.1k or 11.2M
-
-### 1.68
-* NEW: Added action hook 'postviews_increment_views' and 'postviews_increment_views_ajax'
-* NEW: Allow custom post type to be chosen under the widget
-
-### 1.67
-* NEW: Allow user to not use AJAX to update the views even though WP_CACHE is true
-
-### 1.66
-* NEW: Supports MultiSite Network Activation
-* NEW: Add %POST_DATE% and %POST_TIME% to template variables
-* NEW: Add China isearch engines bots
-* NEW: Ability to pass in an array of post types for get_most/least_*() functions. Props Leo Plaw.
-* FIXED: Moved uninstall to uninstall.php and hence fix missing nonce. Props Julio Potier.
-* FIXED: Notices and better way to get views from meta. Props daankortenbach.
-* FIXED: No longer needing add_post_meta() if update_post_meta() fails.
-
-### 1.65
-* FIXED: Views not showing in WP-Admin if "Display Options" is not set to "Display to everyone"
-
 ## Upgrade Notice
 
 ### 2.0.0
