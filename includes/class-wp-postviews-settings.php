@@ -194,7 +194,7 @@ class WP_PostViews_Settings {
 
 		add_settings_section(
 			self::SECTION_WPSTATS,
-			__( 'WP-Stats Options', 'wp-postviews' ),
+			__( 'WP-Stats', 'wp-postviews' ),
 			array( __CLASS__, 'wpstats_section' ),
 			$settings
 		);

@@ -290,7 +290,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		// The second section title, emitted by core from the registration.
 		// Matched loosely: WordPress gives a settings heading an id attribute and
 		// the attribute has not always been there.
-		$this->assertMatchesRegularExpression( '#<h2[^>]*>WP-Stats Options</h2>#', $html );
+		$this->assertMatchesRegularExpression( '#<h2[^>]*>WP-Stats</h2>#', $html );
 
 		// Display Options is gone, and so is the paragraph that introduced it.
 		$this->assertDoesNotMatchRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html );
@@ -481,7 +481,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		$this->assertStringContainsString( 'id="views-stats_display"', $html );
 		$this->assertStringContainsString( 'id="views-stats_most_limit"', $html );
-		$this->assertStringContainsString( 'WP-Stats Options', $html );
+		$this->assertStringContainsString( 'WP-Stats', $html );
 	}
 
 	/**
