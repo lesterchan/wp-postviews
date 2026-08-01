@@ -31,7 +31,7 @@ const {
 	asGuest,
 	clearAllViews,
 	installProbe,
-	openSettings,
+	openTemplates,
 	option,
 	removeProbe,
 	resetOptions,
@@ -110,7 +110,7 @@ test.describe( 'Hostile values in the templates', () => {
 		// way in. If the sanitiser were ever dropped from the setting the
 		// stored value would come back as typed, and the front-end tests below
 		// would be asserting about a defence that was not there.
-		await openSettings( page );
+		await openTemplates( page );
 		await page.locator( '#views-template-template' ).fill( `%VIEW_COUNT% ${ IMG_PAYLOAD }` );
 		await saveSettings( page );
 
@@ -122,7 +122,7 @@ test.describe( 'Hostile values in the templates', () => {
 		page,
 		requestUtils,
 	} ) => {
-		await openSettings( page );
+		await openTemplates( page );
 		await page
 			.locator( '#views-template-template' )
 			.fill( `%VIEW_COUNT% views ${ SCRIPT_PAYLOAD }` );
@@ -152,7 +152,7 @@ test.describe( 'Hostile values in the templates', () => {
 		page,
 		requestUtils,
 	} ) => {
-		await openSettings( page );
+		await openTemplates( page );
 		await page.locator( '#views-template-template' ).fill( `%VIEW_COUNT% ${ IMG_PAYLOAD }` );
 		await saveSettings( page );
 
@@ -179,7 +179,7 @@ test.describe( 'Hostile values in the templates', () => {
 		page,
 		requestUtils,
 	} ) => {
-		await openSettings( page );
+		await openTemplates( page );
 		await page
 			.locator( '#views-template-most_viewed_template' )
 			.fill( `<li><a href="%POST_URL%${ ATTR_PAYLOAD }">%POST_TITLE%</a></li>` );
@@ -217,7 +217,11 @@ test.describe( 'Hostile values in the templates', () => {
 			most_viewed_template: `<li>${ IMG_PAYLOAD } ${ ATTR_PAYLOAD }</li>`,
 		} );
 
-		await openSettings( page );
+		// The Templates tab, because that is the screen that renders both
+		// textareas: the tab split moved them off the Settings tab, and a fill
+		// or a toHaveValue against the tab that no longer holds them waits for
+		// a locator that will never appear.
+		await openTemplates( page );
 
 		expect( await pwned( page ) ).toBe( false );
 		await expect( page.locator( '#wpbody img[onerror]' ) ).toHaveCount( 0 );
@@ -300,6 +304,18 @@ test.describe( 'Hostile values in a post title', () => {
 			 * assertions are about that element: nothing executable inside it,
 			 * and the payload still present as text. A value eaten entirely
 			 * would pass the two counts on its own.
+			 *
+			 * "Present as text" has to be read at the truncation boundary, not
+			 * at the sentinel. The probe passes a 12-character limit, and the
+			 * title starts "Hostile <scr" -- so window.__pwned is 20-odd
+			 * characters past the cut and could never appear however good or
+			 * bad the escaping was. What the 12 characters that do survive
+			 * prove is the whole property: the opening angle bracket of the
+			 * script tag is on the page as text rather than as the start of an
+			 * element, and it was not swallowed. They also pin the order
+			 * get_most_viewed() does its two jobs in -- 12 characters of the
+			 * raw title, then escaped -- because escaping first would spend
+			 * the limit on "&lt;scr" and cut mid-entity.
 			 */
 			const listing = guest.locator( '#pv-most-chars' );
 
@@ -308,8 +324,7 @@ test.describe( 'Hostile values in a post title', () => {
 			// own escaping for this value, and what the widget does by default.
 			await expect( listing.locator( 'script' ) ).toHaveCount( 0 );
 			await expect( listing.locator( 'img' ) ).toHaveCount( 0 );
-			await expect( listing ).toContainText( 'Hostile' );
-			await expect( listing ).toContainText( 'window.__pwned' );
+			await expect( listing ).toContainText( 'Hostile <scr' );
 		} );
 	} );
 

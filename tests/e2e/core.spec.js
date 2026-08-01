@@ -45,20 +45,31 @@ test.describe( 'Query vars and the REST field', () => {
 		// tests below have to be able to tell "sorted by views" from "left in
 		// whatever order the fixtures happened to land in". Created newest
 		// last, so date order is the exact reverse of view order.
+		//
+		// The dates are stated rather than left to the clock. Three REST
+		// creates in a row land inside the same second, WP_Query's default is
+		// "ORDER BY post_date DESC" with no tiebreak, and MySQL is then free to
+		// return the rows in whatever order it likes -- in practice primary-key
+		// order, which is the exact reverse of the intended one. So the two
+		// tests that read the *unsorted* front page failed, and did so while
+		// the plugin's own sort was working perfectly.
 		unloved = await requestUtils.createPost( {
 			title: 'Sortable unloved post',
 			content: 'Barely read.',
 			status: 'publish',
+			date: '2020-01-01T00:00:00',
 		} );
 		middling = await requestUtils.createPost( {
 			title: 'Sortable middling post',
 			content: 'Read sometimes.',
 			status: 'publish',
+			date: '2020-01-02T00:00:00',
 		} );
 		popular = await requestUtils.createPost( {
 			title: 'Sortable popular post',
 			content: 'Widely read.',
 			status: 'publish',
+			date: '2020-01-03T00:00:00',
 		} );
 	} );
 

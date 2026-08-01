@@ -242,27 +242,49 @@ test.describe( 'Counting a view', () => {
 		expect( views( post.id ) ).toBe( 42 );
 	} );
 
-	test( 'a preview is not counted, while the same post published is', async ( { page } ) => {
+	test( 'a preview is not counted, while the same post published is', async ( {
+		page,
+		requestUtils,
+	} ) => {
 		setOptions( { count: parseInt( COUNT.registeredOnly, 10 ) } );
 
 		// A preview is the author looking at their own draft; counting it would
 		// give a post views before anybody else had seen it.
 		//
-		// The separator is worked out rather than assumed: the tests
-		// environment ships plain permalinks, so post.link is already
-		// "?p=123" and appending another "?" makes the whole thing one
-		// malformed query var -- which lands on the ordinary single post and
-		// is not a preview at all.
-		const preview = `${ post.link }${ post.link.includes( '?' ) ? '&' : '?' }preview=true`;
+		// It has to be a *draft*. "?p=<published post>&preview=true" does not
+		// reach the preview path at all: redirect_canonical() unsets
+		// is_preview for a post that is already public, strips the parameter
+		// and 301s to "?p=<id>", so what renders is the ordinary single post
+		// and the counting script is correctly enqueued. The test used to read
+		// that as the plugin counting a preview. A draft is not publicly
+		// viewable, so nothing is stripped, the request stays a preview, and
+		// this is the only version of the URL that puts should_count()'s
+		// is_preview() branch under test.
+		const draft = await requestUtils.createPost( {
+			title: uniqueTitle( 'Previewed post' ),
+			content: 'Not published yet.',
+			status: 'draft',
+		} );
 
-		await page.goto( preview );
+		// Built from the id rather than from draft.link: the tests environment
+		// ships plain permalinks, so this is the whole URL, and a draft's link
+		// is the permalink it *would* get rather than one that resolves now.
+		await page.goto( `/?p=${ draft.id }&preview=true` );
 		await expect( counterScript( page ) ).toHaveCount( 0 );
-		expect( views( post.id ) ).toBe( 0 );
+		expect( views( draft.id ) ).toBe( 0 );
 
-		// The same request without preview=true, so the difference is the
-		// preview rather than the settings.
+		// The same post, published, so the difference between the two halves is
+		// the preview rather than the settings or the post.
+		// Through rest() rather than an updatePost() helper: this version of
+		// @wordpress/e2e-test-utils-playwright has createPost but no update.
+		const published = await requestUtils.rest( {
+			method: 'POST',
+			path: `/wp/v2/posts/${ draft.id }`,
+			data: { status: 'publish' },
+		} );
+
 		await watchForCount( page );
-		await page.goto( post.link );
+		await page.goto( published.link );
 		expect( await countedViews( page ) ).toBe( 1 );
 	} );
 
