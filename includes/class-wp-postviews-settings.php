@@ -142,7 +142,7 @@ class WP_PostViews_Settings {
 
 		// No title, so do_settings_sections() emits the table straight after the
 		// tab nav the way the screen has always looked. No callback either.
-		add_settings_section( self::SECTION_GENERAL, '', '', $settings );
+		add_settings_section( self::SECTION_GENERAL, __( 'Counting', 'wp-postviews' ), '', $settings );
 
 		add_settings_field(
 			'count',

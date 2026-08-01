@@ -120,9 +120,10 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		// left there would draw on neither tab.
 		$this->assertArrayNotHasKey( WP_PostViews_Admin::PAGE, $wp_settings_sections );
 
-		// The first section of each tab has no heading of its own, so the table
-		// follows the tab nav the way the screen has always looked.
-		$this->assertSame( '', $wp_settings_sections[ $settings ][ WP_PostViews_Settings::SECTION_GENERAL ]['title'] );
+		// Every section is named for what its fields do, except the one that is
+		// alone on its tab -- there the tab label is already the heading, and a
+		// section repeating it would say Templates twice in a row.
+		$this->assertSame( 'Counting', $wp_settings_sections[ $settings ][ WP_PostViews_Settings::SECTION_GENERAL ]['title'] );
 		$this->assertSame( '', $wp_settings_sections[ $templates ][ WP_PostViews_Settings::SECTION_TEMPLATES ]['title'] );
 	}
 
