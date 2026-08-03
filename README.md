@@ -190,7 +190,7 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 * BREAKING: The six Display Options settings — home page, single posts, pages, archives, searches and other pages — are removed, and the stored keys are dropped on upgrade. Their replacement is the `wp_postviews_should_display` filter.
 * NEW: Restructured into `includes/` classes. The template tags — `the_views()`, `get_most_viewed()`, `get_least_viewed()`, and the category and tag variants — are unchanged and keep working exactly as before.
 * NEW: The options screen is rebuilt on the WordPress Settings API and no longer loads jQuery.
-* NEW: The WP-Stats section, and how many entries its most viewed lists carry, are now settings on Settings → WP-PostViews.
+* NEW: The WP-Stats section, and how many entries its most viewed lists carry, are now settings on Settings -> WP-PostViews.
 * NEW: The `wp_postviews_should_display` filter decides whether a count is shown. It is read by `the_views()` only; the `[views]` shortcode and the admin Views column are explicit requests and ignore it.
 * CHANGED: The settings screen is two tabs, Settings and Templates, over one settings group and one option row.
 * CHANGED: The settings screen is titled "Post Views Settings", matching the other settings screens in this family.
@@ -202,7 +202,7 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 * FIXED: The widget silently discarded changes made in the block widget editor and the customizer, because it required a hidden form field neither of them sends.
 * FIXED: The widget warned about undefined array keys when rendered from the block widget editor or the customizer.
 * FIXED: Uninstalling on a network of more than 100 sites left options and view counts behind on every site after the hundredth, and reported success. Network activation could fatal on the removed `wp_get_sites()`.
-* NOTE: The settings screen moved from `options-general.php?page=wp-postviews/postviews-options.php` to `options-general.php?page=wp-postviews`. Update any bookmark; the Settings → WP-PostViews menu item is where it always was.
+* NOTE: The settings screen moved from `options-general.php?page=wp-postviews/postviews-options.php` to `options-general.php?page=wp-postviews`. Update any bookmark; the Settings -> WP-PostViews menu item is where it always was.
 * NOTE: Templates are now stored unslashed. Existing templates are migrated automatically the first time 2.0.0 loads.
 * NOTE: `should_views_be_displayed()`, `postviews_round_number()` and `snippet_text()` are no longer global functions. They were never documented; they are now `WP_PostViews_Display::should_be_displayed()`, `WP_PostViews_Display::round_number()` and `WP_PostViews_Display::snippet_text()`.
 
