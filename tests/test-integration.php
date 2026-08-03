@@ -417,7 +417,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$post_id = $this->make_post( array(), 500 );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id );
 		$request->set_param( 'context', 'edit' );
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 
 		$this->assertArrayHasKey( 'views', rest_do_request( $request )->get_data(), 'The schema request carries the views field.' );
 	}

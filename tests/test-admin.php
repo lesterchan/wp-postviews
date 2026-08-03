@@ -46,7 +46,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return string
 	 */
 	protected function render_tab( $tab = 'settings' ) {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 
 		$_GET['tab'] = $tab;
 
@@ -59,7 +59,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_menu_is_registered() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 		set_current_screen( 'dashboard' );
 
 		global $submenu;
@@ -255,7 +255,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_the_menu_titles() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 		set_current_screen( 'dashboard' );
 
 		global $submenu;
@@ -445,7 +445,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_the_menu_uses_the_filtered_capability() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 		set_current_screen( 'dashboard' );
 
 		add_filter(
