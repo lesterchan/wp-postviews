@@ -266,9 +266,10 @@ test.describe( 'Counting a view', () => {
 			status: 'draft',
 		} );
 
-		// Built from the id rather than from draft.link: the tests environment
-		// ships plain permalinks, so this is the whole URL, and a draft's link
-		// is the permalink it *would* get rather than one that resolves now.
+		// Built from the id rather than from draft.link, because a draft's link
+		// is the permalink it *would* get once published rather than one that
+		// resolves now. ?p= is the form that reaches a post whatever the site's
+		// permalink structure is, which is what this needs and all it needs.
 		await page.goto( `/?p=${ draft.id }&preview=true` );
 		await expect( counterScript( page ) ).toHaveCount( 0 );
 		expect( views( draft.id ) ).toBe( 0 );
