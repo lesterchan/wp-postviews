@@ -87,8 +87,8 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
-		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), WP_PostViews_Options::get( 'template' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'A key the legacy row never held takes its default.' );
+		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), WP_PostViews_Options::get( 'template' ), 'Templates included.' );
 	}
 
 	/**
@@ -105,8 +105,8 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( 1, WP_PostViews_Options::get_int( 'count' ) );
-		$this->assertSame( WP_POSTVIEWS_VERSION, WP_PostViews_Options::markers()['plugin'] );
+		$this->assertSame( 1, WP_PostViews_Options::get_int( 'count' ), 'A legacy row that is not an array is ignored rather than merged.' );
+		$this->assertSame( WP_POSTVIEWS_VERSION, WP_PostViews_Options::markers()['plugin'], 'And the install is still stamped, so the migration does not run again.' );
 	}
 
 	// --- the markers ------------------------------------------------------
@@ -125,8 +125,8 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 
 		$this->assertIsArray( $markers, 'The marker row should be an array.' );
 		$this->assertSame( array( 'plugin', 'db' ), array_keys( $markers ), 'The marker row carries exactly two keys.' );
-		$this->assertSame( WP_POSTVIEWS_VERSION, $markers['plugin'] );
-		$this->assertSame( WP_POSTVIEWS_DB_VERSION, $markers['db'] );
+		$this->assertSame( WP_POSTVIEWS_VERSION, $markers['plugin'], 'The marker row holds the plugin version.' );
+		$this->assertSame( WP_POSTVIEWS_DB_VERSION, $markers['db'], 'And the schema version, and nothing else.' );
 	}
 
 	/**
@@ -141,7 +141,8 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 				'plugin' => '',
 				'db'     => '',
 			),
-			WP_PostViews_Options::markers()
+			WP_PostViews_Options::markers(),
+			'A missing marker row normalises to two empty strings, not to nothing.'
 		);
 
 		update_option( WP_PostViews_Options::VERSION, array( 'plugin' => '1.78.1' ) );
@@ -150,7 +151,8 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 				'plugin' => '1.78.1',
 				'db'     => '',
 			),
-			WP_PostViews_Options::markers()
+			WP_PostViews_Options::markers(),
+			'And a partial one keeps what it has and fills in the rest.'
 		);
 	}
 
@@ -186,7 +188,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( $once, WP_PostViews_Options::all() );
+		$this->assertSame( $once, WP_PostViews_Options::all(), 'Running the migration twice leaves the same settings.' );
 	}
 
 	// --- the templates ----------------------------------------------------
@@ -208,8 +210,8 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( "it's %VIEW_COUNT% views", WP_PostViews_Options::get( 'template' ) );
-		$this->assertSame( "<li>it's %POST_TITLE%</li>", WP_PostViews_Options::get( 'most_viewed_template' ) );
+		$this->assertSame( "it's %VIEW_COUNT% views", WP_PostViews_Options::get( 'template' ), 'A slashed view count template is unslashed once.' );
+		$this->assertSame( "<li>it's %POST_TITLE%</li>", WP_PostViews_Options::get( 'most_viewed_template' ), 'And so is the listing template.' );
 	}
 
 	/**
@@ -223,7 +225,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( 'Plain %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ) );
+		$this->assertSame( 'Plain %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ), 'A template with nothing to unslash is left exactly as it was.' );
 	}
 
 	/**
@@ -242,7 +244,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( 'C:\\path %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ) );
+		$this->assertSame( 'C:\\path %VIEW_COUNT%', WP_PostViews_Options::get( 'template' ), 'A backslash that is part of the text survives the row rename rather than being eaten.' );
 	}
 
 	// --- the shared WP-Stats rows -----------------------------------------
@@ -289,7 +291,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( $expected, WP_PostViews_Options::get( 'stats_display' ) );
+		$this->assertSame( $expected, WP_PostViews_Options::get( 'stats_display' ), 'Every shape the shared row has taken is read.' );
 	}
 
 	/**
@@ -337,7 +339,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( 25, WP_PostViews_Options::get_int( 'stats_most_limit' ) );
+		$this->assertSame( 25, WP_PostViews_Options::get_int( 'stats_most_limit' ), 'The shared limit is taken over.' );
 	}
 
 	/**
@@ -352,7 +354,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertSame( 10, WP_PostViews_Options::get_int( 'stats_most_limit' ) );
+		$this->assertSame( 10, WP_PostViews_Options::get_int( 'stats_most_limit' ), 'And with none to take over the default stands.' );
 	}
 
 	/**
@@ -383,8 +385,8 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 	public function test_the_shared_rows_are_not_this_plugins_to_uninstall() {
 		$names = WP_PostViews_Options::all_option_names();
 
-		$this->assertNotContains( WP_PostViews_Options::LEGACY_STATS_DISPLAY, $names );
-		$this->assertNotContains( WP_PostViews_Options::LEGACY_STATS_MOST_LIMIT, $names );
+		$this->assertNotContains( WP_PostViews_Options::LEGACY_STATS_DISPLAY, $names, 'The shared display row is not on the uninstall list.' );
+		$this->assertNotContains( WP_PostViews_Options::LEGACY_STATS_MOST_LIMIT, $names, 'Nor the shared limit row, because they are not this plugin to delete.' );
 	}
 
 	// --- activation -------------------------------------------------------
@@ -402,7 +404,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::install();
 
 		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION ), 'Activation seeds a settings row rather than leaving the option absent.' );
-		$this->assertSame( WP_POSTVIEWS_VERSION, WP_PostViews_Options::markers()['plugin'] );
-		$this->assertSame( WP_POSTVIEWS_DB_VERSION, WP_PostViews_Options::markers()['db'] );
+		$this->assertSame( WP_POSTVIEWS_VERSION, WP_PostViews_Options::markers()['plugin'], 'Activation stamps the plugin version.' );
+		$this->assertSame( WP_POSTVIEWS_DB_VERSION, WP_PostViews_Options::markers()['db'], 'And the schema version.' );
 	}
 }

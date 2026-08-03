@@ -85,7 +85,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_most_viewed_is_descending() {
 		$this->assertSame(
 			array( 'Huge Post', 'High Post', 'Mid Post' ),
-			$this->listed_titles( get_most_viewed( 'post', 3, 0, false ) )
+			$this->listed_titles( get_most_viewed( 'post', 3, 0, false ) ),
+			'Most viewed lists the highest counts first.'
 		);
 	}
 
@@ -97,7 +98,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_least_viewed_is_ascending() {
 		$this->assertSame(
 			array( 'Low Post', 'Mid Post', 'High Post' ),
-			$this->listed_titles( get_least_viewed( 'post', 3, 0, false ) )
+			$this->listed_titles( get_least_viewed( 'post', 3, 0, false ) ),
+			'And least viewed lists the lowest first.'
 		);
 	}
 
@@ -109,7 +111,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_mode_filters_by_post_type() {
 		$this->assertSame(
 			array( 'Other Page', 'Some Page' ),
-			$this->listed_titles( get_most_viewed( 'page', 5, 0, false ) )
+			$this->listed_titles( get_most_viewed( 'page', 5, 0, false ) ),
+			'A post type scopes the listing to that type.'
 		);
 	}
 
@@ -121,8 +124,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_empty_mode_and_both_span_every_type() {
 		$expected = array( 'Huge Post', 'High Post', 'Other Page' );
 
-		$this->assertSame( $expected, $this->listed_titles( get_most_viewed( '', 3, 0, false ) ) );
-		$this->assertSame( $expected, $this->listed_titles( get_most_viewed( 'both', 3, 0, false ) ) );
+		$this->assertSame( $expected, $this->listed_titles( get_most_viewed( '', 3, 0, false ) ), 'An empty mode spans every type.' );
+		$this->assertSame( $expected, $this->listed_titles( get_most_viewed( 'both', 3, 0, false ) ), 'And so does the word both.' );
 	}
 
 	/**
@@ -133,7 +136,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_mode_accepts_an_array() {
 		$this->assertSame(
 			array( 'Other Page', 'Some Page' ),
-			$this->listed_titles( get_most_viewed( array( 'page' ), 5, 0, false ) )
+			$this->listed_titles( get_most_viewed( array( 'page' ), 5, 0, false ) ),
+			'A mode may be given as an array.'
 		);
 	}
 
@@ -152,7 +156,7 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_unviewed_posts_are_excluded() {
-		$this->assertStringNotContainsString( 'No Meta Post', get_most_viewed( 'post', 20, 0, false ) );
+		$this->assertStringNotContainsString( 'No Meta Post', get_most_viewed( 'post', 20, 0, false ), 'A post with no count is not listed at all.' );
 	}
 
 	/**
@@ -163,11 +167,13 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_category_scoping() {
 		$this->assertSame(
 			array( 'Huge Post', 'High Post' ),
-			$this->listed_titles( get_most_viewed_category( $this->cats['b'], 'post', 5, 0, false ) )
+			$this->listed_titles( get_most_viewed_category( $this->cats['b'], 'post', 5, 0, false ) ),
+			'A category scopes the most viewed listing.'
 		);
 		$this->assertSame(
 			array( 'Low Post', 'Mid Post' ),
-			$this->listed_titles( get_least_viewed_category( $this->cats['a'], 'post', 5, 0, false ) )
+			$this->listed_titles( get_least_viewed_category( $this->cats['a'], 'post', 5, 0, false ) ),
+			'And the least viewed one.'
 		);
 	}
 
@@ -182,11 +188,13 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 
 		$this->assertSame(
 			array( 'High Post', 'Low Post' ),
-			$this->listed_titles( get_most_viewed_tag( $red->term_id, 'post', 5, 0, false ) )
+			$this->listed_titles( get_most_viewed_tag( $red->term_id, 'post', 5, 0, false ) ),
+			'A tag scopes the most viewed listing.'
 		);
 		$this->assertSame(
 			array( 'Mid Post', 'Huge Post' ),
-			$this->listed_titles( get_least_viewed_tag( $blue->term_id, 'post', 5, 0, false ) )
+			$this->listed_titles( get_least_viewed_tag( $blue->term_id, 'post', 5, 0, false ) ),
+			'And the least viewed one.'
 		);
 	}
 
@@ -200,7 +208,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 
 		$this->assertSame(
 			'<li>N/A</li>' . "\n",
-			get_most_viewed_category( $empty, 'post', 5, 0, false )
+			get_most_viewed_category( $empty, 'post', 5, 0, false ),
+			'An empty result renders the placeholder rather than an empty list.'
 		);
 	}
 
@@ -216,7 +225,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 				function () {
 					get_most_viewed( 'page', 1 );
 				}
-			)
+			),
+			'The echoing form prints exactly what the returning form gives.'
 		);
 	}
 
@@ -283,7 +293,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 
 		$this->assertSame(
 			'[' . $this->cats['b'] . ']',
-			get_most_viewed_category( $this->cats['b'], 'post', 1, 0, false )
+			get_most_viewed_category( $this->cats['b'], 'post', 1, 0, false ),
+			'The category id token is substituted.'
 		);
 	}
 
@@ -295,9 +306,9 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_chars_truncates_titles() {
 		$this->set_options( array( 'most_viewed_template' => '[%POST_TITLE%]' ) );
 
-		$this->assertSame( '[Other...]', get_most_viewed( 'page', 1, 5, false ) );
-		$this->assertSame( '[Other Page]', get_most_viewed( 'page', 1, 0, false ) );
-		$this->assertSame( '[Other Page]', get_most_viewed( 'page', 1, 50, false ) );
+		$this->assertSame( '[Other...]', get_most_viewed( 'page', 1, 5, false ), 'A title past the budget is cut and given an ellipsis.' );
+		$this->assertSame( '[Other Page]', get_most_viewed( 'page', 1, 0, false ), 'A budget of zero truncates nothing.' );
+		$this->assertSame( '[Other Page]', get_most_viewed( 'page', 1, 50, false ), 'And a budget past the title leaves it whole.' );
 	}
 
 	/**
@@ -309,7 +320,7 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 		$this->make_post( array( 'post_title' => '日本語のタイトルです' ), 999999999 );
 		$this->set_options( array( 'most_viewed_template' => '[%POST_TITLE%]' ) );
 
-		$this->assertSame( '[日本語のタ...]', get_most_viewed( 'post', 1, 5, false ) );
+		$this->assertSame( '[日本語のタ...]', get_most_viewed( 'post', 1, 5, false ), 'A multibyte title is cut at characters, not at bytes.' );
 	}
 
 	/**
@@ -340,8 +351,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 
 		$output = get_most_viewed( 'page', 1, 0, false );
 
-		$this->assertStringContainsString( '<img', $output );
-		$this->assertStringContainsString( 'canola', $output );
+		$this->assertStringContainsString( '<img', $output, 'A post with a featured image renders one.' );
+		$this->assertStringContainsString( 'canola', $output, 'Naming the attachment it was given.' );
 		$this->assertStringNotContainsString( '[]', $output, 'Neither thumbnail token should be empty here.' );
 	}
 
@@ -353,7 +364,7 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_an_array_of_several_post_types() {
 		$titles = $this->listed_titles( get_most_viewed( array( 'post', 'page' ), 3, 0, false ) );
 
-		$this->assertSame( array( 'Huge Post', 'High Post', 'Other Page' ), $titles );
+		$this->assertSame( array( 'Huge Post', 'High Post', 'Other Page' ), $titles, 'An array of several post types lists them all, ranked together.' );
 	}
 
 	/**
@@ -364,7 +375,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_an_unknown_post_type_lists_nothing() {
 		$this->assertSame(
 			'<li>N/A</li>' . "\n",
-			get_most_viewed( 'no_such_type', 5, 0, false )
+			get_most_viewed( 'no_such_type', 5, 0, false ),
+			'An unknown post type lists nothing rather than everything.'
 		);
 	}
 
@@ -387,9 +399,9 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'Low Post', $output );
-		$this->assertStringNotContainsString( 'Mid Post', $output );
-		$this->assertStringNotContainsString( 'High Post', $output );
+		$this->assertStringContainsString( 'Low Post', $output, 'The post in both the category and the tag is listed.' );
+		$this->assertStringNotContainsString( 'Mid Post', $output, 'The one in only the category is not.' );
+		$this->assertStringNotContainsString( 'High Post', $output, 'And neither is the one in only the tag.' );
 	}
 
 	/**
@@ -415,7 +427,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	public function test_a_nonexistent_category_lists_nothing() {
 		$this->assertSame(
 			'<li>N/A</li>' . "\n",
-			get_most_viewed_category( 999999, 'post', 5, 0, false )
+			get_most_viewed_category( 999999, 'post', 5, 0, false ),
+			'A category that does not exist lists nothing rather than everything.'
 		);
 	}
 
@@ -445,7 +458,7 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 
 		$output = get_most_viewed( 'post', 2, 0, false );
 
-		$this->assertStringContainsString( 'Tied', $output );
+		$this->assertStringContainsString( 'Tied', $output, 'Posts on the same count are all listed, not just one of them.' );
 		$this->assertCount( 2, $this->listed_titles( $output ), 'Posts tying on count are all listed, not collapsed to one.' );
 	}
 
@@ -460,7 +473,8 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 
 		$this->assertStringContainsString(
 			'Never Read',
-			get_least_viewed( 'post', 1, 0, false )
+			get_least_viewed( 'post', 1, 0, false ),
+			'A count of zero is still a count, so the post is listed.'
 		);
 	}
 }

@@ -176,7 +176,7 @@ class WP_PostViews_Metadata_Test extends Plugin_Metadata_TestCase {
 	 * @return void
 	 */
 	public function test_the_gpl_block_is_the_or_later_variant() {
-		$this->assertSame( 'GPLv2 or later', $this->header_field( 'License' ) );
+		$this->assertSame( 'GPLv2 or later', $this->header_field( 'License' ), 'The header licence is the or-later variant.' );
 		$this->assertStringContainsString(
 			'either version 2 of the License, or',
 			$this->plugin_file(),

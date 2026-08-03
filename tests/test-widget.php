@@ -68,7 +68,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 		$widget = $this->get_widget();
 
 		$this->assertNotNull( $widget, 'No widget with id_base "views" is registered.' );
-		$this->assertSame( 'widget_views', $widget->option_name );
+		$this->assertSame( 'widget_views', $widget->option_name, 'The widget keeps the option name it has always stored under.' );
 	}
 
 	/**
@@ -105,12 +105,12 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( '<aside>', $output );
-		$this->assertStringContainsString( '<h2>Top Views</h2>', $output );
-		$this->assertStringContainsString( '<ul>', $output );
-		$this->assertStringContainsString( '<li>Top Page</li>', $output );
-		$this->assertStringContainsString( '</ul>', $output );
-		$this->assertStringContainsString( '</aside>', $output );
+		$this->assertStringContainsString( '<aside>', $output, 'The widget renders inside the wrapper the theme gave it.' );
+		$this->assertStringContainsString( '<h2>Top Views</h2>', $output, 'With its title.' );
+		$this->assertStringContainsString( '<ul>', $output, 'Opening a list.' );
+		$this->assertStringContainsString( '<li>Top Page</li>', $output, 'Holding the listing.' );
+		$this->assertStringContainsString( '</ul>', $output, 'Closing the list.' );
+		$this->assertStringContainsString( '</aside>', $output, 'And closing the wrapper it opened.' );
 	}
 
 	/**
@@ -128,8 +128,8 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringNotContainsString( '<h2>', $output );
-		$this->assertStringContainsString( '<ul>', $output );
+		$this->assertStringNotContainsString( '<h2>', $output, 'An empty title renders no heading at all.' );
+		$this->assertStringContainsString( '<ul>', $output, 'While the listing is still rendered.' );
 	}
 
 	/**
@@ -153,8 +153,8 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringNotContainsString( '<script>', $output );
-		$this->assertStringContainsString( '&lt;script&gt;', $output );
+		$this->assertStringNotContainsString( '<script>', $output, 'A title carrying markup is not rendered as markup.' );
+		$this->assertStringContainsString( '&lt;script&gt;', $output, 'It is escaped and shown as text instead.' );
 	}
 
 	/**
@@ -181,8 +181,8 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( '<h2>Tom &#038; Jerry</h2>', $output );
-		$this->assertStringNotContainsString( '&amp;#038;', $output );
+		$this->assertStringContainsString( '<h2>Tom &#038; Jerry</h2>', $output, 'An ampersand in a title is encoded once.' );
+		$this->assertStringNotContainsString( '&amp;#038;', $output, 'Not twice.' );
 	}
 
 	/**
@@ -199,7 +199,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertStringContainsString( '<h2>Filtered</h2>', $this->render( array( 'title' => 'Original' ) ) );
+		$this->assertStringContainsString( '<h2>Filtered</h2>', $this->render( array( 'title' => 'Original' ) ), 'The core widget title filter applies.' );
 	}
 
 	/**
@@ -234,8 +234,8 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( '<li>' . $expected . '</li>', $output );
-		$this->assertStringNotContainsString( '<li>' . $excluded . '</li>', $output );
+		$this->assertStringContainsString( '<li>' . $expected . '</li>', $output, 'The chosen statistics type is what is listed.' );
+		$this->assertStringNotContainsString( '<li>' . $excluded . '</li>', $output, 'And what belongs to the other type is not.' );
 	}
 
 	/**
@@ -280,9 +280,9 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'In First', $output );
-		$this->assertStringContainsString( 'In Second', $output );
-		$this->assertStringNotContainsString( 'In Neither', $output );
+		$this->assertStringContainsString( 'In First', $output, 'A post in the first category is listed.' );
+		$this->assertStringContainsString( 'In Second', $output, 'One in the second is listed.' );
+		$this->assertStringNotContainsString( 'In Neither', $output, 'And one in neither is not.' );
 	}
 
 	/**
@@ -306,7 +306,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 		);
 
 		$this->assertIsString( $output, 'A hostile category id is sanitised and the widget still renders.' );
-		$this->assertStringContainsString( '<ul>', $output );
+		$this->assertStringContainsString( '<ul>', $output, 'Junk among the category ids still renders a list rather than a database error.' );
 	}
 
 	/**
@@ -328,7 +328,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( '<li>An Ext...</li>', $output );
+		$this->assertStringContainsString( '<li>An Ext...</li>', $output, 'A title past the budget is cut and given an ellipsis.' );
 	}
 
 	/**
@@ -345,8 +345,8 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( '<ul>', $output );
-		$this->assertStringContainsString( 'N/A', $output );
+		$this->assertStringContainsString( '<ul>', $output, 'An empty listing still renders the list.' );
+		$this->assertStringContainsString( 'N/A', $output, 'With the placeholder inside it.' );
 	}
 
 	/**
@@ -362,7 +362,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 
 		$output = $this->render( array( 'title' => 'Bare' ) );
 
-		$this->assertStringContainsString( '<ul>', $output );
+		$this->assertStringContainsString( '<ul>', $output, 'A sparse instance renders without warning on the keys it has not got.' );
 	}
 
 	/**
@@ -373,7 +373,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 	public function test_empty_instance_renders_cleanly() {
 		$this->make_post( array(), 5 );
 
-		$this->assertStringContainsString( '<ul>', $this->render( array() ) );
+		$this->assertStringContainsString( '<ul>', $this->render( array() ), 'And so does an empty one.' );
 	}
 
 	/**
@@ -397,11 +397,11 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			array()
 		);
 
-		$this->assertSame( 'New Title', $saved['title'] );
-		$this->assertSame( 'least_viewed', $saved['type'] );
-		$this->assertSame( 7, $saved['limit'] );
-		$this->assertSame( 30, $saved['chars'] );
-		$this->assertSame( '1,2', $saved['cat_ids'] );
+		$this->assertSame( 'New Title', $saved['title'], 'The title is saved.' );
+		$this->assertSame( 'least_viewed', $saved['type'], 'The statistics type.' );
+		$this->assertSame( 7, $saved['limit'], 'The row limit.' );
+		$this->assertSame( 30, $saved['chars'], 'The character budget.' );
+		$this->assertSame( '1,2', $saved['cat_ids'], 'And the category ids.' );
 	}
 
 	/**
@@ -412,7 +412,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 	public function test_update_rejects_an_unknown_type() {
 		$saved = $this->get_widget()->update( array( 'type' => 'not_a_type' ), array( 'type' => 'most_viewed' ) );
 
-		$this->assertSame( 'most_viewed', $saved['type'] );
+		$this->assertSame( 'most_viewed', $saved['type'], 'An unknown type falls back rather than being stored.' );
 	}
 
 	/**
@@ -429,9 +429,9 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( 'Only The Title', $saved['title'] );
-		$this->assertSame( 42, $saved['limit'] );
-		$this->assertSame( 'least_viewed', $saved['type'] );
+		$this->assertSame( 'Only The Title', $saved['title'], 'The submitted title is stored.' );
+		$this->assertSame( 42, $saved['limit'], 'While a key the form omitted keeps its stored value.' );
+		$this->assertSame( 'least_viewed', $saved['type'], 'Whatever that value was.' );
 	}
 
 	/**
@@ -448,8 +448,8 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			array()
 		);
 
-		$this->assertSame( 0, $saved['limit'] );
-		$this->assertSame( 12, $saved['chars'] );
+		$this->assertSame( 0, $saved['limit'], 'Something that is not a number becomes zero.' );
+		$this->assertSame( 12, $saved['chars'], 'While a numeric string becomes the number.' );
 	}
 
 	/**
@@ -460,7 +460,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 	public function test_update_normalises_category_ids() {
 		$saved = $this->get_widget()->update( array( 'cat_ids' => '3, 4 ,abc' ), array() );
 
-		$this->assertSame( '3,4,0', $saved['cat_ids'] );
+		$this->assertSame( '3,4,0', $saved['cat_ids'], 'The category ids are normalised into a list of integers.' );
 	}
 
 	/**
@@ -505,7 +505,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertStringNotContainsString( '<optgroup', $html );
+		$this->assertStringNotContainsString( '<optgroup', $html, 'A group with nothing in it is not rendered as an empty optgroup.' );
 	}
 
 	/**
@@ -523,8 +523,8 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertStringNotContainsString( 'onfocus="alert(1)"', $html );
-		$this->assertStringContainsString( '&quot;', $html );
+		$this->assertStringNotContainsString( 'onfocus="alert(1)"', $html, 'A stored value cannot carry a handler onto the form.' );
+		$this->assertStringContainsString( '&quot;', $html, 'It is escaped for the attribute it is printed into.' );
 	}
 
 	/**
@@ -560,7 +560,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertStringContainsString( 'value="post"', $html );
-		$this->assertStringContainsString( 'value="page"', $html );
+		$this->assertStringContainsString( 'value="post"', $html, 'The form lists posts.' );
+		$this->assertStringContainsString( 'value="page"', $html, 'And pages, so a public type is offered.' );
 	}
 }

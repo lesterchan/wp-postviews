@@ -23,7 +23,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 
 		$this->assertArrayHasKey( 'views', $data, 'The REST response carries the views field.' );
 		$this->assertIsInt( $data['views'], 'The views field is an integer, not a numeric string.' );
-		$this->assertSame( 500, $data['views'] );
+		$this->assertSame( 500, $data['views'], 'The REST field carries the count as an integer.' );
 	}
 
 	/**
@@ -36,7 +36,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 
 		$data = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id ) )->get_data();
 
-		$this->assertSame( 0, $data['views'] );
+		$this->assertSame( 0, $data['views'], 'And a post with no meta reads as zero rather than as null.' );
 	}
 
 	/**
@@ -60,8 +60,8 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_admin_columns() {
-		$this->assertSame( 'Views', apply_filters( 'manage_posts_columns', array() )['views'] );
-		$this->assertSame( 'Views', apply_filters( 'manage_pages_columns', array() )['views'] );
+		$this->assertSame( 'Views', apply_filters( 'manage_posts_columns', array() )['views'], 'The posts list gets a Views column.' );
+		$this->assertSame( 'Views', apply_filters( 'manage_pages_columns', array() )['views'], 'And so does the pages list.' );
 
 		// Core spells these two with a hyphen, which is not a name any plugin
 		// would be allowed to coin. Assembling it keeps the literal out of the
@@ -95,7 +95,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertSame( '500 views', trim( $cell ) );
+		$this->assertSame( '500 views', trim( $cell ), 'The admin column shows the count whatever the display gate says.' );
 	}
 
 	/**
@@ -113,7 +113,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertSame( '', trim( $cell ) );
+		$this->assertSame( '', trim( $cell ), 'And renders nothing for a column that is not ours.' );
 	}
 
 	/**
@@ -128,8 +128,8 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$query->set( 'orderby', 'views' );
 		$this->fire( 'pre_get_posts', array( $query ) );
 
-		$this->assertSame( 'views', $query->get( 'meta_key' ) );
-		$this->assertSame( 'meta_value_num', $query->get( 'orderby' ) );
+		$this->assertSame( 'views', $query->get( 'meta_key' ), 'Sorting by views queries the views meta.' );
+		$this->assertSame( 'meta_value_num', $query->get( 'orderby' ), 'Numerically, so ten does not sort before nine.' );
 
 		set_current_screen( 'front' );
 	}
@@ -142,8 +142,8 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 	public function test_query_vars_are_registered() {
 		$vars = apply_filters( 'query_vars', array() );
 
-		$this->assertContains( 'v_sortby', $vars );
-		$this->assertContains( 'v_orderby', $vars );
+		$this->assertContains( 'v_sortby', $vars, 'The sort column query var is registered.' );
+		$this->assertContains( 'v_orderby', $vars, 'And the direction one.' );
 	}
 
 	/**
@@ -165,7 +165,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 				'ignore_sticky_posts' => true,
 			)
 		);
-		$this->assertSame( array( 'High', 'Mid', 'Low' ), wp_list_pluck( $query->posts, 'post_title' ) );
+		$this->assertSame( array( 'High', 'Mid', 'Low' ), wp_list_pluck( $query->posts, 'post_title' ), 'Descending is most viewed first.' );
 
 		$GLOBALS['wp_query']->set( 'v_orderby', 'asc' );
 		$query = new WP_Query(
@@ -176,7 +176,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 				'ignore_sticky_posts' => true,
 			)
 		);
-		$this->assertSame( array( 'Low', 'Mid', 'High' ), wp_list_pluck( $query->posts, 'post_title' ) );
+		$this->assertSame( array( 'Low', 'Mid', 'High' ), wp_list_pluck( $query->posts, 'post_title' ), 'And ascending is least viewed first.' );
 	}
 
 	/**
@@ -198,7 +198,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( array( 'High' ), wp_list_pluck( $query->posts, 'post_title' ) );
+		$this->assertSame( array( 'High' ), wp_list_pluck( $query->posts, 'post_title' ), 'A direction off the list falls back to descending rather than reaching ORDER BY.' );
 		$this->assertGreaterThan( 0, (int) wp_count_posts( 'post' )->publish, 'There are published posts at all, or the ordering assertions below are vacuous.' );
 	}
 
@@ -232,7 +232,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertContains( $unviewed, wp_list_pluck( $plain->posts, 'ID' ) );
+		$this->assertContains( $unviewed, wp_list_pluck( $plain->posts, 'ID' ), 'The sorting filters are detached again, so a later query still sees unviewed posts.' );
 	}
 
 	/**
@@ -244,8 +244,8 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$published = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 		$draft     = self::factory()->post->create( array( 'post_status' => 'draft' ) );
 
-		$this->assertSame( '0', get_post_meta( $published, 'views', true ) );
-		$this->assertSame( '', get_post_meta( $draft, 'views', true ) );
+		$this->assertSame( '0', get_post_meta( $published, 'views', true ), 'Publishing seeds the meta at zero.' );
+		$this->assertSame( '', get_post_meta( $draft, 'views', true ), 'While a draft has none to seed.' );
 	}
 
 	/**
@@ -263,7 +263,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( '500', get_post_meta( $post_id, 'views', true ) );
+		$this->assertSame( '500', get_post_meta( $post_id, 'views', true ), 'Republishing leaves the count where it was.' );
 	}
 
 	/**
@@ -294,7 +294,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( $expected, wp_list_pluck( $query->posts, 'post_title' ) );
+		$this->assertSame( $expected, wp_list_pluck( $query->posts, 'post_title' ), 'The direction is matched whatever case it arrives in.' );
 	}
 
 	/**
@@ -321,14 +321,14 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 	public function test_sql_clause_filters() {
 		global $wpdb;
 
-		$this->assertStringContainsString( 'AS views', WP_PostViews_Core::posts_fields( 'existing' ) );
-		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_fields( 'existing' ) );
+		$this->assertStringContainsString( 'AS views', WP_PostViews_Core::posts_fields( 'existing' ), 'The fields clause exposes the count.' );
+		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_fields( 'existing' ), 'Appended to what was already there.' );
 
-		$this->assertStringContainsString( 'LEFT JOIN ' . $wpdb->postmeta, WP_PostViews_Core::posts_join( 'existing' ) );
-		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_join( 'existing' ) );
+		$this->assertStringContainsString( 'LEFT JOIN ' . $wpdb->postmeta, WP_PostViews_Core::posts_join( 'existing' ), 'The join clause reaches the meta table.' );
+		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_join( 'existing' ), 'Appended to what was already there.' );
 
-		$this->assertStringContainsString( "meta_key = 'views'", WP_PostViews_Core::posts_where( 'existing' ) );
-		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_where( 'existing' ) );
+		$this->assertStringContainsString( "meta_key = 'views'", WP_PostViews_Core::posts_where( 'existing' ), 'The where clause names the meta key.' );
+		$this->assertStringStartsWith( 'existing', WP_PostViews_Core::posts_where( 'existing' ), 'Appended to what was already there.' );
 	}
 
 	/**
@@ -349,7 +349,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		}
 
 		$GLOBALS['wp_query']->set( 'v_orderby', 'asc' );
-		$this->assertSame( ' views asc', WP_PostViews_Core::posts_orderby() );
+		$this->assertSame( ' views asc', WP_PostViews_Core::posts_orderby(), 'The orderby clause admits ascending and descending, and nothing else.' );
 	}
 
 	/**
@@ -370,7 +370,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		delete_post_meta( $revision_id, 'views' );
 		WP_PostViews_Core::seed_views_meta( $revision_id );
 
-		$this->assertSame( '', get_post_meta( $revision_id, 'views', true ) );
+		$this->assertSame( '', get_post_meta( $revision_id, 'views', true ), 'A revision is not seeded, so it never appears in a listing.' );
 	}
 
 	/**
@@ -386,7 +386,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( '0', get_post_meta( $page_id, 'views', true ) );
+		$this->assertSame( '0', get_post_meta( $page_id, 'views', true ), 'Publishing a page seeds the meta too.' );
 	}
 
 	/**
@@ -431,7 +431,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$post_id = $this->make_post( array(), 0 );
 		update_post_meta( $post_id, 'views', 'nonsense' );
 
-		$this->assertSame( 0, WP_PostViews_Core::rest_get_views( array( 'id' => $post_id ) ) );
+		$this->assertSame( 0, WP_PostViews_Core::rest_get_views( array( 'id' => $post_id ) ), 'The REST callback answers with an integer, so a missing row is zero and not an empty string.' );
 	}
 
 	/**
@@ -446,8 +446,8 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$query->set( 'orderby', 'title' );
 		$this->fire( 'pre_get_posts', array( $query ) );
 
-		$this->assertSame( 'title', $query->get( 'orderby' ) );
-		$this->assertSame( '', $query->get( 'meta_key' ) );
+		$this->assertSame( 'title', $query->get( 'orderby' ), 'Sorting by another column leaves the order alone.' );
+		$this->assertSame( '', $query->get( 'meta_key' ), 'And queries no meta.' );
 
 		set_current_screen( 'front' );
 	}
@@ -465,7 +465,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$this->fire( 'pre_get_posts', array( $query ) );
 
 		$this->assertSame( 'views', $query->get( 'orderby' ), 'The front end query should be untouched.' );
-		$this->assertSame( '', $query->get( 'meta_key' ) );
+		$this->assertSame( '', $query->get( 'meta_key' ), 'And the admin sorting does not apply on the front end at all.' );
 	}
 
 	/**
@@ -476,8 +476,8 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 	public function test_query_vars_are_appended() {
 		$vars = WP_PostViews_Core::query_vars( array( 'existing_var' ) );
 
-		$this->assertContains( 'existing_var', $vars );
-		$this->assertContains( 'v_sortby', $vars );
-		$this->assertContains( 'v_orderby', $vars );
+		$this->assertContains( 'existing_var', $vars, 'The query vars already registered survive.' );
+		$this->assertContains( 'v_sortby', $vars, 'The sort column is appended.' );
+		$this->assertContains( 'v_orderby', $vars, 'And the direction.' );
 	}
 }

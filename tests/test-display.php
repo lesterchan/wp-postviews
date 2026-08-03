@@ -21,7 +21,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( '123,456 views', the_views( false ) );
+		$this->assertSame( '123,456 views', the_views( false ), 'The count is substituted into the template.' );
 	}
 
 	/**
@@ -34,7 +34,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT%' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( '[500]', the_views( false, '[', ']' ) );
+		$this->assertSame( '[500]', the_views( false, '[', ']' ), 'The prefix and postfix wrap what the template produced.' );
 	}
 
 	/**
@@ -53,7 +53,8 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 				function () {
 					the_views();
 				}
-			)
+			),
+			'The echoing form prints exactly what the returning form gives.'
 		);
 	}
 
@@ -67,7 +68,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( '0 views', the_views( false ) );
+		$this->assertSame( '0 views', the_views( false ), 'A post with no meta reads as zero rather than as nothing.' );
 	}
 
 	/**
@@ -87,7 +88,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertSame( '<b>7</b>', the_views( false ) );
+		$this->assertSame( '<b>7</b>', the_views( false ), 'The filter can replace the rendered count.' );
 	}
 
 	/**
@@ -107,7 +108,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => 'X' ) );
 		$this->set_context( $flags, $post_id );
 
-		$this->assertSame( 'X', the_views( false ) );
+		$this->assertSame( 'X', the_views( false ), 'By default the count is shown wherever it is asked for.' );
 	}
 
 	/**
@@ -124,7 +125,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_context( $flags, $post_id );
 		$this->hide_views();
 
-		$this->assertSame( '', the_views( false ) );
+		$this->assertSame( '', the_views( false ), 'The filter can hide it.' );
 	}
 
 	/**
@@ -161,10 +162,10 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		);
 
 		$this->set_context( array( 'is_archive' ), $post_id );
-		$this->assertSame( '', the_views( false ) );
+		$this->assertSame( '', the_views( false ), 'Hidden in the context the filter refused.' );
 
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
-		$this->assertSame( 'X', the_views( false ) );
+		$this->assertSame( 'X', the_views( false ), 'And shown in the one it allowed.' );
 	}
 
 	/**
@@ -218,8 +219,8 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_context( array( 'is_home' ), $post_id );
 		$this->hide_views();
 
-		$this->assertSame( 'X', the_views( false, '', '', true ) );
-		$this->assertSame( '', the_views( false ) );
+		$this->assertSame( 'X', the_views( false, '', '', true ), 'The always argument shows the count whatever the gate says.' );
+		$this->assertSame( '', the_views( false ), 'While without it the gate still applies.' );
 	}
 
 	/**
@@ -236,7 +237,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT_ROUNDED%' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( $expected, the_views( false ) );
+		$this->assertSame( $expected, the_views( false ), 'The count is rounded the way the setting asks for.' );
 	}
 
 	/**
@@ -271,7 +272,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_is_multibyte_safe() {
-		$this->assertSame( '日本語のタ...', WP_PostViews_Display::snippet_text( '日本語のタイトルです', 5 ) );
+		$this->assertSame( '日本語のタ...', WP_PostViews_Display::snippet_text( '日本語のタイトルです', 5 ), 'A multibyte title is cut at characters, not at bytes.' );
 	}
 
 	/**
@@ -280,9 +281,9 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_ascii() {
-		$this->assertSame( 'Other...', WP_PostViews_Display::snippet_text( 'Other Page', 5 ) );
-		$this->assertSame( 'Other Page', WP_PostViews_Display::snippet_text( 'Other Page', 50 ) );
-		$this->assertSame( 'Other Page', WP_PostViews_Display::snippet_text( 'Other Page', 10 ) );
+		$this->assertSame( 'Other...', WP_PostViews_Display::snippet_text( 'Other Page', 5 ), 'A string past the budget is cut and given an ellipsis.' );
+		$this->assertSame( 'Other Page', WP_PostViews_Display::snippet_text( 'Other Page', 50 ), 'A string within it is returned whole.' );
+		$this->assertSame( 'Other Page', WP_PostViews_Display::snippet_text( 'Other Page', 10 ), 'And a string exactly at it is returned whole too.' );
 	}
 
 	/**
@@ -295,8 +296,8 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( '500 views', do_shortcode( '[views]' ) );
-		$this->assertSame( '500 views', do_shortcode( '[views id="0"]' ) );
+		$this->assertSame( '500 views', do_shortcode( '[views]' ), 'With no id the shortcode uses the post in scope.' );
+		$this->assertSame( '500 views', do_shortcode( '[views id="0"]' ), 'And an id of zero means the same thing.' );
 	}
 
 	/**
@@ -310,7 +311,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $current );
 
-		$this->assertSame( '123,456 views', do_shortcode( '[views id="' . $other . '"]' ) );
+		$this->assertSame( '123,456 views', do_shortcode( '[views id="' . $other . '"]' ), 'An id names another post to report on.' );
 	}
 
 	/**
@@ -324,7 +325,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 		$this->hide_views();
 
-		$this->assertSame( '500 views', do_shortcode( '[views]' ) );
+		$this->assertSame( '500 views', do_shortcode( '[views]' ), 'The shortcode renders whatever the display gate says, because it was asked for explicitly.' );
 	}
 
 	/**
@@ -337,14 +338,15 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->make_post( array(), 500 );
 		$this->make_post( array(), 1000 );
 
-		$this->assertSame( 1505, get_totalviews( false ) );
+		$this->assertSame( 1505, get_totalviews( false ), 'The site total is every count added up.' );
 		$this->assertSame(
 			'1,505',
 			$this->capture(
 				function () {
 					get_totalviews();
 				}
-			)
+			),
+			'And the echoing form prints it with separators.'
 		);
 	}
 
@@ -357,8 +359,8 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_round_trips_entities() {
-		$this->assertSame( 'Tom &amp; Jerry', WP_PostViews_Display::snippet_text( 'Tom &amp; Jerry', 50 ) );
-		$this->assertSame( 'Tom &amp; Jerry', WP_PostViews_Display::snippet_text( 'Tom & Jerry', 50 ) );
+		$this->assertSame( 'Tom &amp; Jerry', WP_PostViews_Display::snippet_text( 'Tom &amp; Jerry', 50 ), 'An entity that arrives encoded comes back encoded.' );
+		$this->assertSame( 'Tom &amp; Jerry', WP_PostViews_Display::snippet_text( 'Tom & Jerry', 50 ), 'And a bare ampersand is encoded rather than left raw.' );
 	}
 
 	/**
@@ -368,7 +370,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	 */
 	public function test_snippet_text_counts_decoded_characters() {
 		// "Tom & Jerry" is 11 characters once decoded, so a limit of 5 cuts it.
-		$this->assertSame( 'Tom &amp;...', WP_PostViews_Display::snippet_text( 'Tom &amp; Jerry', 5 ) );
+		$this->assertSame( 'Tom &amp;...', WP_PostViews_Display::snippet_text( 'Tom &amp; Jerry', 5 ), 'The budget counts decoded characters, so an entity is one character, not five.' );
 	}
 
 	/**
@@ -380,7 +382,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_snippet_text_with_a_zero_limit() {
-		$this->assertSame( '...', WP_PostViews_Display::snippet_text( 'Anything', 0 ) );
+		$this->assertSame( '...', WP_PostViews_Display::snippet_text( 'Anything', 0 ), 'A budget of zero leaves the ellipsis and nothing else.' );
 	}
 
 	/**
@@ -390,13 +392,13 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_round_number_arguments() {
-		$this->assertSame( '2.5M', WP_PostViews_Display::round_number( 2500000 ) );
+		$this->assertSame( '2.5M', WP_PostViews_Display::round_number( 2500000 ), 'A large number is rounded to millions.' );
 		// A higher minimum keeps the number in full for longer.
-		$this->assertSame( '5,000', WP_PostViews_Display::round_number( 5000, 10000 ) );
+		$this->assertSame( '5,000', WP_PostViews_Display::round_number( 5000, 10000 ), 'Below the threshold it is printed in full.' );
 		// More decimal places.
-		$this->assertSame( '1.23K', WP_PostViews_Display::round_number( 1234, 1000, 2 ) );
+		$this->assertSame( '1.23K', WP_PostViews_Display::round_number( 1234, 1000, 2 ), 'The precision argument is honoured.' );
 		// No decimal places.
-		$this->assertSame( '1K', WP_PostViews_Display::round_number( 1234, 1000, 0 ) );
+		$this->assertSame( '1K', WP_PostViews_Display::round_number( 1234, 1000, 0 ), 'Including a precision of none.' );
 	}
 
 	/**
@@ -411,14 +413,15 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		global $wpdb;
 		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key = 'views'" );
 
-		$this->assertSame( 0, get_totalviews( false ) );
+		$this->assertSame( 0, get_totalviews( false ), 'With no rows the total is zero.' );
 		$this->assertSame(
 			'0',
 			$this->capture(
 				function () {
 					get_totalviews();
 				}
-			)
+			),
+			'And the echoing form prints it.'
 		);
 	}
 
@@ -439,7 +442,8 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 				function () {
 					the_views();
 				}
-			)
+			),
+			'Hidden, the echoing form prints nothing at all.'
 		);
 	}
 
@@ -466,7 +470,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 
 		the_views( false, '[', ']' );
 
-		$this->assertSame( '[X]', $seen );
+		$this->assertSame( '[X]', $seen, 'The filter sees the prefix and postfix, not just the count.' );
 	}
 
 	/**
@@ -479,7 +483,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( '', the_views( false ) );
+		$this->assertSame( '', the_views( false ), 'An empty template renders nothing rather than a bare count.' );
 	}
 
 	/**
@@ -492,7 +496,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => 'Hits!' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( 'Hits!', the_views( false ) );
+		$this->assertSame( 'Hits!', the_views( false ), 'And a template with no tokens is rendered literally.' );
 	}
 
 	/**
@@ -505,7 +509,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( '0 views', do_shortcode( '[views id="999999"]' ) );
+		$this->assertSame( '0 views', do_shortcode( '[views id="999999"]' ), 'A shortcode for a post that does not exist reads as zero.' );
 	}
 
 	/**
@@ -518,6 +522,6 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'template' => '%VIEW_COUNT% views' ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( '500 views', do_shortcode( '[views id="abc"]' ) );
+		$this->assertSame( '500 views', do_shortcode( '[views id="abc"]' ), 'And a non-numeric id falls back to the post in scope.' );
 	}
 }

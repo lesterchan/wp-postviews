@@ -36,7 +36,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		$registered = get_registered_settings();
 
 		$this->assertArrayHasKey( WP_PostViews_Options::OPTION, $registered, 'The settings row is registered, so its sanitise callback is attached.' );
-		$this->assertSame( WP_PostViews_Settings::GROUP, $registered[ WP_PostViews_Options::OPTION ]['group'] );
+		$this->assertSame( WP_PostViews_Settings::GROUP, $registered[ WP_PostViews_Options::OPTION ]['group'], 'The setting is registered in the group the forms post to.' );
 	}
 
 	/**
@@ -50,7 +50,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 				'settings'  => 'Settings',
 				'templates' => 'Templates',
 			),
-			WP_PostViews_Settings::tabs()
+			WP_PostViews_Settings::tabs(),
+			'The screen has exactly these two tabs.'
 		);
 	}
 
@@ -62,13 +63,13 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_the_current_tab_falls_back_to_the_first() {
-		$this->assertSame( 'settings', WP_PostViews_Settings::current_tab() );
+		$this->assertSame( 'settings', WP_PostViews_Settings::current_tab(), 'With nothing asked for the first tab is current.' );
 
 		$_GET['tab'] = 'templates';
-		$this->assertSame( 'templates', WP_PostViews_Settings::current_tab() );
+		$this->assertSame( 'templates', WP_PostViews_Settings::current_tab(), 'A named tab is current.' );
 
 		$_GET['tab'] = 'nonsense';
-		$this->assertSame( 'settings', WP_PostViews_Settings::current_tab() );
+		$this->assertSame( 'settings', WP_PostViews_Settings::current_tab(), 'And an unknown one falls back to the first rather than rendering nothing.' );
 
 		unset( $_GET['tab'] );
 	}
@@ -80,11 +81,12 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_each_tab_is_its_own_settings_page() {
-		$this->assertSame( 'wp-postviews-settings', WP_PostViews_Settings::tab_page( 'settings' ) );
-		$this->assertSame( 'wp-postviews-templates', WP_PostViews_Settings::tab_page( 'templates' ) );
+		$this->assertSame( 'wp-postviews-settings', WP_PostViews_Settings::tab_page( 'settings' ), 'The settings tab is its own settings page.' );
+		$this->assertSame( 'wp-postviews-templates', WP_PostViews_Settings::tab_page( 'templates' ), 'And so is the templates tab.' );
 		$this->assertNotSame(
 			WP_PostViews_Settings::tab_page( 'settings' ),
-			WP_PostViews_Settings::tab_page( 'templates' )
+			WP_PostViews_Settings::tab_page( 'templates' ),
+			'They are different pages, which is what keeps one save from blanking the other.'
 		);
 	}
 
@@ -123,8 +125,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		// Every section is named for what its fields do, except the one that is
 		// alone on its tab -- there the tab label is already the heading, and a
 		// section repeating it would say Templates twice in a row.
-		$this->assertSame( 'Counting', $wp_settings_sections[ $settings ][ WP_PostViews_Settings::SECTION_GENERAL ]['title'] );
-		$this->assertSame( '', $wp_settings_sections[ $templates ][ WP_PostViews_Settings::SECTION_TEMPLATES ]['title'] );
+		$this->assertSame( 'Counting', $wp_settings_sections[ $settings ][ WP_PostViews_Settings::SECTION_GENERAL ]['title'], 'The counting section is registered on the settings page.' );
+		$this->assertSame( '', $wp_settings_sections[ $templates ][ WP_PostViews_Settings::SECTION_TEMPLATES ]['title'], 'And the templates section on the templates page.' );
 	}
 
 	/**
@@ -150,7 +152,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_the_group_is_the_option_name() {
-		$this->assertSame( WP_PostViews_Options::OPTION, WP_PostViews_Settings::GROUP );
+		$this->assertSame( WP_PostViews_Options::OPTION, WP_PostViews_Settings::GROUP, 'The settings group is the option row name.' );
 
 		$registered = get_registered_settings();
 		$this->assertCount(
@@ -203,7 +205,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		// The AJAX row exists only under a page cache, same as the markup.
 		$this->assertSame(
 			defined( 'WP_CACHE' ) && WP_CACHE,
-			isset( $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['use_ajax'] )
+			isset( $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['use_ajax'] ),
+			'The AJAX field is registered exactly when WP_CACHE is on.'
 		);
 	}
 
@@ -219,15 +222,16 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		$settings  = $wp_settings_fields[ WP_PostViews_Settings::tab_page( 'settings' ) ];
 		$templates = $wp_settings_fields[ WP_PostViews_Settings::tab_page( 'templates' ) ];
 
-		$this->assertSame( 'views-count', $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['count']['args']['label_for'] );
-		$this->assertSame( 'views-exclude_bots', $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['exclude_bots']['args']['label_for'] );
+		$this->assertSame( 'views-count', $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['count']['args']['label_for'], 'The counting select points its label at its own control.' );
+		$this->assertSame( 'views-exclude_bots', $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['exclude_bots']['args']['label_for'], 'And so does the bot exclusion select.' );
 
 		// The template rows carry a variable list in the heading cell, which
 		// cannot live inside a label element, so they bring their own.
 		$this->assertArrayNotHasKey( 'label_for', $templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['args'], 'A select declares its own label target, so no label_for is added over the top.' );
 		$this->assertStringContainsString(
 			'<label for="views-template-template">',
-			$templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['title']
+			$templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['title'],
+			'While a textarea carries its label in the row title.'
 		);
 	}
 
@@ -249,10 +253,10 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
-		$this->assertSame( 1, WP_PostViews_Options::get_int( 'exclude_bots' ) );
-		$this->assertSame( 0, WP_PostViews_Options::get_int( 'use_ajax' ) );
-		$this->assertSame( '<b>%VIEW_COUNT%</b> reads', WP_PostViews_Options::get( 'template' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'The count mode round trips.' );
+		$this->assertSame( 1, WP_PostViews_Options::get_int( 'exclude_bots' ), 'The bot exclusion.' );
+		$this->assertSame( 0, WP_PostViews_Options::get_int( 'use_ajax' ), 'The AJAX toggle.' );
+		$this->assertSame( '<b>%VIEW_COUNT%</b> reads', WP_PostViews_Options::get( 'template' ), 'And the template.' );
 	}
 
 	/**
@@ -268,8 +272,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 
 		$sanitized = WP_PostViews_Settings::sanitize( array( 'template' => 'X' ) );
 
-		$this->assertSame( 2, (int) $sanitized['count'] );
-		$this->assertSame( 'X', $sanitized['template'] );
+		$this->assertSame( 2, (int) $sanitized['count'], 'A key absent from the submission keeps its stored value.' );
+		$this->assertSame( 'X', $sanitized['template'], 'Templates included.' );
 	}
 
 	/**
@@ -278,8 +282,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_count_values_are_clamped() {
-		$this->assertSame( 2, WP_PostViews_Settings::sanitize( array( 'count' => '99' ) )['count'] );
-		$this->assertSame( 0, WP_PostViews_Settings::sanitize( array( 'count' => '-4' ) )['count'] );
+		$this->assertSame( 2, WP_PostViews_Settings::sanitize( array( 'count' => '99' ) )['count'], 'A count mode past the list is clamped to the last one.' );
+		$this->assertSame( 0, WP_PostViews_Settings::sanitize( array( 'count' => '-4' ) )['count'], 'And a negative one to the first.' );
 	}
 
 	/**
@@ -307,7 +311,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		}
 
 		// The rest of the row is untouched by the drop.
-		$this->assertSame( WP_PostViews_Options::defaults()['template'], $sanitized['template'] );
+		$this->assertSame( WP_PostViews_Options::defaults()['template'], $sanitized['template'], 'A retired key in the submission is dropped rather than stored.' );
 	}
 
 	/**
@@ -323,8 +327,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( 1, $sanitized['exclude_bots'] );
-		$this->assertSame( 0, $sanitized['use_ajax'] );
+		$this->assertSame( 1, $sanitized['exclude_bots'], 'A truthy value is stored as one.' );
+		$this->assertSame( 0, $sanitized['use_ajax'], 'And a falsy one as zero.' );
 	}
 
 	/**
@@ -337,8 +341,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 			array( 'template' => '<script>alert(1)</script><b>%VIEW_COUNT%</b>' )
 		);
 
-		$this->assertStringNotContainsString( '<script>', $sanitized['template'] );
-		$this->assertStringContainsString( '<b>%VIEW_COUNT%</b>', $sanitized['template'] );
+		$this->assertStringNotContainsString( '<script>', $sanitized['template'], 'A template loses the markup a site owner may not use.' );
+		$this->assertStringContainsString( '<b>%VIEW_COUNT%</b>', $sanitized['template'], 'And keeps what they may.' );
 	}
 
 	/**
@@ -351,7 +355,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 			array( 'most_viewed_template' => '<li onclick="steal()">%POST_TITLE%</li>' )
 		);
 
-		$this->assertStringNotContainsString( 'onclick', $sanitized['most_viewed_template'] );
+		$this->assertStringNotContainsString( 'onclick', $sanitized['most_viewed_template'], 'An inline handler is refused in the listing template too.' );
 	}
 
 	/**
@@ -362,7 +366,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	public function test_non_array_input_is_ignored() {
 		$this->set_options( array( 'count' => 2 ) );
 
-		$this->assertSame( WP_PostViews_Options::all(), WP_PostViews_Settings::sanitize( 'nonsense' ) );
+		$this->assertSame( WP_PostViews_Options::all(), WP_PostViews_Settings::sanitize( 'nonsense' ), 'A string where an array was expected changes nothing.' );
 	}
 
 	/**
@@ -375,7 +379,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 
 		update_option( WP_PostViews_Options::OPTION, array_merge( WP_PostViews_Options::all(), array( 'template' => 'FRESH' ) ) );
 
-		$this->assertSame( 'FRESH', WP_PostViews_Options::get( 'template' ) );
+		$this->assertSame( 'FRESH', WP_PostViews_Options::get( 'template' ), 'Saving refreshes the cache, so the new value is what is read back.' );
 	}
 
 	/**
@@ -421,7 +425,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 
 		$name = WP_PostViews_Options::OPTION . '[stats_display]';
 
-		$this->assertStringContainsString( 'type="hidden" name="' . $name . '" value="0"', $html );
+		$this->assertStringContainsString( 'type="hidden" name="' . $name . '" value="0"', $html, 'The checkbox is paired with a hidden zero, so unticking it really stores zero.' );
 
 		// And the hidden field comes first, because PHP keeps the last value for
 		// a repeated name -- the other order would pin it off permanently.
@@ -462,11 +466,11 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( 'EDITED ONE', $saved['template'] );
-		$this->assertSame( 'EDITED TWO', $saved['most_viewed_template'] );
+		$this->assertSame( 'EDITED ONE', $saved['template'], 'Saving the templates tab stores the view count template.' );
+		$this->assertSame( 'EDITED TWO', $saved['most_viewed_template'], 'And the listing template.' );
 		$this->assertSame( 2, $saved['count'], 'The Settings tab must survive a Templates save.' );
-		$this->assertSame( 1, $saved['exclude_bots'] );
-		$this->assertSame( 25, $saved['stats_most_limit'] );
+		$this->assertSame( 1, $saved['exclude_bots'], 'While the settings tab values are kept.' );
+		$this->assertSame( 25, $saved['stats_most_limit'], 'The WP-Stats limit included.' );
 		$this->assertTrue( $saved['stats_display'], 'The WP-Stats checkbox must not read as unticked when its tab did not post.' );
 
 		// And the other direction: the Settings tab posts its own fields, with
@@ -482,11 +486,11 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertSame( 0, $saved['count'] );
+		$this->assertSame( 0, $saved['count'], 'Saving the settings tab stores the count mode.' );
 		$this->assertFalse( $saved['stats_display'], 'The Settings tab save carries its own WP-Stats toggle through.' );
-		$this->assertSame( 5, $saved['stats_most_limit'] );
+		$this->assertSame( 5, $saved['stats_most_limit'], 'And the WP-Stats limit.' );
 		$this->assertSame( 'EDITED ONE', $saved['template'], 'The Templates tab must survive a Settings save.' );
-		$this->assertSame( 'EDITED TWO', $saved['most_viewed_template'] );
+		$this->assertSame( 'EDITED TWO', $saved['most_viewed_template'], 'While the templates tab values are kept.' );
 	}
 
 	/**
@@ -529,8 +533,8 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_the_most_viewed_limit_is_floored_at_one() {
-		$this->assertSame( 25, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '25' ) )['stats_most_limit'] );
-		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '0' ) )['stats_most_limit'] );
-		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => 'nonsense' ) )['stats_most_limit'] );
+		$this->assertSame( 25, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '25' ) )['stats_most_limit'], 'A limit above one is stored as it stands.' );
+		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => '0' ) )['stats_most_limit'], 'Zero is floored at one.' );
+		$this->assertSame( 1, WP_PostViews_Settings::sanitize( array( 'stats_most_limit' => 'nonsense' ) )['stats_most_limit'], 'And so is something that is not a number.' );
 	}
 }

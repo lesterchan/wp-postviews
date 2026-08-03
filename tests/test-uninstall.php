@@ -121,14 +121,14 @@ class WP_PostViews_Uninstall_Test extends WP_PostViews_TestCase {
 		$this->assertFalse( get_option( WP_PostViews_Options::OPTION ), 'Uninstall deletes the settings row.' );
 		$this->assertFalse( get_option( WP_PostViews_Options::VERSION ), 'Uninstall deletes the version row.' );
 		$this->assertFalse( get_option( 'widget_views' ), 'Uninstall deletes the widget instance row.' );
-		$this->assertSame( '', (string) get_post_meta( $post_id, 'views', true ) );
+		$this->assertSame( '', (string) get_post_meta( $post_id, 'views', true ), 'Uninstalling removes the view count meta.' );
 
 		// An upgrade that never ran leaves the pre-2.0.0 rows on disk, so
 		// uninstall has to clear those too.
 		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_OPTION ), 'Uninstall deletes the legacy settings row.' );
 		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_VERSION ), 'Uninstall deletes the legacy version row.' );
 
-		$this->assertSame( 'do not delete', get_post_meta( $post_id, 'keep_me', true ) );
+		$this->assertSame( 'do not delete', get_post_meta( $post_id, 'keep_me', true ), 'And leaves meta that is not ours where it was.' );
 		$this->assertNotNull( get_post( $post_id ), 'Uninstall leaves the posts alone; only this plugin data goes.' );
 	}
 

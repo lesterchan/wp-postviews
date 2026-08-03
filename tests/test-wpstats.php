@@ -201,8 +201,8 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 
 		$html = $this->capture( array( 'WP_PostViews_WPStats', 'render' ) );
 
-		$this->assertStringContainsString( '<strong>1,234</strong>', $html );
-		$this->assertStringContainsString( 'views were generated', $html );
+		$this->assertStringContainsString( '<strong>1,234</strong>', $html, 'The body reports the total.' );
+		$this->assertStringContainsString( 'views were generated', $html, 'Saying what it is a total of.' );
 	}
 
 	/**
@@ -215,8 +215,8 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 
 		$html = $this->capture( array( 'WP_PostViews_WPStats', 'render' ) );
 
-		$this->assertStringContainsString( 'view was generated', $html );
-		$this->assertStringNotContainsString( 'views were generated', $html );
+		$this->assertStringContainsString( 'view was generated', $html, 'A total of one reads in the singular.' );
+		$this->assertStringNotContainsString( 'views were generated', $html, 'Rather than in the plural.' );
 	}
 
 	/**
@@ -242,17 +242,17 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 
 		$html = $this->capture( array( 'WP_PostViews_WPStats', 'render' ) );
 
-		$this->assertStringContainsString( '5 Most Viewed Posts', $html );
-		$this->assertStringContainsString( '5 Most Viewed Pages', $html );
+		$this->assertStringContainsString( '5 Most Viewed Posts', $html, 'The posts listing is headed for posts.' );
+		$this->assertStringContainsString( '5 Most Viewed Pages', $html, 'And the pages listing for pages.' );
 
 		$posts_at = strpos( $html, 'Most Viewed Posts' );
 		$pages_at = strpos( $html, 'Most Viewed Pages' );
 
 		$posts_block = substr( $html, $posts_at, $pages_at - $posts_at );
 
-		$this->assertStringContainsString( '<li>Popular Post</li>', $posts_block );
+		$this->assertStringContainsString( '<li>Popular Post</li>', $posts_block, 'The posts block lists a post.' );
 		$this->assertStringNotContainsString( 'A Page', $posts_block, 'A page reached the posts listing.' );
-		$this->assertStringContainsString( '<li>A Page</li>', $html );
+		$this->assertStringContainsString( '<li>A Page</li>', $html, 'And the pages block lists a page, so neither has taken the other rows.' );
 	}
 
 	/**
@@ -265,8 +265,8 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 
 		$html = $this->capture( array( 'WP_PostViews_WPStats', 'render' ) );
 
-		$this->assertStringContainsString( '1 Most Viewed Post<', $html );
-		$this->assertStringContainsString( '1 Most Viewed Page<', $html );
+		$this->assertStringContainsString( '1 Most Viewed Post<', $html, 'A listing of one reads in the singular.' );
+		$this->assertStringContainsString( '1 Most Viewed Page<', $html, 'For pages as well as posts.' );
 	}
 
 	/**
@@ -277,7 +277,7 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 	public function test_an_empty_listing_renders_a_placeholder() {
 		$html = $this->capture( array( 'WP_PostViews_WPStats', 'render' ) );
 
-		$this->assertStringContainsString( 'N/A', $html );
+		$this->assertStringContainsString( 'N/A', $html, 'An empty listing renders the placeholder rather than an empty list.' );
 	}
 
 	// --- the limit --------------------------------------------------------
@@ -290,7 +290,7 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 	public function test_the_limit_is_read_from_our_own_settings() {
 		$this->set_options( array( 'stats_most_limit' => 25 ) );
 
-		$this->assertSame( 25, WP_PostViews_WPStats::most_limit() );
+		$this->assertSame( 25, WP_PostViews_WPStats::most_limit(), 'The limit comes from the settings of this plugin.' );
 	}
 
 	/**
@@ -304,7 +304,7 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 	public function test_a_useless_limit_floors_at_one( $stored ) {
 		$this->set_options( array( 'stats_most_limit' => $stored ) );
 
-		$this->assertSame( 1, WP_PostViews_WPStats::most_limit() );
+		$this->assertSame( 1, WP_PostViews_WPStats::most_limit(), 'And a useless one is floored at one rather than stored as zero.' );
 	}
 
 	/**

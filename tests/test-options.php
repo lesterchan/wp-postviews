@@ -67,7 +67,8 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	public function test_the_retired_keys_are_the_six_display_rows() {
 		$this->assertSame(
 			array( 'display_home', 'display_single', 'display_page', 'display_archive', 'display_search', 'display_other' ),
-			WP_PostViews_Options::retired_keys()
+			WP_PostViews_Options::retired_keys(),
+			'These six display rows are the retired keys, and no others.'
 		);
 	}
 
@@ -83,7 +84,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 		$defaults = WP_PostViews_Options::defaults();
 
 		$this->assertTrue( $defaults['stats_display'], 'The WP-Stats section must be offered by default.' );
-		$this->assertSame( 10, $defaults['stats_most_limit'] );
+		$this->assertSame( 10, $defaults['stats_most_limit'], 'The WP-Stats limit has a default rather than none.' );
 	}
 
 	/**
@@ -108,7 +109,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	public function test_partial_row_is_merged_over_defaults() {
 		update_option( WP_PostViews_Options::OPTION, array( 'count' => 2 ) );
 
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'A partial row is merged over the defaults, so the key it holds wins.' );
 		$this->assertSame(
 			WP_PostViews_Options::default_template( 'template' ),
 			WP_PostViews_Options::get( 'template' ),
@@ -124,7 +125,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	public function test_non_array_row_falls_back_to_defaults() {
 		update_option( WP_PostViews_Options::OPTION, 'not an array' );
 
-		$this->assertSame( WP_PostViews_Options::defaults(), WP_PostViews_Options::all() );
+		$this->assertSame( WP_PostViews_Options::defaults(), WP_PostViews_Options::all(), 'A row that is not an array falls back to the defaults entirely.' );
 	}
 
 	/**
@@ -142,7 +143,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 
 		update_option( WP_PostViews_Options::OPTION, array_merge( WP_PostViews_Options::all(), array( 'count' => 2 ) ) );
 
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'A write from outside invalidates the cache, so the new value is what is read.' );
 	}
 
 	/**
@@ -157,7 +158,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 
 		add_option( WP_PostViews_Options::OPTION, array( 'count' => 2 ) );
 
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'And so does adding the row for the first time.' );
 	}
 
 	/**
@@ -170,7 +171,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 
 		WP_PostViews_Options::install();
 
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'Installing over an existing row leaves its settings alone.' );
 	}
 
 	/**
@@ -181,9 +182,9 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	public function test_save_replaces_and_backfills() {
 		WP_PostViews_Options::save( array( 'count' => 2 ) );
 
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
-		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), WP_PostViews_Options::get( 'template' ) );
-		$this->assertSame( 2, (int) get_option( WP_PostViews_Options::OPTION )['count'] );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'Saving stores what it was given.' );
+		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), WP_PostViews_Options::get( 'template' ), 'And backfills the keys it was not given.' );
+		$this->assertSame( 2, (int) get_option( WP_PostViews_Options::OPTION )['count'], 'Reading the row directly agrees, so the cache is not the only place it landed.' );
 	}
 
 	/**
@@ -192,7 +193,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_get_returns_the_fallback_for_an_unknown_key() {
-		$this->assertSame( 'fallback', WP_PostViews_Options::get( 'no_such_key', 'fallback' ) );
+		$this->assertSame( 'fallback', WP_PostViews_Options::get( 'no_such_key', 'fallback' ), 'An unknown key yields the fallback rather than a notice.' );
 		$this->assertNull( WP_PostViews_Options::get( 'no_such_key' ), 'An unknown key reads back null rather than raising a notice.' );
 	}
 
@@ -206,12 +207,12 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	 */
 	public function test_get_int_coerces() {
 		$this->set_options( array( 'count' => '2' ) );
-		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'A numeric string is read as an integer.' );
 
 		$this->set_options( array( 'count' => 'nonsense' ) );
-		$this->assertSame( 0, WP_PostViews_Options::get_int( 'count' ) );
+		$this->assertSame( 0, WP_PostViews_Options::get_int( 'count' ), 'Something that is not a number is zero.' );
 
-		$this->assertSame( 0, WP_PostViews_Options::get_int( 'no_such_key' ) );
+		$this->assertSame( 0, WP_PostViews_Options::get_int( 'no_such_key' ), 'And so is a key that is not there.' );
 	}
 
 	/**
@@ -227,7 +228,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 			$this->assertStringContainsString( '%VIEW_COUNT%', $default, 'The ' . $key . ' default does not carry the %VIEW_COUNT% token it exists to place.' );
 		}
 
-		$this->assertStringContainsString( '%POST_URL%', WP_PostViews_Options::default_template( 'most_viewed_template' ) );
+		$this->assertStringContainsString( '%POST_URL%', WP_PostViews_Options::default_template( 'most_viewed_template' ), 'The listing default carries the post URL token.' );
 	}
 
 	/**
@@ -239,7 +240,8 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	public function test_default_template_falls_back() {
 		$this->assertSame(
 			WP_PostViews_Options::default_template( 'template' ),
-			WP_PostViews_Options::default_template( 'anything_else' )
+			WP_PostViews_Options::default_template( 'anything_else' ),
+			'An unknown template name falls back to the view count default rather than to nothing.'
 		);
 	}
 }

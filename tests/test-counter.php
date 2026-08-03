@@ -75,7 +75,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'count' => $mode ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
 
-		$this->assertSame( $expected, $this->hit( $this->post_id ) );
+		$this->assertSame( $expected, $this->hit( $this->post_id ), 'The count mode decides whether this visitor counts.' );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'count' => 0 ) );
 		$this->set_context( array( 'is_page', 'is_singular' ), $page_id );
 
-		$this->assertSame( 1, $this->hit( $page_id ) );
+		$this->assertSame( 1, $this->hit( $page_id ), 'A page is counted as well as a post.' );
 	}
 
 	/**
@@ -119,7 +119,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'count' => 0 ) );
 		$this->set_context( array( $flag ), $this->post_id );
 
-		$this->assertSame( 0, $this->hit( $this->post_id ) );
+		$this->assertSame( 0, $this->hit( $this->post_id ), 'Nothing is counted outside a single view.' );
 	}
 
 	/**
@@ -144,7 +144,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'count' => 0 ) );
 		$this->set_context( array( 'is_single', 'is_singular', 'is_preview' ), $this->post_id );
 
-		$this->assertSame( 0, $this->hit( $this->post_id ) );
+		$this->assertSame( 0, $this->hit( $this->post_id ), 'A preview is not a view.' );
 	}
 
 	/**
@@ -157,8 +157,8 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'count' => 0 ) );
 		$this->set_context( array( 'is_single', 'is_singular' ), $post_id );
 
-		$this->assertSame( 1, $this->hit( $post_id ) );
-		$this->assertSame( '1', get_post_meta( $post_id, 'views', true ) );
+		$this->assertSame( 1, $this->hit( $post_id ), 'The first view of an unviewed post counts.' );
+		$this->assertSame( '1', get_post_meta( $post_id, 'views', true ), 'And leaves the meta at one rather than at nothing.' );
 	}
 
 	/**
@@ -180,7 +180,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$_SERVER['HTTP_USER_AGENT'] = $user_agent;
 
-		$this->assertSame( 0, $this->hit( $this->post_id ) );
+		$this->assertSame( 0, $this->hit( $this->post_id ), 'A bot is not counted.' );
 	}
 
 	/**
@@ -221,7 +221,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		);
 		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
 
-		$this->assertSame( 1, $this->hit( $this->post_id ) );
+		$this->assertSame( 1, $this->hit( $this->post_id ), 'While an ordinary browser still is.' );
 	}
 
 	/**
@@ -240,7 +240,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		unset( $_SERVER['HTTP_USER_AGENT'] );
 
-		$this->assertSame( 1, $this->hit( $this->post_id ) );
+		$this->assertSame( 1, $this->hit( $this->post_id ), 'A missing user agent is not treated as a bot.' );
 	}
 
 	/**
@@ -264,8 +264,8 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 			2
 		);
 
-		$this->assertSame( 0, $this->hit( $this->post_id ) );
-		$this->assertSame( $this->post_id, $seen );
+		$this->assertSame( 0, $this->hit( $this->post_id ), 'The filter can veto a view.' );
+		$this->assertSame( $this->post_id, $seen, 'And is told which post it is vetoing.' );
 	}
 
 	/**
@@ -280,7 +280,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		add_filter( 'wp_postviews_should_count', '__return_true' );
 
-		$this->assertSame( 1, $this->hit( $this->post_id ) );
+		$this->assertSame( 1, $this->hit( $this->post_id ), 'It can force one too, so a site can count what the plugin would not.' );
 	}
 
 	/**
@@ -302,7 +302,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->hit( $this->post_id );
 
-		$this->assertSame( 501, $fired );
+		$this->assertSame( 501, $fired, 'The action fires with the new count, not the old one.' );
 	}
 
 	/**
@@ -313,9 +313,9 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	public function test_ajax_endpoint_increments() {
 		$response = $this->call_ajax( (string) $this->post_id );
 
-		$this->assertSame( 1, $response['delta'] );
+		$this->assertSame( 1, $response['delta'], 'The endpoint counts the view.' );
 		$this->assertTrue( $response['json']['success'], 'The AJAX endpoint reports success.' );
-		$this->assertSame( 501, $response['json']['data']['views'] );
+		$this->assertSame( 501, $response['json']['data']['views'], 'And answers with the new total.' );
 	}
 
 	/**
@@ -327,7 +327,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_ajax_endpoint_rejects( $postviews_id ) {
-		$this->assertSame( 0, $this->call_ajax( $postviews_id )['delta'] );
+		$this->assertSame( 0, $this->call_ajax( $postviews_id )['delta'], 'A request for a post that cannot be counted counts nothing.' );
 	}
 
 	/**
@@ -358,7 +358,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->call_ajax( (string) $ghost );
 
-		$this->assertSame( '', (string) get_post_meta( $ghost, 'views', true ) );
+		$this->assertSame( '', (string) get_post_meta( $ghost, 'views', true ), 'And leaves no meta row behind for a post that does not exist.' );
 	}
 
 	/**
@@ -368,7 +368,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_ajax_endpoint_is_inert_when_disabled() {
-		$this->assertSame( 0, $this->call_ajax( (string) $this->post_id, false )['delta'] );
+		$this->assertSame( 0, $this->call_ajax( (string) $this->post_id, false )['delta'], 'With the setting off the endpoint counts nothing.' );
 	}
 
 	/**
@@ -379,7 +379,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	public function test_ajax_endpoint_requires_a_nonce() {
 		$response = $this->call_ajax( (string) $this->post_id, true, 'not-a-nonce' );
 
-		$this->assertSame( 0, $response['delta'] );
+		$this->assertSame( 0, $response['delta'], 'And without a nonce it counts nothing either.' );
 		$this->assertNotNull( $response['died'], 'Without a nonce the endpoint dies rather than counting the view.' );
 	}
 
@@ -402,10 +402,10 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ), 'The cache script is enqueued when AJAX counting is on.' );
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-cache', 'data' );
-		$this->assertStringContainsString( 'wpPostViewsL10n', $data );
-		$this->assertStringContainsString( '"postId":"' . $this->post_id . '"', $data );
-		$this->assertStringContainsString( 'admin-ajax.php', $data );
-		$this->assertStringContainsString( '"nonce"', $data );
+		$this->assertStringContainsString( 'wpPostViewsL10n', $data, 'The localised object is attached under the name the script reads.' );
+		$this->assertStringContainsString( '"postId":"' . $this->post_id . '"', $data, 'Carrying the post to count.' );
+		$this->assertStringContainsString( 'admin-ajax.php', $data, 'The endpoint to call.' );
+		$this->assertStringContainsString( '"nonce"', $data, 'And a nonce to send with it.' );
 	}
 
 	/**
@@ -427,7 +427,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->fire( 'wp_enqueue_scripts' );
 
-		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-cache']->deps );
+		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-cache']->deps, 'The cache script declares no dependencies, so jQuery is not pulled in behind it.' );
 	}
 
 	/**
@@ -594,7 +594,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$_SERVER['HTTP_USER_AGENT'] = $user_agent;
 
-		$this->assertSame( 0, $this->hit( $this->post_id ) );
+		$this->assertSame( 0, $this->hit( $this->post_id ), 'A bot is matched whatever case its name arrives in.' );
 	}
 
 	/**
@@ -626,7 +626,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (compatible; bingbot/2.0)';
 
-		$this->assertSame( 1, $this->hit( $this->post_id ) );
+		$this->assertSame( 1, $this->hit( $this->post_id ), 'With exclusion off even a bot counts.' );
 	}
 
 	/**
@@ -644,7 +644,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$GLOBALS['post'] = $this->post_id;
 
-		$this->assertSame( 1, $this->hit( $this->post_id ) );
+		$this->assertSame( 1, $this->hit( $this->post_id ), 'A bare post ID in the global is enough to count against.' );
 
 		// And the global is left exactly as the theme set it. The counter used
 		// to write a hydrated WP_Post back over it, which is a side effect on
@@ -674,7 +674,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->fire( 'wp_head' );
 		ob_end_clean();
 
-		$this->assertSame( $before, (int) get_post_meta( $this->post_id, 'views', true ) );
+		$this->assertSame( $before, (int) get_post_meta( $this->post_id, 'views', true ), 'While something that is not a post at all counts nothing.' );
 	}
 
 	/**
@@ -700,7 +700,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->fire( 'wp_head' );
 		ob_end_clean();
 
-		$this->assertSame( $before, (int) get_post_meta( $revision_id, 'views', true ) );
+		$this->assertSame( $before, (int) get_post_meta( $revision_id, 'views', true ), 'And a revision is not counted, so an edit does not inflate the post.' );
 	}
 
 	/**

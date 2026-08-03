@@ -68,7 +68,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Admin::add_menu();
 
 		$slugs = wp_list_pluck( $submenu['options-general.php'] ?? array(), 2 );
-		$this->assertContains( WP_PostViews_Admin::PAGE, $slugs );
+		$this->assertContains( WP_PostViews_Admin::PAGE, $slugs, 'The screen is registered under its own slug.' );
 
 		set_current_screen( 'front' );
 	}
@@ -90,7 +90,8 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 				function () {
 					WP_PostViews_Admin::render_page();
 				}
-			)
+			),
+			'Without the capability the screen renders nothing.'
 		);
 	}
 
@@ -102,8 +103,8 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	public function test_render_outputs_the_form() {
 		$html = $this->render_tab();
 
-		$this->assertStringContainsString( 'action="options.php"', $html );
-		$this->assertStringContainsString( WP_PostViews_Settings::GROUP, $html );
+		$this->assertStringContainsString( 'action="options.php"', $html, 'The form posts to options.php, so core handles the save.' );
+		$this->assertStringContainsString( WP_PostViews_Settings::GROUP, $html, 'Naming the settings group the setting is registered in.' );
 
 		// Every option key this tab owns has a field.
 		foreach ( array( 'count', 'exclude_bots', 'stats_display', 'stats_most_limit' ) as $key ) {
@@ -124,15 +125,15 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	public function test_render_outputs_the_templates_tab() {
 		$html = $this->render_tab( 'templates' );
 
-		$this->assertStringContainsString( 'action="options.php"', $html );
-		$this->assertStringContainsString( 'views-template-template', $html );
-		$this->assertStringContainsString( 'views-template-most_viewed_template', $html );
+		$this->assertStringContainsString( 'action="options.php"', $html, 'The templates tab posts to options.php too.' );
+		$this->assertStringContainsString( 'views-template-template', $html, 'And renders the view count template field.' );
+		$this->assertStringContainsString( 'views-template-most_viewed_template', $html, 'And the listing template field.' );
 
 		// The variable list sits in the template row's heading cell.
-		$this->assertStringContainsString( '<code>%POST_THUMBNAIL_URL%</code>', $html );
+		$this->assertStringContainsString( '<code>%POST_THUMBNAIL_URL%</code>', $html, 'With the token list, so the fields can be filled in without the readme.' );
 
 		// One table, and none of the Settings tab's rows.
-		$this->assertSame( 1, substr_count( $html, 'class="form-table"' ) );
+		$this->assertSame( 1, substr_count( $html, 'class="form-table"' ), 'There is one form table on the tab, not one per field.' );
 		foreach ( array( 'count', 'exclude_bots', 'stats_display', 'stats_most_limit' ) as $key ) {
 			$this->assertStringNotContainsString( 'id="views-' . $key . '"', $html, "{$key} belongs to the Settings tab." );
 		}
@@ -150,11 +151,11 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		$settings  = $this->render_tab( 'settings' );
 		$templates = $this->render_tab( 'templates' );
 
-		$this->assertStringContainsString( 'id="views-count"', $settings );
-		$this->assertStringNotContainsString( 'id="views-count"', $templates );
+		$this->assertStringContainsString( 'id="views-count"', $settings, 'The settings tab draws the counting field.' );
+		$this->assertStringNotContainsString( 'id="views-count"', $templates, 'And the templates tab does not.' );
 
-		$this->assertStringContainsString( 'id="views-template-template"', $templates );
-		$this->assertStringNotContainsString( 'id="views-template-template"', $settings );
+		$this->assertStringContainsString( 'id="views-template-template"', $templates, 'The templates tab draws the template field.' );
+		$this->assertStringNotContainsString( 'id="views-template-template"', $settings, 'And the settings tab does not, so a save of one cannot blank the other.' );
 	}
 
 	/**
@@ -228,7 +229,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		$html = $this->render_tab();
 
-		$this->assertStringNotContainsString( 'Settings saved.', $html );
+		$this->assertStringNotContainsString( 'Settings saved.', $html, 'The screen does not print the notice core has already printed.' );
 	}
 
 	/**
@@ -297,7 +298,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		$this->assertDoesNotMatchRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html, 'The withdrawn Display Options section is not drawn.' );
 
 		// Its callback ran.
-		$this->assertStringContainsString( 'These settings do nothing without WP-Stats.', $html );
+		$this->assertStringContainsString( 'These settings do nothing without WP-Stats.', $html, 'The registered section description is drawn with its fields.' );
 
 		// Counting rows, then WP-Stats.
 		$this->assertLessThan( strpos( $html, 'id="views-stats_display"' ), strpos( $html, 'id="views-count"' ), 'The count field is drawn before the WP-Stats one, which is the registered order.' );
@@ -314,13 +315,13 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	public function test_render_emits_the_reset_buttons() {
 		$html = $this->render_tab( 'templates' );
 
-		$this->assertStringContainsString( 'data-postviews-reset="template"', $html );
-		$this->assertStringContainsString( 'data-postviews-target="views-template-template"', $html );
-		$this->assertStringContainsString( 'data-postviews-reset="most_viewed_template"', $html );
-		$this->assertStringContainsString( 'data-postviews-target="views-template-most_viewed_template"', $html );
+		$this->assertStringContainsString( 'data-postviews-reset="template"', $html, 'The view count template has a reset button.' );
+		$this->assertStringContainsString( 'data-postviews-target="views-template-template"', $html, 'Naming the field it resets.' );
+		$this->assertStringContainsString( 'data-postviews-reset="most_viewed_template"', $html, 'The listing template has one too.' );
+		$this->assertStringContainsString( 'data-postviews-target="views-template-most_viewed_template"', $html, 'Naming its own field.' );
 
 		// The inline handlers 2.0.0 removed must not come back.
-		$this->assertStringNotContainsString( 'onclick', $html );
+		$this->assertStringNotContainsString( 'onclick', $html, 'And neither is an inline handler.' );
 	}
 
 	/**
@@ -333,8 +334,8 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		$html = $this->render_tab( 'templates' );
 
-		$this->assertStringNotContainsString( 'onmouseover="alert(1)"', $html );
-		$this->assertStringContainsString( '&quot;', $html );
+		$this->assertStringNotContainsString( 'onmouseover="alert(1)"', $html, 'A stored template cannot carry a handler onto the screen.' );
+		$this->assertStringContainsString( '&quot;', $html, 'It is escaped for the attribute it is printed into.' );
 	}
 
 	/**
@@ -346,12 +347,12 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Admin::enqueue_scripts();
 
 		$this->assertTrue( wp_script_is( 'wp-postviews-admin', 'enqueued' ), 'The admin script is enqueued on this screen.' );
-		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-admin']->deps );
+		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-admin']->deps, 'The admin script declares no dependencies, so nothing is pulled in behind it.' );
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );
-		$this->assertStringContainsString( 'wpPostViewsL10n', $data );
-		$this->assertStringContainsString( '%VIEW_COUNT%', $data );
-		$this->assertStringContainsString( '%POST_URL%', $data );
+		$this->assertStringContainsString( 'wpPostViewsL10n', $data, 'The localised object is attached under the name the script reads.' );
+		$this->assertStringContainsString( '%VIEW_COUNT%', $data, 'Carrying the view count token.' );
+		$this->assertStringContainsString( '%POST_URL%', $data, 'And the post URL token, which is what the reset buttons restore.' );
 	}
 
 	/**
@@ -366,8 +367,8 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		preg_match( '/wpPostViewsL10n = (\{.*\});/', $data, $matches );
 		$decoded = json_decode( $matches[1], true );
 
-		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), $decoded['defaults']['template'] );
-		$this->assertSame( WP_PostViews_Options::default_template( 'most_viewed_template' ), $decoded['defaults']['most_viewed_template'] );
+		$this->assertSame( WP_PostViews_Options::default_template( 'template' ), $decoded['defaults']['template'], 'The localised view count default is the option default.' );
+		$this->assertSame( WP_PostViews_Options::default_template( 'most_viewed_template' ), $decoded['defaults']['most_viewed_template'], 'And so is the listing default, so a reset really restores.' );
 	}
 
 	/**
@@ -382,18 +383,18 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		if ( defined( 'WP_CACHE' ) && WP_CACHE ) {
 			// A visible select, and no hidden field forcing the value off.
-			$this->assertStringContainsString( 'id="views-use_ajax"', $html );
-			$this->assertStringNotContainsString( $hidden_field, $html );
+			$this->assertStringContainsString( 'id="views-use_ajax"', $html, 'Under WP_CACHE the AJAX row is offered.' );
+			$this->assertStringNotContainsString( $hidden_field, $html, 'With no hidden field, because the real one is on screen.' );
 		} else {
 			// No select; a hidden field pins it off, because with no page
 			// cache the setting has no effect either way.
-			$this->assertStringNotContainsString( 'id="views-use_ajax"', $html );
-			$this->assertStringContainsString( $hidden_field, $html );
+			$this->assertStringNotContainsString( 'id="views-use_ajax"', $html, 'Without WP_CACHE the row is not offered.' );
+			$this->assertStringContainsString( $hidden_field, $html, 'And a hidden field carries the stored value, so saving cannot blank it.' );
 		}
 
 		// Either way the pin belongs to the tab that owns the row. On Templates
 		// it would be a field from another tab riding along on every save.
-		$this->assertStringNotContainsString( $hidden_field, $this->render_tab( 'templates' ) );
+		$this->assertStringNotContainsString( $hidden_field, $this->render_tab( 'templates' ), 'The other tab carries no hidden copy of it.' );
 	}
 
 	/**
@@ -402,7 +403,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_the_capability_is_filterable() {
-		$this->assertSame( 'manage_options', WP_PostViews_Admin::capability() );
+		$this->assertSame( 'manage_options', WP_PostViews_Admin::capability(), 'The default capability is manage_options.' );
 
 		add_filter(
 			'wp_postviews_capability',
@@ -411,7 +412,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertSame( 'edit_theme_options', WP_PostViews_Admin::capability() );
+		$this->assertSame( 'edit_theme_options', WP_PostViews_Admin::capability(), 'And a filter can replace it.' );
 	}
 
 	/**
@@ -435,7 +436,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		WP_PostViews_Admin::capability();
 
-		$this->assertSame( 'settings', $seen );
+		$this->assertSame( 'settings', $seen, 'The filter is told which screen is asking.' );
 	}
 
 	/**
@@ -467,7 +468,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		}
 
 		$this->assertNotNull( $entry, 'The menu entry was not registered.' );
-		$this->assertSame( 'edit_theme_options', $entry[1] );
+		$this->assertSame( 'edit_theme_options', $entry[1], 'And the menu is registered with the filtered capability, not the default.' );
 
 		set_current_screen( 'front' );
 	}
@@ -480,9 +481,9 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	public function test_render_draws_the_wp_stats_rows() {
 		$html = $this->render_tab();
 
-		$this->assertStringContainsString( 'id="views-stats_display"', $html );
-		$this->assertStringContainsString( 'id="views-stats_most_limit"', $html );
-		$this->assertStringContainsString( 'WP-Stats', $html );
+		$this->assertStringContainsString( 'id="views-stats_display"', $html, 'The WP-Stats toggle is drawn.' );
+		$this->assertStringContainsString( 'id="views-stats_most_limit"', $html, 'The row limit.' );
+		$this->assertStringContainsString( 'WP-Stats', $html, 'And the section says what they are for.' );
 	}
 
 	/**
