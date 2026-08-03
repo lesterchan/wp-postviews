@@ -21,7 +21,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 		$defaults = WP_PostViews_Options::defaults();
 
 		foreach ( array( 'count', 'exclude_bots', 'use_ajax', 'template', 'most_viewed_template', 'stats_display', 'stats_most_limit' ) as $key ) {
-			$this->assertArrayHasKey( $key, $defaults );
+			$this->assertArrayHasKey( $key, $defaults, $key . ' has no shipped default.' );
 		}
 	}
 
@@ -193,7 +193,7 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 	 */
 	public function test_get_returns_the_fallback_for_an_unknown_key() {
 		$this->assertSame( 'fallback', WP_PostViews_Options::get( 'no_such_key', 'fallback' ) );
-		$this->assertNull( WP_PostViews_Options::get( 'no_such_key' ) );
+		$this->assertNull( WP_PostViews_Options::get( 'no_such_key' ), 'An unknown key reads back null rather than raising a notice.' );
 	}
 
 	/**
@@ -223,8 +223,8 @@ class WP_PostViews_Options_Test extends WP_PostViews_TestCase {
 		foreach ( array( 'template', 'most_viewed_template' ) as $key ) {
 			$default = WP_PostViews_Options::default_template( $key );
 
-			$this->assertNotSame( '', $default );
-			$this->assertStringContainsString( '%VIEW_COUNT%', $default );
+			$this->assertNotSame( '', $default, 'The ' . $key . ' template ships no default.' );
+			$this->assertStringContainsString( '%VIEW_COUNT%', $default, 'The ' . $key . ' default does not carry the %VIEW_COUNT% token it exists to place.' );
 		}
 
 		$this->assertStringContainsString( '%POST_URL%', WP_PostViews_Options::default_template( 'most_viewed_template' ) );

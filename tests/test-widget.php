@@ -77,7 +77,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_widget_supports_selective_refresh() {
-		$this->assertTrue( ! empty( $this->get_widget()->widget_options['customize_selective_refresh'] ) );
+		$this->assertTrue( ! empty( $this->get_widget()->widget_options['customize_selective_refresh'] ), 'The widget declares selective refresh, so the customizer does not reload the page.' );
 	}
 
 	/**
@@ -305,7 +305,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			)
 		);
 
-		$this->assertIsString( $output );
+		$this->assertIsString( $output, 'A hostile category id is sanitised and the widget still renders.' );
 		$this->assertStringContainsString( '<ul>', $output );
 	}
 
@@ -483,7 +483,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 		}
 
 		foreach ( array( 'least_viewed', 'least_viewed_category', 'most_viewed', 'most_viewed_category' ) as $type ) {
-			$this->assertStringContainsString( 'value="' . $type . '"', $html );
+			$this->assertStringContainsString( 'value="' . $type . '"', $html, 'The ' . $type . ' option is missing from the form.' );
 		}
 	}
 
@@ -542,7 +542,7 @@ class WP_PostViews_Widget_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertMatchesRegularExpression( '/value="least_viewed_category"\s+selected/', $html );
+		$this->assertMatchesRegularExpression( '/value="least_viewed_category"\s+selected/', $html, 'The saved type is the option preselected in the dropdown.' );
 	}
 
 	/**

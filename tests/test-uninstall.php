@@ -81,7 +81,8 @@ class WP_PostViews_Uninstall_Test extends WP_PostViews_TestCase {
 	public function test_blog_is_restored_inside_the_loop() {
 		$this->assertMatchesRegularExpression(
 			'/switch_to_blog.*?restore_current_blog.*?\}/s',
-			$this->uninstall_source()
+			$this->uninstall_source(),
+			'The restore sits inside the loop; once after it leaves the stack unwound by one.'
 		);
 	}
 
@@ -117,18 +118,18 @@ class WP_PostViews_Uninstall_Test extends WP_PostViews_TestCase {
 
 		$this->run_uninstall();
 
-		$this->assertFalse( get_option( WP_PostViews_Options::OPTION ) );
-		$this->assertFalse( get_option( WP_PostViews_Options::VERSION ) );
-		$this->assertFalse( get_option( 'widget_views' ) );
+		$this->assertFalse( get_option( WP_PostViews_Options::OPTION ), 'Uninstall deletes the settings row.' );
+		$this->assertFalse( get_option( WP_PostViews_Options::VERSION ), 'Uninstall deletes the version row.' );
+		$this->assertFalse( get_option( 'widget_views' ), 'Uninstall deletes the widget instance row.' );
 		$this->assertSame( '', (string) get_post_meta( $post_id, 'views', true ) );
 
 		// An upgrade that never ran leaves the pre-2.0.0 rows on disk, so
 		// uninstall has to clear those too.
-		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_OPTION ) );
-		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_VERSION ) );
+		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_OPTION ), 'Uninstall deletes the legacy settings row.' );
+		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_VERSION ), 'Uninstall deletes the legacy version row.' );
 
 		$this->assertSame( 'do not delete', get_post_meta( $post_id, 'keep_me', true ) );
-		$this->assertNotNull( get_post( $post_id ) );
+		$this->assertNotNull( get_post( $post_id ), 'Uninstall leaves the posts alone; only this plugin data goes.' );
 	}
 
 	/**

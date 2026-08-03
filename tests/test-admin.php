@@ -167,9 +167,9 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		foreach ( array( 'settings', 'templates' ) as $tab ) {
 			$html = $this->render_tab( $tab );
 
-			$this->assertStringContainsString( 'class="nav-tab-wrapper"', $html );
-			$this->assertMatchesRegularExpression( '#>\s*Settings\s*</a>#', $html );
-			$this->assertMatchesRegularExpression( '#>\s*Templates\s*</a>#', $html );
+			$this->assertStringContainsString( 'class="nav-tab-wrapper"', $html, 'The screen carries the core tab nav wrapper.' );
+			$this->assertMatchesRegularExpression( '#>\s*Settings\s*</a>#', $html, 'The Settings tab is offered.' );
+			$this->assertMatchesRegularExpression( '#>\s*Templates\s*</a>#', $html, 'The Templates tab is offered.' );
 
 			// One active tab, and it is this one.
 			$this->assertSame( 1, substr_count( $html, 'nav-tab-active' ), 'Exactly one tab is active.' );
@@ -180,8 +180,8 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 			);
 
 			// §4.1: tabs on one page, never a second submenu entry.
-			$this->assertStringContainsString( 'options-general.php?page=' . WP_PostViews_Admin::PAGE . '&#038;tab=settings', $html );
-			$this->assertStringContainsString( 'options-general.php?page=' . WP_PostViews_Admin::PAGE . '&#038;tab=templates', $html );
+			$this->assertStringContainsString( 'options-general.php?page=' . WP_PostViews_Admin::PAGE . '&#038;tab=settings', $html, 'The Settings tab links to itself with its tab argument.' );
+			$this->assertStringContainsString( 'options-general.php?page=' . WP_PostViews_Admin::PAGE . '&#038;tab=templates', $html, 'The Templates tab links to itself with its tab argument.' );
 		}
 	}
 
@@ -198,7 +198,8 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 
 		$this->assertMatchesRegularExpression(
 			'#name="_wp_http_referer" value="[^"]*page=' . WP_PostViews_Admin::PAGE . '[^"]*tab=templates"#',
-			$html
+			$html,
+			'The referer field carries the tab, so a save returns to the tab it was made on.'
 		);
 
 		// It comes after the one settings_fields() emits, because the last value
@@ -210,7 +211,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		}
 
 		$this->assertCount( 2, $offsets, 'settings_fields() emits one and the screen adds its own.' );
-		$this->assertLessThan( $offsets[1], strpos( $html, 'name="_wpnonce"' ) );
+		$this->assertLessThan( $offsets[1], strpos( $html, 'name="_wpnonce"' ), 'The nonce is emitted inside the form, before the fields it protects.' );
 	}
 
 	/**
@@ -239,8 +240,8 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		foreach ( array( 'settings', 'templates' ) as $tab ) {
 			$html = $this->render_tab( $tab );
 
-			$this->assertStringContainsString( '<h1>Post Views Settings</h1>', $html );
-			$this->assertStringNotContainsString( 'Post Views Options', $html );
+			$this->assertStringContainsString( '<h1>Post Views Settings</h1>', $html, 'The screen is named Settings, per the collection heading rule.' );
+			$this->assertStringNotContainsString( 'Post Views Options', $html, 'The old Options heading is gone rather than merely hidden.' );
 		}
 	}
 
@@ -290,16 +291,16 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		// The second section title, emitted by core from the registration.
 		// Matched loosely: WordPress gives a settings heading an id attribute and
 		// the attribute has not always been there.
-		$this->assertMatchesRegularExpression( '#<h2[^>]*>WP-Stats</h2>#', $html );
+		$this->assertMatchesRegularExpression( '#<h2[^>]*>WP-Stats</h2>#', $html, 'The WP-Stats section is drawn on the settings tab.' );
 
 		// Display Options is gone, and so is the paragraph that introduced it.
-		$this->assertDoesNotMatchRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html );
+		$this->assertDoesNotMatchRegularExpression( '#<h2[^>]*>Display Options</h2>#', $html, 'The withdrawn Display Options section is not drawn.' );
 
 		// Its callback ran.
 		$this->assertStringContainsString( 'These settings do nothing without WP-Stats.', $html );
 
 		// Counting rows, then WP-Stats.
-		$this->assertLessThan( strpos( $html, 'id="views-stats_display"' ), strpos( $html, 'id="views-count"' ) );
+		$this->assertLessThan( strpos( $html, 'id="views-stats_display"' ), strpos( $html, 'id="views-count"' ), 'The count field is drawn before the WP-Stats one, which is the registered order.' );
 	}
 
 	/**
@@ -344,7 +345,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	public function test_admin_script_is_enqueued_and_localised() {
 		WP_PostViews_Admin::enqueue_scripts();
 
-		$this->assertTrue( wp_script_is( 'wp-postviews-admin', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'wp-postviews-admin', 'enqueued' ), 'The admin script is enqueued on this screen.' );
 		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-admin']->deps );
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );

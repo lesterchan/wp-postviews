@@ -143,7 +143,7 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_limit_is_respected() {
-		$this->assertCount( 2, $this->listed_titles( get_most_viewed( 'post', 2, 0, false ) ) );
+		$this->assertCount( 2, $this->listed_titles( get_most_viewed( 'post', 2, 0, false ) ), 'The limit caps the listing.' );
 	}
 
 	/**
@@ -401,7 +401,7 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_a_negative_limit_lists_everything() {
-		$this->assertCount( 4, $this->listed_titles( get_most_viewed( 'post', -1, 0, false ) ) );
+		$this->assertCount( 4, $this->listed_titles( get_most_viewed( 'post', -1, 0, false ) ), 'A negative limit lists everything rather than nothing.' );
 	}
 
 	/**
@@ -446,7 +446,7 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 		$output = get_most_viewed( 'post', 2, 0, false );
 
 		$this->assertStringContainsString( 'Tied', $output );
-		$this->assertCount( 2, $this->listed_titles( $output ) );
+		$this->assertCount( 2, $this->listed_titles( $output ), 'Posts tying on count are all listed, not collapsed to one.' );
 	}
 
 	/**

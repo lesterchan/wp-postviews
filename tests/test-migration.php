@@ -322,7 +322,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::maybe_upgrade();
 		WP_PostViews_Options::flush();
 
-		$this->assertIsBool( WP_PostViews_Options::get( 'stats_display' ) );
+		$this->assertIsBool( WP_PostViews_Options::get( 'stats_display' ), 'The migrated toggle is stored as a bool, not the string it arrived as.' );
 	}
 
 	/**
@@ -401,7 +401,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 
 		WP_PostViews_Options::install();
 
-		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION ) );
+		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION ), 'Activation seeds a settings row rather than leaving the option absent.' );
 		$this->assertSame( WP_POSTVIEWS_VERSION, WP_PostViews_Options::markers()['plugin'] );
 		$this->assertSame( WP_POSTVIEWS_DB_VERSION, WP_PostViews_Options::markers()['db'] );
 	}

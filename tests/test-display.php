@@ -177,7 +177,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	 */
 	public function test_the_should_display_filter_is_cast_to_bool() {
 		add_filter( 'wp_postviews_should_display', '__return_zero' );
-		$this->assertFalse( WP_PostViews_Display::should_be_displayed() );
+		$this->assertFalse( WP_PostViews_Display::should_be_displayed(), 'A falsy filter value is cast to false rather than returned raw.' );
 
 		remove_filter( 'wp_postviews_should_display', '__return_zero' );
 		add_filter(
@@ -186,7 +186,7 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 				return 'yes';
 			}
 		);
-		$this->assertTrue( WP_PostViews_Display::should_be_displayed() );
+		$this->assertTrue( WP_PostViews_Display::should_be_displayed(), 'A truthy filter value is cast to true rather than returned raw.' );
 	}
 
 	/**
@@ -201,8 +201,8 @@ class WP_PostViews_Display_Test extends WP_PostViews_TestCase {
 	public function test_should_be_displayed_is_still_a_public_method() {
 		$method = new ReflectionMethod( 'WP_PostViews_Display', 'should_be_displayed' );
 
-		$this->assertTrue( $method->isPublic() );
-		$this->assertTrue( $method->isStatic() );
+		$this->assertTrue( $method->isPublic(), 'should_be_displayed() is still public; the Upgrade Notice names it as the replacement.' );
+		$this->assertTrue( $method->isStatic(), 'should_be_displayed() is still static, as the Upgrade Notice documents it.' );
 		$this->assertTrue( WP_PostViews_Display::should_be_displayed(), 'Unfiltered, the answer is yes.' );
 	}
 

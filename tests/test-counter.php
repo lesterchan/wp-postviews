@@ -314,7 +314,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$response = $this->call_ajax( (string) $this->post_id );
 
 		$this->assertSame( 1, $response['delta'] );
-		$this->assertTrue( $response['json']['success'] );
+		$this->assertTrue( $response['json']['success'], 'The AJAX endpoint reports success.' );
 		$this->assertSame( 501, $response['json']['data']['views'] );
 	}
 
@@ -380,7 +380,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$response = $this->call_ajax( (string) $this->post_id, true, 'not-a-nonce' );
 
 		$this->assertSame( 0, $response['delta'] );
-		$this->assertNotNull( $response['died'] );
+		$this->assertNotNull( $response['died'], 'Without a nonce the endpoint dies rather than counting the view.' );
 	}
 
 	/**
@@ -399,7 +399,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->fire( 'wp_enqueue_scripts' );
 
-		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ), 'The cache script is enqueued when AJAX counting is on.' );
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-cache', 'data' );
 		$this->assertStringContainsString( 'wpPostViewsL10n', $data );
@@ -446,7 +446,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->fire( 'wp_enqueue_scripts' );
 
-		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ), 'With AJAX counting off, no cache script is enqueued.' );
 	}
 
 	/**
@@ -465,7 +465,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->fire( 'wp_enqueue_scripts' );
 
-		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ), 'Off a single post, no cache script is enqueued.' );
 	}
 
 	/**
@@ -491,14 +491,14 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->fire( 'wp_enqueue_scripts' );
 
-		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ), 'On a preview, no cache script is enqueued.' );
 
 		// And the same request without the preview flag does enqueue, so the
 		// assertion above is about is_preview() and not about the fixture.
 		$this->set_context( array( 'is_single', 'is_singular' ), $this->post_id );
 		$this->fire( 'wp_enqueue_scripts' );
 
-		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+		$this->assertTrue( wp_script_is( 'wp-postviews-cache', 'enqueued' ), 'Off the preview it is enqueued again, so the guard is the preview and nothing else.' );
 	}
 
 	/**
@@ -515,7 +515,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		$this->set_options( array( 'count' => 0 ) );
 		$this->set_context( array( 'is_single', 'is_singular', 'is_preview' ), $this->post_id );
 
-		$this->assertFalse( WP_PostViews_Counter::should_count( $this->post_id ) );
+		$this->assertFalse( WP_PostViews_Counter::should_count( $this->post_id ), 'A preview is refused before the filter gets a say.' );
 
 		$seen = false;
 		add_filter(
@@ -527,7 +527,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 			}
 		);
 
-		$this->assertFalse( WP_PostViews_Counter::should_count( $this->post_id ) );
+		$this->assertFalse( WP_PostViews_Counter::should_count( $this->post_id ), 'A preview stays refused even when a filter says otherwise.' );
 		$this->assertFalse( $seen, 'A preview must not reach the filter at all.' );
 	}
 
@@ -549,7 +549,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		$this->fire( 'wp_enqueue_scripts' );
 
-		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'wp-postviews-cache', 'enqueued' ), 'A visitor who is not counted gets no cache script.' );
 	}
 
 	/**
@@ -560,7 +560,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	public function test_bot_list_is_well_formed() {
 		$bots = WP_PostViews_Counter::bots();
 
-		$this->assertNotEmpty( $bots );
+		$this->assertNotEmpty( $bots, 'The bot list is not empty, or the shape assertions below are vacuous.' );
 
 		foreach ( $bots as $name => $fragment ) {
 			$this->assertIsString( $fragment, "Bot {$name} has a non-string fragment." );
@@ -710,10 +710,10 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	 */
 	public function test_using_ajax_requires_both_conditions() {
 		$this->set_options( array( 'use_ajax' => 1 ) );
-		$this->assertTrue( WP_PostViews_Counter::using_ajax() );
+		$this->assertTrue( WP_PostViews_Counter::using_ajax(), 'With both conditions met, AJAX counting is used.' );
 
 		$this->set_options( array( 'use_ajax' => 0 ) );
-		$this->assertFalse( WP_PostViews_Counter::using_ajax() );
+		$this->assertFalse( WP_PostViews_Counter::using_ajax(), 'With only one condition met, AJAX counting is not used.' );
 	}
 
 	/**

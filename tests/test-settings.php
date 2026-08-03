@@ -35,7 +35,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	public function test_setting_is_registered_in_the_group() {
 		$registered = get_registered_settings();
 
-		$this->assertArrayHasKey( WP_PostViews_Options::OPTION, $registered );
+		$this->assertArrayHasKey( WP_PostViews_Options::OPTION, $registered, 'The settings row is registered, so its sanitise callback is attached.' );
 		$this->assertSame( WP_PostViews_Settings::GROUP, $registered[ WP_PostViews_Options::OPTION ]['group'] );
 	}
 
@@ -100,25 +100,25 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		$settings  = WP_PostViews_Settings::tab_page( 'settings' );
 		$templates = WP_PostViews_Settings::tab_page( 'templates' );
 
-		$this->assertArrayHasKey( $settings, $wp_settings_sections );
-		$this->assertArrayHasKey( $templates, $wp_settings_sections );
+		$this->assertArrayHasKey( $settings, $wp_settings_sections, 'The settings tab has its own registered section page.' );
+		$this->assertArrayHasKey( $templates, $wp_settings_sections, 'The templates tab has its own registered section page.' );
 
-		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_GENERAL, $wp_settings_sections[ $settings ] );
-		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_WPSTATS, $wp_settings_sections[ $settings ] );
-		$this->assertCount( 2, $wp_settings_sections[ $settings ] );
+		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_GENERAL, $wp_settings_sections[ $settings ], 'The general section is on the settings tab.' );
+		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_WPSTATS, $wp_settings_sections[ $settings ], 'The WP-Stats section is on the settings tab.' );
+		$this->assertCount( 2, $wp_settings_sections[ $settings ], 'The settings tab carries those two sections and no others.' );
 
-		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_TEMPLATES, $wp_settings_sections[ $templates ] );
-		$this->assertCount( 1, $wp_settings_sections[ $templates ] );
+		$this->assertArrayHasKey( WP_PostViews_Settings::SECTION_TEMPLATES, $wp_settings_sections[ $templates ], 'The templates section is on the templates tab.' );
+		$this->assertCount( 1, $wp_settings_sections[ $templates ], 'The templates tab carries that one section and no others.' );
 
 		// Display Options is gone, and with it the only section this screen had
 		// that restated what a theme already decides by where it calls
 		// the_views().
-		$this->assertArrayNotHasKey( 'wp_postviews_display', $wp_settings_sections[ $settings ] );
-		$this->assertFalse( defined( 'WP_PostViews_Settings::SECTION_DISPLAY' ) );
+		$this->assertArrayNotHasKey( 'wp_postviews_display', $wp_settings_sections[ $settings ], 'The withdrawn display section is not registered.' );
+		$this->assertFalse( defined( 'WP_PostViews_Settings::SECTION_DISPLAY' ), 'The withdrawn SECTION_DISPLAY constant is gone, not merely unused.' );
 
 		// Nothing is registered against the bare menu slug any more: a section
 		// left there would draw on neither tab.
-		$this->assertArrayNotHasKey( WP_PostViews_Admin::PAGE, $wp_settings_sections );
+		$this->assertArrayNotHasKey( WP_PostViews_Admin::PAGE, $wp_settings_sections, 'Nothing is registered against the bare page slug; every section belongs to a tab.' );
 
 		// Every section is named for what its fields do, except the one that is
 		// alone on its tab -- there the tab label is already the heading, and a
@@ -137,7 +137,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	 */
 	public function test_section_names_are_prefixed() {
 		foreach ( array( WP_PostViews_Settings::SECTION_GENERAL, WP_PostViews_Settings::SECTION_TEMPLATES, WP_PostViews_Settings::SECTION_WPSTATS ) as $section ) {
-			$this->assertStringStartsWith( 'wp_postviews_', $section );
+			$this->assertStringStartsWith( 'wp_postviews_', $section, $section . ' is not prefixed, so another plugin could claim it.' );
 		}
 	}
 
@@ -224,7 +224,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 
 		// The template rows carry a variable list in the heading cell, which
 		// cannot live inside a label element, so they bring their own.
-		$this->assertArrayNotHasKey( 'label_for', $templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['args'] );
+		$this->assertArrayNotHasKey( 'label_for', $templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['args'], 'A select declares its own label target, so no label_for is added over the top.' );
 		$this->assertStringContainsString(
 			'<label for="views-template-template">',
 			$templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['title']
@@ -386,7 +386,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	public function test_the_wp_stats_toggle_is_stored_as_a_bool() {
 		$sanitized = WP_PostViews_Settings::sanitize( array( 'stats_display' => '1' ) );
 
-		$this->assertTrue( $sanitized['stats_display'] );
+		$this->assertTrue( $sanitized['stats_display'], 'A ticked WP-Stats checkbox stores as boolean true.' );
 	}
 
 	/**
@@ -403,7 +403,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 
 		$sanitized = WP_PostViews_Settings::sanitize( array( 'stats_display' => '0' ) );
 
-		$this->assertFalse( $sanitized['stats_display'] );
+		$this->assertFalse( $sanitized['stats_display'], 'An unticked WP-Stats checkbox stores as boolean false.' );
 	}
 
 	/**
@@ -483,7 +483,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		);
 
 		$this->assertSame( 0, $saved['count'] );
-		$this->assertFalse( $saved['stats_display'] );
+		$this->assertFalse( $saved['stats_display'], 'The Settings tab save carries its own WP-Stats toggle through.' );
 		$this->assertSame( 5, $saved['stats_most_limit'] );
 		$this->assertSame( 'EDITED ONE', $saved['template'], 'The Templates tab must survive a Settings save.' );
 		$this->assertSame( 'EDITED TWO', $saved['most_viewed_template'] );
@@ -520,7 +520,7 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		}
 
 		$this->assertSame( 'KEPT ONE', $saved['template'], 'A retired key going out must not take a live one with it.' );
-		$this->assertTrue( $saved['stats_display'] );
+		$this->assertTrue( $saved['stats_display'], 'Dropping retired keys leaves the other tab values alone.' );
 	}
 
 	/**

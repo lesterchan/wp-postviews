@@ -21,8 +21,8 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 
 		$data = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/posts/' . $post_id ) )->get_data();
 
-		$this->assertArrayHasKey( 'views', $data );
-		$this->assertIsInt( $data['views'] );
+		$this->assertArrayHasKey( 'views', $data, 'The REST response carries the views field.' );
+		$this->assertIsInt( $data['views'], 'The views field is an integer, not a numeric string.' );
 		$this->assertSame( 500, $data['views'] );
 	}
 
@@ -51,7 +51,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$request->set_param( '_fields', 'id,views' );
 		$data = rest_do_request( $request )->get_data();
 
-		$this->assertArrayHasKey( 'views', $data[0] );
+		$this->assertArrayHasKey( 'views', $data[0], 'The views field survives a _fields request that names it.' );
 	}
 
 	/**
@@ -199,7 +199,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		);
 
 		$this->assertSame( array( 'High' ), wp_list_pluck( $query->posts, 'post_title' ) );
-		$this->assertGreaterThan( 0, (int) wp_count_posts( 'post' )->publish );
+		$this->assertGreaterThan( 0, (int) wp_count_posts( 'post' )->publish, 'There are published posts at all, or the ordering assertions below are vacuous.' );
 	}
 
 	/**
@@ -345,7 +345,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		foreach ( array( 'asc; DROP TABLE wp_posts', "asc'", 'RAND()', 'nonsense', '' ) as $hostile ) {
 			$GLOBALS['wp_query']->set( 'v_orderby', $hostile );
 
-			$this->assertSame( ' views desc', WP_PostViews_Core::posts_orderby() );
+			$this->assertSame( ' views desc', WP_PostViews_Core::posts_orderby(), 'An unrecognised direction falls back to descending rather than reaching the SQL.' );
 		}
 
 		$GLOBALS['wp_query']->set( 'v_orderby', 'asc' );
@@ -402,7 +402,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 
 		$data = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id ) )->get_data();
 
-		$this->assertArrayNotHasKey( 'views', $data );
+		$this->assertArrayNotHasKey( 'views', $data, 'The views field is registered for posts only, not for pages.' );
 	}
 
 	/**
@@ -419,7 +419,7 @@ class WP_PostViews_Integration_Test extends WP_PostViews_TestCase {
 		$request->set_param( 'context', 'edit' );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 
-		$this->assertArrayHasKey( 'views', rest_do_request( $request )->get_data() );
+		$this->assertArrayHasKey( 'views', rest_do_request( $request )->get_data(), 'The schema request carries the views field.' );
 	}
 
 	/**

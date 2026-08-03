@@ -104,7 +104,7 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 		);
 
 		$this->assertArrayHasKey( 'wp_polls', $sections, 'A sibling section was dropped.' );
-		$this->assertArrayHasKey( 'wp_postviews', $sections );
+		$this->assertArrayHasKey( 'wp_postviews', $sections, 'This plugin entry is added alongside the others already there.' );
 	}
 
 	/**
@@ -115,7 +115,7 @@ class WP_PostViews_WPStats_Test extends WP_PostViews_TestCase {
 	public function test_a_non_array_filter_value_is_tolerated() {
 		$sections = WP_PostViews_WPStats::register_section( null );
 
-		$this->assertArrayHasKey( 'wp_postviews', $sections );
+		$this->assertArrayHasKey( 'wp_postviews', $sections, 'A non-array from an earlier filter is replaced rather than fatal.' );
 	}
 
 	/**
