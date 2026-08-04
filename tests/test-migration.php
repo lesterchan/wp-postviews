@@ -57,6 +57,42 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 	// --- the row rename ---------------------------------------------------
 
 	/**
+	 * A site on the shipped settings still gets its row written.
+	 *
+	 * `stage_legacy_install()` with no arguments seeds views_options with
+	 * exactly `defaults()`, which is the commonest install there is and the only
+	 * fixture that can see §7.6.1 -- every test that passes an override produces
+	 * a result differing from the defaults, and such a result is written
+	 * whatever happened on the way in.
+	 *
+	 * The setting is registered first, because that is the arrangement an update
+	 * through the Plugins screen actually creates and the one WP-CLI never does.
+	 * With the `default_option_wp_postviews_options` filter live, an absent row
+	 * reads back as the defaults, so `get_int()` and every other merging reader
+	 * answer identically whether or not the migration wrote anything. Reading
+	 * the row raw, with the two-argument `get_option()`, is the only way to tell
+	 * the two apart -- which is the point of this test and the reason the
+	 * assertions elsewhere in this file were given their second argument.
+	 *
+	 * @return void
+	 */
+	public function test_a_stock_legacy_install_still_gets_its_row_written() {
+		$this->stage_legacy_install();
+
+		WP_PostViews_Settings::register();
+
+		$this->assertFalse( get_option( WP_PostViews_Options::OPTION, false ), 'The fixture is only pre-migration if the prefixed row is genuinely absent.' );
+
+		WP_PostViews_Options::maybe_upgrade();
+		WP_PostViews_Options::flush();
+
+		$stored = get_option( WP_PostViews_Options::OPTION, false );
+
+		$this->assertIsArray( $stored, 'The migration must write the prefixed row even when its result equals the shipped defaults.' );
+		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_OPTION ), 'And views_options is deleted, having actually been folded in.' );
+	}
+
+	/**
 	 * The settings arrive under the new name and the old rows are gone.
 	 *
 	 * @return void
@@ -68,7 +104,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		WP_PostViews_Options::flush();
 
 		$this->assertSame( 2, WP_PostViews_Options::get_int( 'count' ), 'The stored setting did not survive the rename.' );
-		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION ), 'wp_postviews_options was not written.' );
+		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION, false ), 'wp_postviews_options was not written.' );
 		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_OPTION ), 'views_options was left behind.' );
 		$this->assertFalse( get_option( WP_PostViews_Options::LEGACY_VERSION ), 'views_version was left behind.' );
 	}
@@ -403,7 +439,7 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 
 		WP_PostViews_Options::install();
 
-		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION ), 'Activation seeds a settings row rather than leaving the option absent.' );
+		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION, false ), 'Activation seeds a settings row rather than leaving the option absent.' );
 		$this->assertSame( WP_POSTVIEWS_VERSION, WP_PostViews_Options::markers()['plugin'], 'Activation stamps the plugin version.' );
 		$this->assertSame( WP_POSTVIEWS_DB_VERSION, WP_PostViews_Options::markers()['db'], 'And the schema version.' );
 	}
