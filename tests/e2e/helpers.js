@@ -131,6 +131,170 @@ function setOptions( values ) {
 }
 
 /**
+ * The settings row as the database holds it, with no defaults merged in.
+ *
+ * Not the same question as option() above, and the difference is the whole of
+ * §7.6.1: WP_PostViews_Options::all() merges over the defaults, so it answers
+ * identically for a row holding the defaults and for no row at all -- which is
+ * what a migration that read, deleted and never wrote leaves behind. Ask the
+ * database when the question is "was it written".
+ *
+ * @return {Object|false} The stored array, or false when there is no row.
+ */
+function rawOptions() {
+	return wpEvalJson( 'get_option( WP_PostViews_Options::OPTION )' );
+}
+
+/**
+ * The defaults the running code would fall back to.
+ *
+ * @return {Object} The default settings.
+ */
+function defaultOptions() {
+	return wpEvalJson( 'WP_PostViews_Options::defaults()' );
+}
+
+/**
+ * Put the install back into the shape a pre-2.0.0 site is in.
+ *
+ * The prefixed rows go away and the four unprefixed ones take their place:
+ * `views_options` for the settings, `views_version` for the old plugin version
+ * string, and WP-Stats' two shared rows.
+ *
+ * **It hands back what it can see, and that is not a convenience.**
+ * maybe_upgrade() is hooked to `init` at priority 1, which a WP-CLI request
+ * reaches like any other. So the moment this call ends, the next `wp eval`
+ * boots WordPress with the markers missing and performs the upgrade itself,
+ * before running a line of the code it was given -- and a test that read the
+ * rows back through another helper would be asserting on WP-CLI's run rather
+ * than on the browser's, with nothing left for the browser to do.
+ *
+ * @param {Object} legacy                 The pre-2.0.0 settings row, exactly as given.
+ * @param {Object} extra                  The other three rows.
+ * @param {string} [extra.version]        What views_version held.
+ * @param {*}      [extra.statsDisplay]   What the shared stats_display row held.
+ * @param {number} [extra.statsMostLimit] What the shared stats_mostlimit row held.
+ * @return {{legacy: string[], options: *, version: *}} The state as just seeded.
+ */
+function installLegacyRows( legacy, extra = {} ) {
+	const encoded = Buffer.from(
+		JSON.stringify( {
+			legacy,
+			version: '1.78.1',
+			statsDisplay: null,
+			statsMostLimit: null,
+			...extra,
+		} ),
+		'utf8',
+	).toString( 'base64' );
+
+	return JSON.parse(
+		wpEval(
+			`$data = json_decode( base64_decode( '${ encoded }' ), true );
+		delete_option( WP_PostViews_Options::OPTION );
+		delete_option( WP_PostViews_Options::VERSION );
+		delete_option( WP_PostViews_Options::LEGACY_STATS_DISPLAY );
+		delete_option( WP_PostViews_Options::LEGACY_STATS_MOST_LIMIT );
+		update_option( WP_PostViews_Options::LEGACY_OPTION, $data['legacy'] );
+		update_option( WP_PostViews_Options::LEGACY_VERSION, $data['version'] );
+		if ( null !== $data['statsDisplay'] ) {
+			update_option( WP_PostViews_Options::LEGACY_STATS_DISPLAY, $data['statsDisplay'] );
+		}
+		if ( null !== $data['statsMostLimit'] ) {
+			update_option( WP_PostViews_Options::LEGACY_STATS_MOST_LIMIT, $data['statsMostLimit'] );
+		}
+		WP_PostViews_Options::flush();
+
+		$alive = array();
+		foreach ( array(
+			WP_PostViews_Options::LEGACY_OPTION,
+			WP_PostViews_Options::LEGACY_VERSION,
+			WP_PostViews_Options::LEGACY_STATS_DISPLAY,
+			WP_PostViews_Options::LEGACY_STATS_MOST_LIMIT,
+		) as $name ) {
+			if ( false !== get_option( $name, false ) ) {
+				$alive[] = $name;
+			}
+		}
+
+		echo '<<<' . wp_json_encode( array(
+			'legacy'  => $alive,
+			'options' => get_option( WP_PostViews_Options::OPTION ),
+			'version' => get_option( WP_PostViews_Options::VERSION ),
+		) ) . '>>>';`,
+		),
+	);
+}
+
+/**
+ * Which pre-2.0.0 rows are still in the database.
+ *
+ * Read through the plugin's own constants rather than a set typed out here, so
+ * a row the migration stops deleting shows up as a failure.
+ *
+ * @return {string[]} The legacy rows that survive.
+ */
+function survivingLegacyRows() {
+	return wpEvalJson(
+		`array_values( array_filter(
+			array(
+				WP_PostViews_Options::LEGACY_OPTION,
+				WP_PostViews_Options::LEGACY_VERSION,
+				WP_PostViews_Options::LEGACY_STATS_DISPLAY,
+				WP_PostViews_Options::LEGACY_STATS_MOST_LIMIT,
+			),
+			static function ( $name ) {
+				return false !== get_option( $name, false );
+			}
+		) )`,
+	);
+}
+
+/**
+ * The upgrade markers, as the database holds them.
+ *
+ * @return {Object|false} The stored array, or false when there is no row.
+ */
+function versionRow() {
+	return wpEvalJson( 'get_option( WP_PostViews_Options::VERSION )' );
+}
+
+/**
+ * Stamp the upgrade markers, or take them away.
+ *
+ * @param {Object|null} versions The two markers, or null to remove the row.
+ * @return {void}
+ */
+function setVersionRow( versions ) {
+	if ( null === versions ) {
+		wpEval( 'delete_option( WP_PostViews_Options::VERSION ); echo \'<<<done>>>\';' );
+
+		return;
+	}
+
+	const encoded = Buffer.from( JSON.stringify( versions ), 'utf8' ).toString( 'base64' );
+
+	wpEval(
+		`update_option( WP_PostViews_Options::VERSION, json_decode( base64_decode( '${ encoded }' ), true ) );
+		echo '<<<done>>>';`,
+	);
+}
+
+/**
+ * The version numbers the running code expects to find stamped.
+ *
+ * @return {{plugin: string, db: string}} The two markers.
+ */
+function runningVersions() {
+	return wpEvalJson(
+		`array(
+			'plugin' => WP_POSTVIEWS_VERSION,
+			'db'     => WP_POSTVIEWS_DB_VERSION,
+		)`,
+	);
+}
+
+/**
  * Put every setting back to what a fresh install has.
  *
  * @return {void}
@@ -604,23 +768,30 @@ module.exports = {
 	clearAllViews,
 	countedViews,
 	counterScript,
+	defaultOptions,
 	installCountVeto,
 	installDisplayGate,
+	installLegacyRows,
 	installProbe,
 	openSettings,
 	openTemplates,
 	option,
 	probeTerm,
+	rawOptions,
 	removeCountVeto,
 	removeDisplayGate,
 	removeProbe,
 	removeViewsWidget,
 	resetOptions,
+	runningVersions,
 	saveSettings,
 	setOptions,
 	setThumbnail,
+	setVersionRow,
 	setViews,
+	survivingLegacyRows,
 	uniqueTitle,
+	versionRow,
 	views,
 	viewsRowCount,
 	watchForCount,
