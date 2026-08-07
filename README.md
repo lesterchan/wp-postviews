@@ -174,8 +174,10 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 
 ## Screenshots
 
-1. PostViews
-2. Admin - Post Views Settings
+1. Settings -> WP-PostViews, which chooses what is counted and how the number reads
+2. The Templates tab, holding the wording the count is written into
+3. The count in a post, placed with the shortcode
+4. The Most Viewed widget
 
 ## Changelog
 ### 2.0.0
