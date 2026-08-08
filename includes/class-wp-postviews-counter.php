@@ -314,7 +314,31 @@ class WP_PostViews_Counter {
 	public static function record( $post_id ) {
 		$post_id = (int) $post_id;
 
-		if ( $post_id <= 0 || ! get_post_status( $post_id ) ) {
+		if ( $post_id <= 0 ) {
+			return null;
+		}
+
+		$post = get_post( $post_id );
+
+		/*
+		 * get_post_status() was the whole check, and it answers with a truthy
+		 * string for *every* row in wp_posts -- revisions, autosaves,
+		 * auto-drafts, attachments, trash, drafts, nav_menu_item, wp_block,
+		 * wp_template. So the guard stopped ids that named nothing and accepted
+		 * every id that named anything, which is not what its docblock claimed:
+		 * an unauthenticated caller could walk the id space writing a views row
+		 * against each one, and read back the count of unpublished posts while
+		 * doing it.
+		 *
+		 * The wp_head path never had this problem, because current_post() gets
+		 * its id from the main query. What is checked here is what that path
+		 * already knows: a real, publicly viewable post rather than a revision.
+		 */
+		if ( ! $post instanceof WP_Post || wp_is_post_revision( $post_id ) ) {
+			return null;
+		}
+
+		if ( 'auto-draft' === $post->post_status || ! is_post_publicly_viewable( $post ) ) {
 			return null;
 		}
 

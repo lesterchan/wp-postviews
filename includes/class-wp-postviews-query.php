@@ -87,7 +87,13 @@ class WP_PostViews_Query {
 	 * @return string
 	 */
 	protected static function render_item( $chars ) {
-		$post_views = get_post_meta( get_the_ID(), 'views', true );
+		// Cast, the way WP_PostViews_Display does. The meta key is unprefixed and
+		// therefore unprotected, so anyone who can edit a post can set it to a
+		// string through the Custom Fields box -- and both tokens below are built
+		// eagerly whether or not the template uses them, so on PHP 8 a single
+		// such post turns every listing that includes it into an uncaught
+		// TypeError from number_format_i18n() or from the division.
+		$post_views = (int) get_post_meta( get_the_ID(), 'views', true );
 
 		/*
 		 * Escaped here rather than left to snippet_text(). Until 2.0.0 the only

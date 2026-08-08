@@ -78,6 +78,28 @@ class WP_PostViews_Listings_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
+	 * The meta key is unprefixed, so is_protected_meta() does not cover it and
+	 * anyone who can edit a post can set it to a string through the Custom
+	 * Fields box. Both count tokens are built eagerly whether or not the
+	 * template uses them, so on PHP 8 one such post turned every listing that
+	 * included it into an uncaught TypeError -- from number_format_i18n() or
+	 * from the division inside round_number() -- which is an HTTP 500 on the
+	 * home page until somebody finds the row.
+	 *
+	 * @return void
+	 */
+	public function test_a_non_numeric_view_count_does_not_fatal_the_listing() {
+		update_post_meta( $this->ids['Mid Post'], 'views', 'not a number' );
+
+		$this->set_options( array( 'most_viewed_template' => '<li>%POST_TITLE% %VIEW_COUNT% %VIEW_COUNT_ROUNDED%</li>' ) );
+
+		$output = get_most_viewed( 'post', 10, 0, false );
+
+		$this->assertStringContainsString( 'Mid Post', $output, 'The post is still listed rather than taking the page down.' );
+		$this->assertStringContainsString( '0', $output, 'And its count reads as zero, which is what a string is worth.' );
+	}
+
+	/**
 	 * Most viewed is descending.
 	 *
 	 * @return void

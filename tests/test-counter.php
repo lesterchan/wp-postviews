@@ -704,6 +704,58 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
+	 * record() is the deferred path, and its guard was get_post_status() alone
+	 * -- which answers with a truthy string for every row in wp_posts. So it
+	 * stopped ids that named nothing and accepted every id that named anything,
+	 * which is not what its docblock claimed. An unauthenticated caller could
+	 * walk the id space writing a views row against each one.
+	 *
+	 * @dataProvider data_unviewable_rows
+	 *
+	 * @param array  $post_args Arguments for the row to try.
+	 * @param string $why      What the row stands for.
+	 */
+	public function test_record_refuses_a_row_that_is_not_a_viewable_post( array $post_args, $why ) {
+		$id = self::factory()->post->create( $post_args );
+
+		$this->assertNull( WP_PostViews_Counter::record( $id ), $why );
+		$this->assertSame( '', get_post_meta( $id, 'views', true ), 'And no meta row is created for it.' );
+	}
+
+	/**
+	 * Rows that exist and must not be countable.
+	 *
+	 * @return array
+	 */
+	public function data_unviewable_rows() {
+		return array(
+			'a draft'       => array( array( 'post_status' => 'draft' ), 'A draft is not published, so it cannot be viewed.' ),
+			'a pending'     => array( array( 'post_status' => 'pending' ), 'Nor is a pending post.' ),
+			'a private'     => array( array( 'post_status' => 'private' ), 'A private post is not publicly viewable.' ),
+			'a trashed'     => array( array( 'post_status' => 'trash' ), 'Nor is one in the trash.' ),
+			'an auto-draft' => array( array( 'post_status' => 'auto-draft' ), 'An auto-draft is not something anybody has read.' ),
+			'a revision'    => array(
+				array(
+					'post_type'   => 'revision',
+					'post_status' => 'inherit',
+				),
+				'And a revision is not a post.',
+			),
+		);
+	}
+
+	public function test_record_still_counts_an_ordinary_published_post() {
+		$before = (int) get_post_meta( $this->post_id, 'views', true );
+
+		$this->assertSame( $before + 1, WP_PostViews_Counter::record( $this->post_id ), 'The feature still works for the posts it is for.' );
+	}
+
+	public function test_record_refuses_an_id_that_names_nothing() {
+		$this->assertNull( WP_PostViews_Counter::record( 999999 ), 'An id naming no row is still refused.' );
+		$this->assertNull( WP_PostViews_Counter::record( 0 ), 'And so is zero.' );
+	}
+
+	/**
 	 * The AJAX path needs both a page cache and the setting.
 	 *
 	 * @return void

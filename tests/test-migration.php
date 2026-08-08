@@ -110,6 +110,49 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
+	 * Three places echo the template raw, each justified by "kses'd on save" --
+	 * and that was true only of the Settings API path. The migration writes
+	 * through Options::save(), where register_setting() has not run, and the row
+	 * it folds in comes from a release that stored the field with no filtering
+	 * at all. So a hostile template on a site upgrading from 1.78.1 was copied
+	 * across verbatim and echoed to every visitor by a plugin that believed it
+	 * had been cleaned.
+	 *
+	 * @return void
+	 */
+	public function test_a_hostile_legacy_template_does_not_survive_the_migration() {
+		$hostile = 'Views: %VIEW_COUNT% <script>alert(1)</script><img src=x onerror=alert(2) />';
+
+		$this->stage_legacy_install( array( 'template' => $hostile ), '1.78.1' );
+
+		WP_PostViews_Options::maybe_upgrade();
+		WP_PostViews_Options::flush();
+
+		$stored = WP_PostViews_Options::get( 'template' );
+
+		$this->assertStringNotContainsString( '<script', $stored, 'A script tag did not survive the fold-in.' );
+		$this->assertStringNotContainsString( 'onerror', $stored, 'Nor an event handler.' );
+		$this->assertStringContainsString( '%VIEW_COUNT%', $stored, 'While the template itself is carried across.' );
+	}
+
+	public function test_a_template_written_outside_the_settings_screen_is_still_filtered() {
+		// WP-CLI, cron, a restored backup, another plugin: none of them reach
+		// register_setting()'s sanitize callback, and all of them reach save().
+		WP_PostViews_Options::save(
+			array_merge(
+				WP_PostViews_Options::all(),
+				array( 'most_viewed_template' => '<li onclick="alert(1)">%POST_TITLE%</li>' )
+			)
+		);
+		WP_PostViews_Options::flush();
+
+		$stored = WP_PostViews_Options::get( 'most_viewed_template' );
+
+		$this->assertStringNotContainsString( 'onclick', $stored, 'The storage layer holds the invariant the raw echoes depend on.' );
+		$this->assertStringContainsString( '%POST_TITLE%', $stored, 'And the template still says what it said.' );
+	}
+
+	/**
 	 * A key the legacy row never held falls back to its default.
 	 *
 	 * @return void

@@ -221,14 +221,57 @@ class WP_PostViews_Options {
 	 * registration is on 'admin_init', so the sanitize_option_ filter that would
 	 * otherwise clean them is not attached yet, and on the front end never is.
 	 *
+	 * The two templates are filtered here for exactly the same reason, and it is
+	 * the more serious half of it. Three places echo them raw, each carrying a
+	 * phpcs:ignore justified by "kses'd on save" -- and that was true only of the
+	 * Settings API path. The 2.0.0 migration lands here instead, and the row it
+	 * folds in comes from a release that stored `trim( $_POST[...] )` with no
+	 * filtering of any kind, so a hostile template on a site upgrading from
+	 * 1.78.1 was copied across verbatim and echoed to every visitor by a plugin
+	 * that believed it had been cleaned. WP-CLI, cron, a restored backup and any
+	 * other caller reach the same door.
+	 *
 	 * @param array $values Full option array.
 	 * @return bool
 	 */
 	public static function save( $values ) {
 		$values      = array_diff_key( (array) $values, array_flip( self::retired_keys() ) );
+		$values      = self::filter_templates( $values );
 		self::$cache = array_merge( self::defaults(), $values );
 
 		return update_option( self::OPTION, self::$cache );
+	}
+
+	/**
+	 * The settings whose value is echoed as markup.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @return string[]
+	 */
+	public static function template_keys() {
+		return array( 'template', 'most_viewed_template' );
+	}
+
+	/**
+	 * Run the template settings through kses.
+	 *
+	 * The invariant the raw echoes depend on, held by the storage layer rather
+	 * than by one of the several ways a value can arrive at it.
+	 *
+	 * @since 2.0.0
+	 *
+	 * @param array $values Option array, whole or partial.
+	 * @return array
+	 */
+	public static function filter_templates( $values ) {
+		foreach ( self::template_keys() as $key ) {
+			if ( isset( $values[ $key ] ) && is_scalar( $values[ $key ] ) ) {
+				$values[ $key ] = wp_kses_post( trim( (string) $values[ $key ] ) );
+			}
+		}
+
+		return $values;
 	}
 
 	/**
