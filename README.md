@@ -28,6 +28,12 @@ WP-PostViews counts how many times each post, page or custom post type has been 
 ### Donations
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
+## Installation
+
+1. Install and activate the plugin. Counting starts immediately; you do not have to do anything for the numbers to be recorded.
+1. Show the count where you want it: type `[views]` into a post, add the **Post Views** block, add the widget, or call `the_views()` from your theme.
+1. Go to `WP-Admin -> Settings -> WP-PostViews` to choose who is counted and how the number reads.
+
 ## Usage
 
 The simplest way, and the only one that works in a block theme without editing template files, is the shortcode. Put it in the post or page whose count you want shown:
