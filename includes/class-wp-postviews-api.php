@@ -108,7 +108,7 @@ class WP_PostViews_API {
 			return new WP_Error(
 				'wp_postviews_counting_not_deferred',
 				__( 'This site counts views while the page renders, so a view cannot be counted separately.', 'wp-postviews' ),
-				array( 'status' => 400 )
+				array( 'status' => 403 )
 			);
 		}
 

@@ -125,7 +125,7 @@ test.describe( 'The REST route', () => {
 				{ form: { nonce: countingNonce() } },
 			);
 
-			expect( response.status() ).toBe( 400 );
+			expect( response.status() ).toBe( 403 );
 			expect( views( postId ) ).toBe( 0 );
 		} );
 

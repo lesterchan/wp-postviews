@@ -188,7 +188,7 @@ class WP_PostViews_REST_API_Test extends WP_PostViews_TestCase {
 			array( 'nonce' => wp_create_nonce( 'wp_postviews_nonce' ) )
 		);
 
-		$this->assertSame( 400, $response->get_status(), 'Counting twice is refused rather than done.' );
+		$this->assertSame( 403, $response->get_status(), 'Counting twice is refused rather than done.' );
 		$this->assertSame( 4, (int) get_post_meta( $post_id, 'views', true ), 'And the count did not move.' );
 	}
 
