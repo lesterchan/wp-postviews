@@ -80,6 +80,7 @@ require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-display.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-query.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-counter.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-core.php';
+require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-api.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-widget.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-admin.php';
 require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-settings.php';
@@ -90,6 +91,8 @@ WP_PostViews_Options::init();
 WP_PostViews_Display::init();
 WP_PostViews_Counter::init();
 WP_PostViews_Core::init();
+new WP_PostViews_API();
+WP_PostViews_Core::register_command();
 WP_PostViews_Admin::init();
 WP_PostViews_Settings::init();
 

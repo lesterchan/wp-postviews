@@ -51,6 +51,28 @@ add_filter( 'wp_postviews_should_display', function ( $show ) {
 } );
 ```
 
+### WP-CLI
+```
+wp postviews list
+wp postviews list --limit=50 --format=json
+wp postviews get 42
+```
+
+The command reads and never writes. No screen in this plugin edits a view count, so the command does not offer one either — `wp post meta update <id> views <n>` is still there for whoever genuinely needs it, and says plainly that it is reaching past the plugin.
+
+### REST API
+```
+POST /wp-json/postviews/v1/post/<id>/view
+```
+
+**Reading a count needs no route of its own.** The count is already published as a read-only `views` field on the core post resource, so `/wp-json/wp/v2/posts/<id>` answers with the post and its count together, and a list of posts carries every count in one response.
+
+What the core field cannot do is write, which is what this route is for: it counts a view, and it exists for sites serving cached pages, where the view has to be reported after the page is delivered. It takes the same `wp_postviews_nonce` the counting script is given, as a `nonce` parameter.
+
+**It is refused unless the site defers counting** — that is, unless it has a page cache and has turned the AJAX counting path on. Otherwise the view has already been counted while the page rendered, and counting again here would record every view twice.
+
+**This route is an addition.** The `admin-ajax.php` `wp_postviews` action is unchanged and still supported.
+
 ## Frequently Asked Questions
 
 ### How To View Stats With Widgets?
@@ -181,6 +203,8 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 
 ## Changelog
 ### 2.0.0
+* NEW: A `wp postviews` WP-CLI command — `list` and `get`. It reads and never writes.
+* NEW: A `postviews/v1` REST API carrying one route, for counting a view from a cached page. Reading a count is already a `views` field on the core post resource. The `admin-ajax.php` `wp_postviews` action is unchanged and still supported.
 * BREAKING: Requires WordPress 6.8 and PHP 8.2, up from 6.0 and 7.4.
 * BREAKING: The `the_views` filter is now `wp_postviews_the_views`. The template tag `the_views()` is unchanged.
 * BREAKING: The `postviews_should_count` filter is now `wp_postviews_should_count`.

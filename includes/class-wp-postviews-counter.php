@@ -289,16 +289,36 @@ class WP_PostViews_Counter {
 
 		$post_id = (int) sanitize_key( wp_unslash( $_POST['postviews_id'] ) );
 
-		// update_post_meta() creates a row whether or not the post exists, so
-		// without this check a logged out visitor can walk the ID space and
-		// grow wp_postmeta without bound.
-		if ( $post_id <= 0 || ! get_post_status( $post_id ) ) {
+		$post_views = self::record( $post_id );
+
+		if ( null === $post_views ) {
 			return;
 		}
 
-		$post_views = self::increment( $post_id, 'wp_postviews_increment_views_ajax' );
-
 		wp_send_json_success( array( 'views' => $post_views ) );
+	}
+
+	/**
+	 * Count a view arriving from outside the page render.
+	 *
+	 * Shared by the `admin-ajax.php` endpoint and the REST route, which are two
+	 * doors onto one thing: a cached page telling the site it was read. Keeping
+	 * the id check here rather than in each caller is the point --
+	 * update_post_meta() creates a row whether or not the post exists, so a
+	 * caller that forgot it would let a logged-out visitor walk the id space and
+	 * grow wp_postmeta without bound.
+	 *
+	 * @param int $post_id Post that was viewed.
+	 * @return int|null The new count, or null when the id names no post.
+	 */
+	public static function record( $post_id ) {
+		$post_id = (int) $post_id;
+
+		if ( $post_id <= 0 || ! get_post_status( $post_id ) ) {
+			return null;
+		}
+
+		return self::increment( $post_id, 'wp_postviews_increment_views_ajax' );
 	}
 
 	/**
