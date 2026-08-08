@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "wp-postviews/views",
+	"version": "2.0.0",
+	"title": "Post Views",
+	"category": "widgets",
+	"icon": "visibility",
+	"description": "How many times a post has been viewed, rendered with the stored template.",
+	"keywords": [ "views", "count", "hits", "popular" ],
+	"textdomain": "wp-postviews",
+	"attributes": {
+		"id": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"supports": {
+		"html": false,
+		"multiple": true,
+		"reusable": false
+	},
+	"editorScript": "file:./index.js"
+}

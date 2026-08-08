@@ -106,6 +106,37 @@ browser does not give, and a view count that can be typed is no longer a record
 of anything. `wp post meta update <id> views <n>` is still there for whoever
 needs it, and says plainly it is reaching past the plugin.
 
+## The block
+
+`wp-postviews/views` is an addition beside `[views]`, never a replacement: the
+shortcode stays registered, documented and undeprecated, because it sits in an
+unknowable number of published posts. Both entry points call
+`WP_PostViews_Display::render_views()` and **neither calls the other** — the
+block does not run `do_shortcode()` and the shortcode does not ask
+`WP_PostViews_Blocks` for anything. `tests/test-blocks.php` unregisters each in
+turn and watches the other carry on, which is the only thing that stops a later
+"tidy-up" making one a wrapper over the other.
+
+* **The block name keeps its `wp-` prefix** where the command and the REST
+  namespace drop theirs. A command that loses a name-collision is simply absent
+  and you notice; a block name is written into `post_content` and stays there
+  for the life of the post, so a collision renders somebody else's block inside
+  published posts.
+* **Rendering a count is not counting one, and the block is where that could
+  quietly change.** The editor re-renders a preview on every attribute change,
+  so a renderer that incremented would let an author inflate their own figures
+  by dragging the block about — and the inflated number is indistinguishable
+  from real traffic once it is in postmeta. It is safe today because counting
+  hangs off `wp_head` and an `admin-ajax.php` POST, and core's
+  `/wp/v2/block-renderer/` route is neither. A test asserts the count does not
+  move across three renders, because that is structure and structure gets moved.
+* **`build/` is generated, gitignored and shipped; `src/` is committed and not
+  shipped.** `bin/build` compiles one into the other and then walks `build/`
+  writing the silence-is-golden `index.php` guards, which webpack knows nothing
+  about — so build by running that script and never `wp-scripts build` directly.
+  `bin/test.sh` and `bin/test-e2e.sh` build first, because a checkout that has
+  never been built fails the block tests for a reason unrelated to the code.
+
 ## Migrations, and why they are tested through a browser
 
 `maybe_upgrade()` hangs off `init` at priority 1, **not `admin_init`**, and that
@@ -137,7 +168,8 @@ Four things its fixtures rely on:
 `bin/test-e2e.sh` the Playwright suite. **Run them rather than trusting a note
 about their last result** — CI is the authority, and this file cannot be.
 
-`test-counter.php` covers both counting paths and the preview guard;
+`test-blocks.php` covers the block; `test-counter.php` both counting paths and
+the preview guard;
 `test-migration.php` the `views_options` fold-in; `test-multisite.php` exists
 because `test_uninstall_removes_only_our_data` skips its network branch
 deliberately — the coverage is in the multisite class, not missing.

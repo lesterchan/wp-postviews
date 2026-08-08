@@ -51,6 +51,16 @@ add_filter( 'wp_postviews_should_display', function ( $show ) {
 } );
 ```
 
+### Showing The View Count In A Block
+
+One block is available in the editor, under **Widgets**:
+
+* **Post Views** — the view count, rendered with the template from the Templates tab. Leave **Post ID** at zero to show the count of the post the block is in, which is what an empty `[views]` does, or set it to another post's ID to show that post's count instead.
+
+It renders on the server, so the block preview in the editor is the real number rather than an approximation, and the count keeps rising in every post showing it without anything being re-saved. Previewing the block in the editor does not count a view.
+
+**The shortcode still works and is not going anywhere.** `[views]` and `[views id="1"]` behave exactly as they always have, and a post already containing one needs no change. The block calls the same code the shortcode calls, so the two render identically — use whichever suits the post.
+
 ### WP-CLI
 ```
 wp postviews list
@@ -205,6 +215,7 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 
 ## Changelog
 ### 2.0.0
+* NEW: An editor block, **Post Views**, under Widgets. It renders on the server through the same code the shortcode uses, so a block and a shortcode showing the same post produce the same markup, and previewing it in the editor never counts a view. The `[views]` shortcode is unchanged and still supported — nothing needs converting, and posts already containing it keep working.
 * NEW: A `wp postviews` WP-CLI command — `list` and `get`. It reads and never writes.
 * NEW: A `postviews/v1` REST API carrying one route, for counting a view from a cached page. Reading a count is already a `views` field on the core post resource. The `admin-ajax.php` `wp_postviews` action is unchanged and still supported.
 * BREAKING: Requires WordPress 6.8 and PHP 8.2, up from 6.0 and 7.4.

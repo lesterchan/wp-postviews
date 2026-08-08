@@ -72,7 +72,39 @@ class WP_PostViews_Display {
 	 */
 	public static function shortcode( $atts ) {
 		$attributes = shortcode_atts( array( 'id' => 0 ), $atts );
-		$id         = (int) $attributes['id'];
+
+		return self::render_views( $attributes['id'] );
+	}
+
+	/**
+	 * Render one post's view count.
+	 *
+	 * The renderer the `[views]` shortcode and the `wp-postviews/views` block
+	 * share. Neither calls the other: the shortcode parses shortcode
+	 * attributes, the block gets a typed `id` from block.json, and both then
+	 * arrive here with an id and nothing else. Keeping that one step in one
+	 * place is what stops the two entry points drifting into rendering
+	 * different markup for the same post.
+	 *
+	 * Zero means the post being rendered, which is what an attributeless
+	 * `[views]` has always meant, so it has to mean the same for an
+	 * attributeless block or the two disagree about their own default.
+	 *
+	 * **This reads a count and never records one.** Counting is
+	 * WP_PostViews_Counter's job and it hangs off `wp_head` or a POST to
+	 * `admin-ajax.php`; a block previewing itself through
+	 * /wp/v2/block-renderer/ reaches neither, so an author arranging a post
+	 * cannot inflate its figures. Do not add an increment here for the benefit
+	 * of some future caller: it would count once per shortcode on the page as
+	 * well.
+	 *
+	 * Like the shortcode, it ignores the wp_postviews_should_display gate.
+	 *
+	 * @param int $id Post id. Zero means the post currently being rendered.
+	 * @return string
+	 */
+	public static function render_views( $id ) {
+		$id = (int) $id;
 
 		if ( 0 === $id ) {
 			$id = get_the_ID();
