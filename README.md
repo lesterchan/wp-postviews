@@ -71,6 +71,8 @@ What the core field cannot do is write, which is what this route is for: it coun
 
 **It is refused unless the site defers counting** — that is, unless it has a page cache and has turned the AJAX counting path on. Otherwise the view has already been counted while the page rendered, and counting again here would record every view twice.
 
+**A refusal answers 403** — a bad nonce, or a site that counts views while the page renders. A post that does not exist is 404.
+
 **This route is an addition.** The `admin-ajax.php` `wp_postviews` action is unchanged and still supported.
 
 ## Frequently Asked Questions
