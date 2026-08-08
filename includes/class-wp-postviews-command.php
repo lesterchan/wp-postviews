@@ -111,7 +111,7 @@ class WP_PostViews_Command extends WP_CLI_Command {
 			);
 		}
 
-		WP_CLI\Utils\format_items( $format, $rows, array( 'id', 'title', 'views' ) );
+		$this->print_rows( $format, $rows, array( 'id', 'title', 'views' ) );
 	}
 
 	/**
@@ -141,5 +141,29 @@ class WP_PostViews_Command extends WP_CLI_Command {
 		}
 
 		WP_CLI::log( (string) (int) get_post_meta( $post_id, 'views', true ) );
+	}
+
+	/**
+	 * Print rows, reducing to the first column when ids were asked for.
+	 *
+	 * WP_CLI\Utils\format_items() hands `ids` straight to implode(), so a row
+	 * that is an associative array comes out as the word `Array` and a PHP
+	 * warning -- which is what `--format=ids` did here until it was run against
+	 * a real WP-CLI rather than reasoned about. Reducing to the first column is
+	 * what makes the documented `| xargs` pipes work.
+	 *
+	 * @param string $format Requested output format.
+	 * @param array  $rows   Rows to print.
+	 * @param array  $fields Columns, in order. The first is the id.
+	 * @return void
+	 */
+	private function print_rows( $format, array $rows, array $fields ) {
+		if ( 'ids' === $format ) {
+			WP_CLI\Utils\format_items( $format, wp_list_pluck( $rows, $fields[0] ), $fields );
+
+			return;
+		}
+
+		WP_CLI\Utils\format_items( $format, $rows, $fields );
 	}
 }
