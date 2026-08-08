@@ -83,6 +83,29 @@ warns that the most-viewed *pages* list therefore appears beside the posts list.
   documented replacement, so removing it breaks a promise in the release about
   to ship.
 
+## WP-CLI and REST
+
+`wp postviews list|get`, and `postviews/v1` carrying exactly one route:
+`POST post/<id>/view`.
+
+**There is deliberately no route for reading a count.** The count is already
+published as a read-only `views` field on the core post resource, so
+`/wp-json/wp/v2/posts/<id>` answers with the post and its count together, and a
+list of posts carries every count in one response. A second way to read one
+number is how the two drift apart. A test asserts this namespace has one route,
+precisely so nobody completes it later.
+
+**The route refuses unless the site defers counting**, meaning a page cache plus
+the setting. Otherwise `wp_head` has already counted the visit and counting again
+here would record **every view twice on every ordinary site**. The AJAX endpoint
+returns early on the same check for the same reason.
+
+**The command reads and never writes.** The admin adds a sortable Views column
+and nothing else -- no screen edits a count -- so a `set` would be a power the
+browser does not give, and a view count that can be typed is no longer a record
+of anything. `wp post meta update <id> views <n>` is still there for whoever
+needs it, and says plainly it is reaching past the plugin.
+
 ## Migrations, and why they are tested through a browser
 
 `maybe_upgrade()` hangs off `init` at priority 1, **not `admin_init`**, and that
