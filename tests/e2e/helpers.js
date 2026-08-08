@@ -131,6 +131,31 @@ function setOptions( values ) {
 }
 
 /**
+ * Write the settings row past the storage layer entirely.
+ *
+ * setOptions() goes through WP_PostViews_Options::save(), which runs the two
+ * template settings through kses -- so it cannot produce the row a compromised
+ * install has. update_option() straight is the only way to stand one up, and a
+ * test that says "stored straight into the row" has to actually do that or it
+ * is testing the sanitiser it thinks it went around.
+ *
+ * @param {Object} values Settings to merge over the current row.
+ * @return {void}
+ */
+function setOptionsUnfiltered( values ) {
+	const encoded = Buffer.from( JSON.stringify( values ), 'utf8' ).toString( 'base64' );
+
+	wpEval(
+		`$values = json_decode( base64_decode( '${ encoded }' ), true );
+		update_option(
+			WP_PostViews_Options::OPTION,
+			array_merge( WP_PostViews_Options::all(), $values )
+		);
+		echo '<<<done>>>';`,
+	);
+}
+
+/**
  * The settings row as the database holds it, with no defaults merged in.
  *
  * Not the same question as option() above, and the difference is the whole of
@@ -786,6 +811,7 @@ module.exports = {
 	runningVersions,
 	saveSettings,
 	setOptions,
+	setOptionsUnfiltered,
 	setThumbnail,
 	setVersionRow,
 	setViews,

@@ -36,7 +36,7 @@ const {
 	removeProbe,
 	resetOptions,
 	saveSettings,
-	setOptions,
+	setOptionsUnfiltered,
 	setViews,
 	uniqueTitle,
 	wpEval,
@@ -208,11 +208,13 @@ test.describe( 'Hostile values in the templates', () => {
 	test( 'a hostile template stored straight into the row still edits as text', async ( {
 		page,
 	} ) => {
-		// The row a compromised install has: written past the sanitiser
-		// entirely. The settings screen has to be able to show an administrator
-		// what is in it without running it, or cleaning up the mess means
-		// hand-editing the database.
-		setOptions( {
+		// The row a compromised install has: written past the storage layer
+		// entirely, which is what setOptionsUnfiltered() is for -- save() runs
+		// the templates through kses, so going that way would have stood up a
+		// clean row and proved nothing. The settings screen has to be able to
+		// show an administrator what is in it without running it, or cleaning
+		// up the mess means hand-editing the database.
+		setOptionsUnfiltered( {
 			template: `%VIEW_COUNT% ${ SCRIPT_PAYLOAD }`,
 			most_viewed_template: `<li>${ IMG_PAYLOAD } ${ ATTR_PAYLOAD }</li>`,
 		} );

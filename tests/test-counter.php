@@ -704,7 +704,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * record() is the deferred path, and its guard was get_post_status() alone
+	 * The deferred path, record(), had get_post_status() alone for a guard
 	 * -- which answers with a truthy string for every row in wp_posts. So it
 	 * stopped ids that named nothing and accepted every id that named anything,
 	 * which is not what its docblock claimed. An unauthenticated caller could
