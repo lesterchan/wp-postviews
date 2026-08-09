@@ -468,6 +468,56 @@ class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
 		$this->assertNotContains( WP_PostViews_Options::LEGACY_STATS_MOST_LIMIT, $names, 'Nor the shared limit row, because they are not this plugin to delete.' );
 	}
 
+	/**
+	 * The write path creates the row even when the value equals the default.
+	 *
+	 * Pinned at the door rather than through maybe_upgrade(), so the guarantee
+	 * belongs to save() rather than to whatever the migration happens to compute.
+	 * The test above goes through the migration and can only see this while its
+	 * fixture keeps producing a value equal to the defaults; this one cannot stop
+	 * seeing it.
+	 *
+	 * @return void
+	 */
+	public function test_save_creates_the_row_when_the_value_equals_the_registered_default() {
+		delete_option( WP_PostViews_Options::OPTION );
+		WP_PostViews_Options::flush();
+
+		WP_PostViews_Settings::register();
+
+		// The precondition the defect needs: a bare read of an absent row answers
+		// with the defaults, so update_option() alone compares equal and declines
+		// to write. Core's add_option() fallback sits below that comparison.
+		$this->assertSame( WP_PostViews_Options::defaults(), get_option( WP_PostViews_Options::OPTION ), 'The registered default is what an absent row reads back as.' );
+
+		$this->assertTrue( WP_PostViews_Options::save( WP_PostViews_Options::defaults() ), 'save() reports that it wrote.' );
+		$this->assertIsArray( get_option( WP_PostViews_Options::OPTION, false ), 'And the row is really there, read raw.' );
+	}
+
+	/**
+	 * The shipped defaults survive the write path's own sanitising unchanged.
+	 *
+	 * The assertion whose absence let a typo decide whether the migration test
+	 * above meant anything. Until 2.0.0 the most viewed default carried a doubled
+	 * space before an attribute; kses collapsed it, so the migrated value differed
+	 * from the defaults by that one character, update_option() found a difference
+	 * and wrote the row. Remove the space and the sanitiser becomes a no-op on the
+	 * defaults, which is the case the migration test is supposed to be about.
+	 *
+	 * So if this goes red, the test above has stopped exercising the equal-value
+	 * case and is passing for a reason unrelated to the code.
+	 *
+	 * @return void
+	 */
+	public function test_the_shipped_defaults_survive_sanitisation_unchanged() {
+		WP_PostViews_Settings::register();
+
+		$defaults = WP_PostViews_Options::defaults();
+
+		$this->assertSame( $defaults, sanitize_option( WP_PostViews_Options::OPTION, $defaults ), 'The registered sanitize callback leaves the defaults alone.' );
+		$this->assertSame( $defaults, WP_PostViews_Options::filter_templates( $defaults ), 'And so does the kses pass the write path applies.' );
+	}
+
 	// --- activation -------------------------------------------------------
 
 	/**

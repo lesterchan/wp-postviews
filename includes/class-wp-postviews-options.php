@@ -166,7 +166,7 @@ class WP_PostViews_Options {
 	 */
 	public static function default_template( $key ) {
 		if ( 'most_viewed_template' === $key ) {
-			return '<li><a href="%POST_URL%"  title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% ' . __( 'views', 'wp-postviews' ) . '</li>';
+			return '<li><a href="%POST_URL%" title="%POST_TITLE%">%POST_TITLE%</a> - %VIEW_COUNT% ' . __( 'views', 'wp-postviews' ) . '</li>';
 		}
 
 		return '%VIEW_COUNT% ' . __( 'views', 'wp-postviews' );
@@ -231,6 +231,33 @@ class WP_PostViews_Options {
 	 * that believed it had been cleaned. WP-CLI, cron, a restored backup and any
 	 * other caller reach the same door.
 	 *
+	 * `update_option()` declines to write a value equal to the one `get_option()`
+	 * would return, and `register_setting()` is passed a `default`, which installs
+	 * a `default_option_wp_postviews_options` filter answering with the shipped
+	 * defaults for a row that does not exist. So a migration whose result happens
+	 * to equal the defaults -- the commonest install there is -- writes nothing at
+	 * all, the row is never created, and the markers are stamped complete either
+	 * way, so the upgrade can never run again. Core's own `add_option()` fallback
+	 * sits immediately below that comparison and is unreachable once the two
+	 * compare equal.
+	 *
+	 * It was held off by hook order alone: this runs on `init` and the filter is
+	 * registered on `admin_init`. One `show_in_rest`, one registration moved
+	 * earlier, or any third-party `default_option_*` filter reaches it, silently,
+	 * after the legacy row has already been deleted.
+	 *
+	 * And it was hidden by an accident. `filter_templates()` runs kses, which
+	 * collapsed a doubled space that the most viewed template's default carried
+	 * before 2.0.0 -- so the value written differed from the defaults by that one
+	 * character, the comparison found a difference, and the row was written. The
+	 * migration test that pins this passed because of a typo in a template.
+	 *
+	 * Passing an explicit default to `get_option()` defeats the registered one --
+	 * `filter_default_option()` returns early when a default was passed -- which is
+	 * what lets an absent row be told apart from a defaulted one and added
+	 * outright. `add_option()` runs the sanitize callback exactly as
+	 * `update_option()` does, so nothing else about the stored value changes.
+	 *
 	 * @param array $values Full option array.
 	 * @return bool
 	 */
@@ -238,6 +265,10 @@ class WP_PostViews_Options {
 		$values      = array_diff_key( (array) $values, array_flip( self::retired_keys() ) );
 		$values      = self::filter_templates( $values );
 		self::$cache = array_merge( self::defaults(), $values );
+
+		if ( false === get_option( self::OPTION, false ) ) {
+			return add_option( self::OPTION, self::$cache );
+		}
 
 		return update_option( self::OPTION, self::$cache );
 	}
