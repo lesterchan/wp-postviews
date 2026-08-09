@@ -432,17 +432,30 @@ test.describe( 'The settings screen', () => {
 		expect( option( 'stats_most_limit' ) ).toBe( 7 );
 	} );
 
-	test( 'the screen lists the tokens each template accepts', async ( { page } ) => {
+	test( 'the screen lists the tokens each template accepts, under the field', async ( { page } ) => {
 		await openTemplates( page );
 
-		// The token list is the only documentation a site owner has for what
-		// may go in these fields, and it is markup in a settings-field title,
-		// which is the sort of thing that quietly disappears.
-		await expect( page.locator( 'th:has(label[for="views-template-template"]) code' ) ).toHaveText(
-			[ '%VIEW_COUNT%', '%VIEW_COUNT_ROUNDED%' ],
-		);
+		// The token list is the only documentation a site owner has for what may
+		// go in these fields, so it is worth pinning that it is there at all.
+		//
+		// In the field cell, under the control -- not the heading cell it used to
+		// sit in as a bulleted column. A hint belongs with the control it
+		// describes, which is where WordPress puts one and where the other four
+		// plugins with a token list already had theirs. This locator is scoped to
+		// the row's td for that reason: a bare `code` selector would keep passing
+		// if the list drifted back up into the th.
+		const row = page.locator( 'tr:has(label[for="views-template-template"])' );
+
+		await expect( row.locator( 'td .description code' ) ).toHaveText( [
+			'%VIEW_COUNT%',
+			'%VIEW_COUNT_ROUNDED%',
+		] );
+		await expect( row.locator( 'th code' ) ).toHaveCount( 0 );
+
 		await expect(
-			page.locator( 'th:has(label[for="views-template-most_viewed_template"]) code' ),
+			page
+				.locator( 'tr:has(label[for="views-template-most_viewed_template"])' )
+				.locator( 'td .description code' ),
 		).toContainText( [ '%POST_TITLE%' ] );
 	} );
 } );
