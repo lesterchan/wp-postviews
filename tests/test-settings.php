@@ -225,13 +225,16 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 		$this->assertSame( 'views-count', $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['count']['args']['label_for'], 'The counting select points its label at its own control.' );
 		$this->assertSame( 'views-exclude_bots', $settings[ WP_PostViews_Settings::SECTION_GENERAL ]['exclude_bots']['args']['label_for'], 'And so does the bot exclusion select.' );
 
-		// The template rows carry a variable list in the heading cell, which
-		// cannot live inside a label element, so they bring their own.
-		$this->assertArrayNotHasKey( 'label_for', $templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['args'], 'A select declares its own label target, so no label_for is added over the top.' );
-		$this->assertStringContainsString(
-			'<label for="views-template-template">',
+		// The template rows use label_for like every other field, because the
+		// heading cell holds only a label now. They hand-built one while the
+		// token list lived up there as a bulleted column -- a list has no
+		// business inside a label element -- but the list is a field hint and
+		// sits under the control it describes.
+		$this->assertSame( 'views-template-template', $templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['args']['label_for'], 'A template row points its label at its own control like every other field.' );
+		$this->assertSame(
+			'Views Template:',
 			$templates[ WP_PostViews_Settings::SECTION_TEMPLATES ]['template']['title'],
-			'While a textarea carries its label in the row title.'
+			'And its title is the bare label text, with no markup smuggled in.'
 		);
 	}
 
@@ -420,6 +423,56 @@ class WP_PostViews_Settings_Test extends WP_PostViews_TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * The token list is a hint about the control, so it follows the control.
+	 *
+	 * These lived in the heading cell as a bulleted column, which was one of
+	 * four arrangements across the five plugins that list template tokens. The
+	 * rule is WordPress's own: a field hint is a description paragraph directly
+	 * after the field it describes -- and with the heading cell holding only a
+	 * label again, the fields can use label_for like every other field here.
+	 *
+	 * @return void
+	 */
+	public function test_the_token_list_follows_the_field_it_describes() {
+		$fields = array(
+			'template'             => array( 'input', array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ) ),
+			'most_viewed_template' => array( 'textarea', array( 'VIEW_COUNT', 'POST_TITLE', 'POST_URL' ) ),
+		);
+
+		foreach ( $fields as $key => $expectations ) {
+			list( $control, $tokens ) = $expectations;
+
+			$html = $this->capture(
+				function () use ( $key, $control ) {
+					WP_PostViews_Settings::field_template(
+						array(
+							'key'    => $key,
+							'id'     => 'views-template-' . $key,
+							'type'   => 'textarea' === $control ? 'textarea' : 'text',
+							'tokens' => 'template' === $key
+								? array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' )
+								: array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED', 'POST_TITLE', 'POST_URL' ),
+						)
+					);
+				}
+			);
+
+			$field = strpos( $html, 'input' === $control ? '<input' : '</textarea>' );
+			$hint  = strpos( $html, 'Allowed variables:' );
+
+			$this->assertNotFalse( $hint, "$key lists its tokens" );
+			$this->assertGreaterThan( $field, $hint, "$key puts the hint after the control, not in the heading cell" );
+			$this->assertStringContainsString( 'class="description"', $html, 'And in a description paragraph.' );
+
+			foreach ( $tokens as $token ) {
+				$this->assertStringContainsString( '<code>%' . $token . '%</code>', $html, "$key lists %$token% as a literal code span" );
+			}
+
+			$this->assertStringNotContainsString( '<ul>', $html, 'The bulleted column is gone.' );
+		}
+	}
+
 	public function test_the_wp_stats_checkbox_is_paired_with_a_hidden_zero() {
 		$html = $this->capture( array( 'WP_PostViews_Settings', 'field_stats_display' ) );
 

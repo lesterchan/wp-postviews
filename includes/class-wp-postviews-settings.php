@@ -226,23 +226,31 @@ class WP_PostViews_Settings {
 
 		add_settings_field(
 			'template',
-			self::template_title( __( 'Views Template:', 'wp-postviews' ), 'views-template-template', array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ) ),
+			__( 'Views Template:', 'wp-postviews' ),
 			array( __CLASS__, 'field_template' ),
 			$templates,
 			self::SECTION_TEMPLATES,
 			array(
-				'key'  => 'template',
-				'id'   => 'views-template-template',
-				'type' => 'text',
+				'key'       => 'template',
+				'id'        => 'views-template-template',
+				'type'      => 'text',
+				'label_for' => 'views-template-template',
+				'tokens'    => array( 'VIEW_COUNT', 'VIEW_COUNT_ROUNDED' ),
 			)
 		);
 
 		add_settings_field(
 			'most_viewed_template',
-			self::template_title(
-				__( 'Most Viewed Template:', 'wp-postviews' ),
-				'views-template-most_viewed_template',
-				array(
+			__( 'Most Viewed Template:', 'wp-postviews' ),
+			array( __CLASS__, 'field_template' ),
+			$templates,
+			self::SECTION_TEMPLATES,
+			array(
+				'key'       => 'most_viewed_template',
+				'id'        => 'views-template-most_viewed_template',
+				'type'      => 'textarea',
+				'label_for' => 'views-template-most_viewed_template',
+				'tokens'    => array(
 					'VIEW_COUNT',
 					'VIEW_COUNT_ROUNDED',
 					'POST_TITLE',
@@ -255,15 +263,7 @@ class WP_PostViews_Settings {
 					'POST_THUMBNAIL_URL',
 					'POST_CATEGORY_ID',
 					'POST_AUTHOR',
-				)
-			),
-			array( __CLASS__, 'field_template' ),
-			$templates,
-			self::SECTION_TEMPLATES,
-			array(
-				'key'  => 'most_viewed_template',
-				'id'   => 'views-template-most_viewed_template',
-				'type' => 'textarea',
+				),
 			)
 		);
 	}
@@ -405,6 +405,8 @@ class WP_PostViews_Settings {
 			<input type="text" class="large-text code" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( $name ); ?>" value="<?php echo esc_attr( $value ); ?>" />
 			<?php
 		}
+
+		self::token_list( isset( $args['tokens'] ) ? (array) $args['tokens'] : array() );
 		?>
 		<p>
 			<button type="button" class="button" data-postviews-reset="<?php echo esc_attr( $key ); ?>" data-postviews-target="<?php echo esc_attr( $id ); ?>">
@@ -484,33 +486,33 @@ class WP_PostViews_Settings {
 	}
 
 	/**
-	 * The heading cell for a template field: its label, then the tokens the
-	 * template accepts.
+	 * The tokens a template accepts, listed under the field.
 	 *
-	 * Core prints a field title as given, and do_settings_fields() wraps it in a
-	 * label element when label_for is set. These titles carry a list, which has
-	 * no business inside a label, so they bring their own label element and the
-	 * fields leave label_for unset.
+	 * Under it, in the field cell, and not in the heading cell beside it: a hint
+	 * belongs with the control it describes, which is where WordPress puts one
+	 * and where the other four plugins with a token list already had it. This
+	 * screen listed them in the heading cell as a bulleted column instead, so one
+	 * setting read four different ways across the set.
 	 *
 	 * The tokens are markup rather than placeholders in a translatable string:
 	 * phpcbf reads %VIEW_COUNT% as a printf placeholder and rewrites it to
 	 * %1$VIEW_COUNT%, which changes the msgid and shows the mangled form to the
 	 * user.
 	 *
-	 * @param string $label  Visible label.
-	 * @param string $id     Field the label points at.
-	 * @param array  $tokens Token names, without the surrounding percent signs.
-	 * @return string
+	 * @param array $tokens Token names, without the surrounding percent signs.
+	 * @return void
 	 */
-	protected static function template_title( $label, $id, $tokens ) {
-		$title  = '<label for="' . esc_attr( $id ) . '">' . esc_html( $label ) . '</label>';
-		$title .= '<p>' . esc_html__( 'Allowed Variables:', 'wp-postviews' ) . '</p>';
-		$title .= '<ul>';
-		foreach ( $tokens as $token ) {
-			$title .= '<li><code>%' . esc_html( $token ) . '%</code></li>';
+	protected static function token_list( $tokens ) {
+		if ( empty( $tokens ) ) {
+			return;
 		}
-		$title .= '</ul>';
 
-		return $title;
+		echo '<p class="description">' . esc_html__( 'Allowed variables:', 'wp-postviews' ) . ' ';
+
+		foreach ( $tokens as $token ) {
+			echo '<code>%' . esc_html( $token ) . '%</code> ';
+		}
+
+		echo '</p>';
 	}
 }
