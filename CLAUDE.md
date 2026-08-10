@@ -80,8 +80,8 @@ warns that the most-viewed *pages* list therefore appears beside the posts list.
 * **`WP_PostViews_Display::should_be_displayed()` must survive**, even though the
   six Display Options settings behind it are gone. The 2.0.0 Upgrade Notice
   names that method and the `wp_postviews_should_display` filter as the
-  documented replacement, so removing it breaks a promise in the release about
-  to ship.
+  documented replacement, so removing it breaks a promise the shipped 2.0.0
+  made in writing.
 
 ## WP-CLI and REST
 
