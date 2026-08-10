@@ -227,7 +227,7 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 * NEW: An editor block, **Post Views**, under Widgets. It renders on the server through the same code the shortcode uses, so a block and a shortcode showing the same post produce the same markup, and previewing it in the editor never counts a view. The `[views]` shortcode is unchanged and still supported — nothing needs converting, and posts already containing it keep working.
 * NEW: A `wp postviews` WP-CLI command — `list` and `get`. It reads and never writes.
 * NEW: A `postviews/v1` REST API carrying one route, for counting a view from a cached page. Reading a count is already a `views` field on the core post resource. The `admin-ajax.php` `wp_postviews` action is unchanged and still supported.
-* BREAKING: Requires WordPress 6.8 and PHP 8.2, up from 6.0 and 7.4.
+* BREAKING: Requires WordPress 6.8 and PHP 8.2.
 * BREAKING: The `the_views` filter is now `wp_postviews_the_views`. The template tag `the_views()` is unchanged.
 * BREAKING: The `postviews_should_count` filter is now `wp_postviews_should_count`.
 * BREAKING: The `postviews_increment_views` and `postviews_increment_views_ajax` actions are now `wp_postviews_increment_views` and `wp_postviews_increment_views_ajax`.
