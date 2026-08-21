@@ -251,4 +251,49 @@ class WP_PostViews_Multisite_Test extends WP_PostViews_TestCase {
 
 		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = 'views'" );
 	}
+
+	/**
+	 * The activation site query is uncapped and asks only for IDs.
+	 *
+	 * Read off pre_get_sites rather than proved with a 101-site fixture:
+	 * get_sites() defaults to 100, so a larger network would silently keep
+	 * its options on every site past the hundredth while activation still
+	 * reported success.
+	 *
+	 * @return void
+	 */
+	public function test_network_activation_queries_sites_without_a_cap() {
+		$captured = array();
+		add_action(
+			'pre_get_sites',
+			function ( $query ) use ( &$captured ) {
+				$captured[] = $query->query_vars;
+			}
+		);
+
+		WP_PostViews::activate( true );
+
+		$this->assertNotEmpty( $captured, 'Activation never queried the site list.' );
+		$this->assertSame( 0, (int) $captured[0]['number'], 'get_sites() was left at its default cap of 100 sites.' );
+		$this->assertSame( 'ids', $captured[0]['fields'], 'Only the site IDs are needed.' );
+	}
+
+	/**
+	 * The blog stack is left unwound and the original site is current.
+	 *
+	 * Calling switch_to_blog() pushes onto a stack. Restoring once after the loop
+	 * rather than once per iteration leaves the stack short, so whatever runs next
+	 * operates against the last site visited instead of the one it thinks it is on.
+	 *
+	 * @return void
+	 */
+	public function test_network_activation_unwinds_the_blog_stack() {
+		$original = get_current_blog_id();
+		self::factory()->blog->create();
+
+		WP_PostViews::activate( true );
+
+		$this->assertFalse( ms_is_switched(), 'The blog stack was left switched.' );
+		$this->assertSame( $original, get_current_blog_id(), 'The original site is no longer current.' );
+	}
 }
