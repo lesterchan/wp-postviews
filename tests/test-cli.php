@@ -66,7 +66,7 @@ class WP_PostViews_CLI_Test extends WP_PostViews_TestCase {
 			define( 'WP_CLI', true );
 		}
 
-		WP_PostViews_Core::register_command();
+		WP_PostViews::register_command();
 
 		$this->assertArrayHasKey( 'postviews', WP_CLI::$commands, 'The command is registered as `wp postviews`.' );
 		$this->assertSame( 'WP_PostViews_Command', WP_CLI::$commands['postviews'], 'WP_PostViews_Command is what handles it.' );

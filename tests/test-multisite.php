@@ -80,7 +80,7 @@ class WP_PostViews_Multisite_Test extends WP_PostViews_TestCase {
 			restore_current_blog();
 		}
 
-		wp_postviews_activate( true );
+		WP_PostViews::activate( true );
 
 		foreach ( $site_ids as $site_id ) {
 			switch_to_blog( $site_id );
@@ -107,7 +107,7 @@ class WP_PostViews_Multisite_Test extends WP_PostViews_TestCase {
 		delete_option( WP_PostViews_Options::OPTION );
 		restore_current_blog();
 
-		wp_postviews_activate( false );
+		WP_PostViews::activate( false );
 
 		switch_to_blog( $other );
 		$stored = get_option( WP_PostViews_Options::OPTION );

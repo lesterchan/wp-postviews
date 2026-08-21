@@ -143,26 +143,6 @@ class WP_PostViews_Core {
 	}
 
 	/**
-	 * Register the WP-CLI command.
-	 *
-	 * The class file is required here rather than at plugin load because it
-	 * extends WP_CLI_Command, which only exists when WP-CLI is the one running
-	 * WordPress. Requiring it unconditionally is a fatal error on every web
-	 * request.
-	 *
-	 * @return void
-	 */
-	public static function register_command() {
-		if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
-			return;
-		}
-
-		require_once WP_POSTVIEWS_DIR . 'includes/class-wp-postviews-command.php';
-
-		WP_CLI::add_command( 'postviews', 'WP_PostViews_Command' );
-	}
-
-	/**
 	 * Expose the count as a `views` field on the REST post resource.
 	 *
 	 * @return void
