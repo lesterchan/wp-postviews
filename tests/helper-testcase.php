@@ -115,7 +115,7 @@ abstract class WP_PostViews_TestCase extends WP_UnitTestCase {
 	 * @param array $overrides Values to set.
 	 * @return void
 	 */
-	protected function set_options( $overrides ) {
+	protected function set_options( array $overrides = array() ) {
 		update_option( WP_PostViews_Options::OPTION, array_merge( WP_PostViews_Options::all(), $overrides ) );
 	}
 
