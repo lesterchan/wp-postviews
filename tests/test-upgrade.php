@@ -16,7 +16,7 @@
 /**
  * Option row migration and the version markers.
  */
-class WP_PostViews_Migration_Test extends WP_PostViews_TestCase {
+class WP_PostViews_Upgrade_Test extends WP_PostViews_TestCase {
 
 	/**
 	 * Put the site back into its pre-2.0.0 shape.

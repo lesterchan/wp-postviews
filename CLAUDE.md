@@ -170,7 +170,7 @@ about their last result** — CI is the authority, and this file cannot be.
 
 `test-blocks.php` covers the block; `test-counter.php` both counting paths and
 the preview guard;
-`test-migration.php` the `views_options` fold-in; `test-multisite.php` exists
+`test-upgrade.php` the `views_options` fold-in; `test-multisite.php` exists
 because `test_uninstall_removes_only_our_data` skips its network branch
 deliberately — the coverage is in the multisite class, not missing.
 
