@@ -10,6 +10,8 @@
  * this file, which every plugin update then overwrote.
  */
 ( function() {
+	'use strict';
+
 	fetch( wpPostViewsL10n.ajaxUrl, {
 		method: 'POST',
 		credentials: 'same-origin',

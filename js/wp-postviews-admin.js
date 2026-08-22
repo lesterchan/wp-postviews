@@ -7,6 +7,8 @@
  * into an attribute, so no escaping happens in a JavaScript string literal.
  */
 ( function() {
+	'use strict';
+
 	document.addEventListener( 'click', function( event ) {
 		const button = event.target.closest( '[data-postviews-reset]' );
 
