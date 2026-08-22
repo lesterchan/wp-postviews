@@ -4,7 +4,7 @@ Donate link: https://lesterchan.net/site/donation/
 Tags: views, hits, counter, postviews, statistics  
 Requires at least: 6.8  
 Tested up to: 7.1  
-Stable tag: 2.0.0  
+Stable tag: 2.0.1  
 Requires PHP: 8.2  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -220,6 +220,10 @@ You can obtain the number of post views by adding `views` to your `_fields` para
 4. The Most Viewed widget
 
 ## Changelog
+
+### 2.0.1
+* FIXED: "Count Views From" was only honoured while the page rendered. On a cached site the counting happens through a separate AJAX or REST call instead, and that path never asked the setting — so with "Registered Users Only" a guest hitting a cached page was still counted, and the bot exclusion never applied there either. Both endpoints now check the setting against the actual visitor's login state
+
 ### 2.0.0
 * FIXED: The two templates are echoed as markup on the strength of being `wp_kses_post()`'d when saved — and that was true only of the settings screen. The 2.0.0 migration writes through a different door, and the row it folds in comes from a release that stored the field with no filtering at all, so a hostile template on a site upgrading from 1.78.1 was carried across verbatim and echoed to every visitor. The filtering now happens where the row is written, so WP-CLI, cron, a restored backup and another plugin all pass through it too
 * FIXED: The deferred counting endpoint checked only that an ID named *something*, and every row in `wp_posts` answers to that — revisions, autosaves, auto-drafts, attachments, trashed posts, drafts, menu items, reusable blocks. An unauthenticated caller could walk the ID space writing a view row against each one, and read back the count of unpublished posts while doing it. It now requires a real, publicly viewable post, which is what the other counting path already knew
