@@ -14,9 +14,7 @@
  * @package WP-PostViews
  */
 
-if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit();
-}
+defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 // WordPress loads this file and nothing else of the plugin when the plugin is
 // deleted, so the option list has to be pulled in explicitly. Reading it from

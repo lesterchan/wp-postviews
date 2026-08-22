@@ -35,9 +35,7 @@
 */
 
 // Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * WP-PostViews version. Compared against the 'plugin' marker in wp_postviews_version.
