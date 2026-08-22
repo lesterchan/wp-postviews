@@ -149,6 +149,62 @@ class WP_PostViews_REST_API_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
+	 * The count mode gates the route exactly as it gates wp_head.
+	 *
+	 * The deferred path, record(), validated the post and asked nothing about
+	 * the visitor, so a guest's request counted under Registered Users Only.
+	 *
+	 * @dataProvider data_count_modes
+	 *
+	 * @param int  $mode      0 everyone, 1 guests only, 2 registered only.
+	 * @param bool $logged_in Whether a user is signed in.
+	 * @param bool $counted   Whether the view increments.
+	 * @return void
+	 */
+	public function test_the_count_mode_gates_the_route( $mode, $logged_in, $counted ) {
+		$post_id = $this->make_post( array(), 4 );
+		$this->defer_counting();
+		$this->set_options( array( 'count' => $mode ) );
+
+		if ( $logged_in ) {
+			wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+			// The guests-only mode reads the logged-in cookie as well as the ID.
+			$_COOKIE[ USER_COOKIE ] = 'editor|123|abc';
+		}
+
+		$response = $this->request(
+			'POST',
+			'/postviews/v1/post/' . $post_id . '/view',
+			array( 'nonce' => wp_create_nonce( 'wp_postviews_nonce' ) )
+		);
+
+		if ( $counted ) {
+			$this->assertSame( 200, $response->get_status(), 'A visitor the mode includes is counted.' );
+			$this->assertSame( 5, (int) get_post_meta( $post_id, 'views', true ), 'And the count moves.' );
+		} else {
+			$this->assertSame( 403, $response->get_status(), 'A visitor the mode excludes is refused.' );
+			$this->assertSame( 'wp_postviews_view_not_counted', $response->get_data()['code'], 'Named as a refusal, not as a missing post.' );
+			$this->assertSame( 4, (int) get_post_meta( $post_id, 'views', true ), 'And the count does not move.' );
+		}
+	}
+
+	/**
+	 * Mode and login state, with whether the view counts.
+	 *
+	 * @return array
+	 */
+	public function data_count_modes() {
+		return array(
+			'everyone, anonymous'        => array( 0, false, true ),
+			'everyone, logged in'        => array( 0, true, true ),
+			'guests only, anonymous'     => array( 1, false, true ),
+			'guests only, logged in'     => array( 1, true, false ),
+			'registered only, anonymous' => array( 2, false, false ),
+			'registered only, logged in' => array( 2, true, true ),
+		);
+	}
+
+	/**
 	 * Without the nonce nothing is counted.
 	 *
 	 * @return void

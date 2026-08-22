@@ -319,6 +319,46 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
+	 * The count mode matrix, through the AJAX endpoint.
+	 *
+	 * The deferred path, record(), validated the post and asked nothing about
+	 * the visitor, so on a cached site a guest's POST counted under every mode
+	 * -- Registered Users Only included.
+	 *
+	 * @dataProvider data_count_modes
+	 *
+	 * @param int  $mode      0 everyone, 1 guests only, 2 registered only.
+	 * @param bool $logged_in Whether a user is signed in.
+	 * @param int  $expected  Expected increment.
+	 * @return void
+	 */
+	public function test_ajax_count_modes( $mode, $logged_in, $expected ) {
+		$this->sign_in( $logged_in );
+		$this->set_options( array( 'count' => $mode ) );
+
+		$this->assertSame( $expected, $this->call_ajax( (string) $this->post_id )['delta'], 'The count mode decides on the AJAX path exactly as it does during wp_head.' );
+	}
+
+	/**
+	 * Bot exclusion holds on the AJAX endpoint too, for the bots that run
+	 * JavaScript.
+	 *
+	 * @return void
+	 */
+	public function test_ajax_endpoint_excludes_bots() {
+		$this->set_options(
+			array(
+				'count'        => 0,
+				'exclude_bots' => 1,
+			)
+		);
+
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)';
+
+		$this->assertSame( 0, $this->call_ajax( (string) $this->post_id )['delta'], 'A bot that executes the counting script is still not counted.' );
+	}
+
+	/**
 	 * The AJAX endpoint refuses input it should refuse.
 	 *
 	 * @dataProvider data_rejected_ajax_ids
@@ -769,7 +809,7 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 	}
 
 	/**
-	 * Drive the nopriv endpoint.
+	 * Drive the AJAX endpoint, through the door the login state selects.
 	 *
 	 * Both wp_send_json_success() and check_ajax_referer() end in wp_die(), so
 	 * the die handler is swapped for one that throws.
@@ -815,7 +855,9 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 
 		ob_start();
 		try {
-			do_action( 'wp_ajax_nopriv_wp_postviews' );
+			// admin-ajax.php picks the hook by login state; both reach the same
+			// callback, but the test walks in the same door a browser would.
+			do_action( is_user_logged_in() ? 'wp_ajax_wp_postviews' : 'wp_ajax_nopriv_wp_postviews' );
 		} catch ( WPDieException $e ) {
 			$died = $e->getMessage();
 		}
