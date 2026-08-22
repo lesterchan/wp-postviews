@@ -6,7 +6,7 @@
  * events rather than by calling anything.
  */
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { adminL10n, loadScript, templateRow } from './helper-dom.js';
+import { adminL10n, loadScript, templateRow } from './helpers.js';
 
 describe( 'wp-postviews settings screen', () => {
 	beforeAll( () => {

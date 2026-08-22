@@ -5,7 +5,7 @@
  * stands up its own fetch stub and then loads the script.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cacheL10n, loadScript } from './helper-dom.js';
+import { cacheL10n, loadScript } from './helpers.js';
 
 describe( 'wp-postviews cached page counter', () => {
 	beforeEach( () => {
