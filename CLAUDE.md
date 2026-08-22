@@ -174,7 +174,7 @@ the preview guard;
 because `test_uninstall_removes_only_our_data` skips its network branch
 deliberately — the coverage is in the multisite class, not missing.
 
-`tests/e2e/` is the biggest suite here and **has never been audited for
-near-duplicate padding** — a six-way parametrised loop is six tests by the count
+`tests/e2e/` is the biggest suite here and **worth reading for near-duplicate
+padding before extending it** — a six-way parametrised loop is six tests by the count
 and one test by what it proves. Read it against `includes/` before believing it
 is comprehensive.

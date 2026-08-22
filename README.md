@@ -212,6 +212,16 @@ Purge the cache to use the updated pages.
 You can obtain the number of post views by adding `views` to your `_fields` parameter:
 `/wp/v2/posts?_fields=views,title`
 
+### Can The Settings Screen Be Handed To Another Role?
+The screen requires `manage_options`. The `wp_postviews_capability` filter is read
+wherever that gate is checked, so a different capability opens it to whoever holds one:
+
+```php
+add_filter( 'wp_postviews_capability', function () {
+	return 'edit_others_posts';
+} );
+```
+
 ## Screenshots
 
 1. Settings -> WP-PostViews, which chooses whose views are counted and how they are recorded
