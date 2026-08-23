@@ -82,12 +82,14 @@ class WP_PostViews_Options {
 	 * @return void
 	 */
 	public static function init() {
-		// On 'init' rather than 'admin_init': the 2.0.0 migration moves the row
-		// itself, and until it has run the plugin is reading defaults over a
-		// name nothing has written. Waiting for an administrator to load a
-		// screen would leave every front end visitor looking at a stock template
-		// in the meantime. The marker gate means this writes at most once.
-		add_action( 'init', array( __CLASS__, 'maybe_upgrade' ), 1 );
+		// On 'init' rather than 'admin_init'. Activation does not fire on a
+		// plugin update, which is the single most common reason a migration
+		// never runs -- and the 2.0.0 migration moves the row itself, so until
+		// it has run the plugin is reading defaults over a name nothing has
+		// written. Waiting for an administrator to load a screen would leave
+		// every front end visitor looking at a stock template in the meantime.
+		// The marker gate means this writes at most once.
+		add_action( 'init', array( __CLASS__, 'maybe_upgrade' ), 5 );
 
 		// Before 2.0.0 every read went straight to get_option(), so anything
 		// that wrote the row - another plugin, WP-CLI, a migration script -

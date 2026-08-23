@@ -8,22 +8,32 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The wiring that belongs to no component: activation, the widget, the REST
+ * Boots the plugin: the components, the activation hook, the widget, the REST
  * routes and the WP-CLI command.
- *
- * The components register their own hooks from their init() calls in the main
- * file; this class carries only what none of them owns.
  */
 class WP_PostViews {
 
 	/**
-	 * Wire up everything that is not a component's own.
+	 * Wire up every component, and everything that is not a component's own.
 	 *
 	 * @return void
 	 */
 	public static function init() {
 		// Must be registered at file-load time, which is when this runs.
 		register_activation_hook( WP_POSTVIEWS_MAIN_FILE, array( __CLASS__, 'activate' ) );
+
+		WP_PostViews_Options::init();
+		WP_PostViews_Display::init();
+		WP_PostViews_Counter::init();
+		WP_PostViews_Blocks::init();
+		WP_PostViews_Core::init();
+		WP_PostViews_Admin::init();
+		WP_PostViews_Settings::init();
+
+		// Initialised unconditionally. WP-Stats may not be installed, in which
+		// case nothing fires wp_stats_sections and this is inert - there is no
+		// class_exists() probing between the two plugins.
+		WP_PostViews_WPStats::init();
 
 		new WP_PostViews_API();
 
@@ -64,14 +74,12 @@ class WP_PostViews {
 	/**
 	 * Seed the options row, on this site or across the network.
 	 *
-	 * @param bool $network_wide Whether the plugin is being activated network wide.
+	 * @param bool $network_wide Whether the plugin is being activated network-wide.
 	 * @return void
 	 */
 	public static function activate( $network_wide = false ) {
 		if ( is_multisite() && $network_wide ) {
-			// get_sites(), not the wp_get_sites() this used to call: that one has
-			// been deprecated since WP 4.6 and returns only the first 100 sites.
-			// 'number' => 0 lifts WP_Site_Query's own default cap of 100 too.
+			// 'number' => 0 lifts WP_Site_Query's default cap of 100, which would otherwise skip every site past the hundredth while reporting success.
 			$site_ids = get_sites(
 				array(
 					'fields' => 'ids',
@@ -82,6 +90,7 @@ class WP_PostViews {
 			foreach ( $site_ids as $site_id ) {
 				switch_to_blog( (int) $site_id );
 				WP_PostViews_Options::install();
+				// Inside the loop: switch_to_blog() pushes onto a stack, so restoring once after the loop unwinds it by exactly one.
 				restore_current_blog();
 			}
 

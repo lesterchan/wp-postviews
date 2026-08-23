@@ -139,7 +139,7 @@ turn and watches the other carry on, which is the only thing that stops a later
 
 ## Migrations, and why they are tested through a browser
 
-`maybe_upgrade()` hangs off `init` at priority 1, **not `admin_init`**, and that
+`maybe_upgrade()` hangs off `init` at priority 5, **not `admin_init`**, and that
 is deliberate: until it has run the plugin is reading defaults over a row
 nothing has written, and it is *visitors* who would be looking at a stock
 template in the meantime. So the migration does not wait for an administrator to
