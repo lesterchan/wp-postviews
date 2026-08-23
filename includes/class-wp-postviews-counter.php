@@ -18,6 +18,16 @@ defined( 'ABSPATH' ) || exit;
 class WP_PostViews_Counter {
 
 	/**
+	 * Nonce action for the counting endpoint.
+	 *
+	 * For a logged out visitor it is derived from a shared anonymous session,
+	 * so anyone can mint one; see ajax_increment() for what checking it buys.
+	 *
+	 * @since 2.0.0
+	 */
+	const AJAX_NONCE = 'wp_postviews_nonce';
+
+	/**
 	 * Hook registration.
 	 *
 	 * @return void
@@ -259,7 +269,7 @@ class WP_PostViews_Counter {
 			'wpPostViewsL10n',
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'wp_postviews_nonce' ),
+				'nonce'   => wp_create_nonce( self::AJAX_NONCE ),
 				'postId'  => (int) $post->ID,
 			)
 		);
@@ -277,7 +287,7 @@ class WP_PostViews_Counter {
 	 * @return void
 	 */
 	public static function ajax_increment() {
-		check_ajax_referer( 'wp_postviews_nonce', 'nonce' );
+		check_ajax_referer( self::AJAX_NONCE, '_ajax_nonce' );
 
 		if ( ! self::using_ajax() ) {
 			return;

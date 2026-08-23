@@ -137,7 +137,7 @@ test.describe( 'The REST route', () => {
 				form: {
 					action: 'wp_postviews',
 					postviews_id: String( postId ),
-					nonce: countingNonce(),
+					_ajax_nonce: countingNonce(),
 				},
 			} );
 

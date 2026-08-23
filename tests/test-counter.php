@@ -842,8 +842,8 @@ class WP_PostViews_Counter_Test extends WP_PostViews_TestCase {
 		);
 
 		$_POST = array(
-			'action' => 'wp_postviews',
-			'nonce'  => null === $nonce ? wp_create_nonce( 'wp_postviews_nonce' ) : $nonce,
+			'action'      => 'wp_postviews',
+			'_ajax_nonce' => null === $nonce ? wp_create_nonce( WP_PostViews_Counter::AJAX_NONCE ) : $nonce,
 		);
 		if ( null !== $postviews_id ) {
 			$_POST['postviews_id'] = $postviews_id;

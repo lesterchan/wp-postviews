@@ -326,14 +326,14 @@ test.describe( 'Counting a view', () => {
 			const nonce = await guest.evaluate( () => window.wpPostViewsL10n.nonce );
 
 			const refused = await guest.request.post( '/wp-admin/admin-ajax.php', {
-				form: { action: 'wp_postviews', nonce: 'not-a-nonce', postviews_id: post.id },
+				form: { action: 'wp_postviews', _ajax_nonce: 'not-a-nonce', postviews_id: post.id },
 			} );
 			expect( refused.status() ).toBe( 403 );
 
 			// The same request with the page's own nonce, so the rejection
 			// above is the nonce check and not the endpoint being broken.
 			const accepted = await guest.request.post( '/wp-admin/admin-ajax.php', {
-				form: { action: 'wp_postviews', nonce, postviews_id: post.id },
+				form: { action: 'wp_postviews', _ajax_nonce: nonce, postviews_id: post.id },
 			} );
 			expect( accepted.ok() ).toBe( true );
 		} );
@@ -358,7 +358,7 @@ test.describe( 'Counting a view', () => {
 			// so without the get_post_status() guard a logged out visitor could
 			// walk the id space and grow wp_postmeta without bound.
 			await guest.request.post( '/wp-admin/admin-ajax.php', {
-				form: { action: 'wp_postviews', nonce, postviews_id: 987654321 },
+				form: { action: 'wp_postviews', _ajax_nonce: nonce, postviews_id: 987654321 },
 			} );
 		} );
 

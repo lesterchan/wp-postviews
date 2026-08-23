@@ -59,7 +59,7 @@ describe( 'wp-postviews cached page counter', () => {
 		// page. The action carries the plugin prefix rather than a bare
 		// "postviews", which any plugin could have claimed.
 		expect( fields.get( 'action' ) ).toBe( 'wp_postviews' );
-		expect( fields.get( 'nonce' ) ).toBe( 'abc123' );
+		expect( fields.get( '_ajax_nonce' ) ).toBe( 'abc123' );
 		expect( fields.get( 'postviews_id' ) ).toBe( '42' );
 	} );
 

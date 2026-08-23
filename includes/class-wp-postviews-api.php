@@ -94,7 +94,7 @@ class WP_PostViews_API {
 		// script is handed. It is a site-wide nonce rather than a per-post one,
 		// which is what this plugin has always used; narrowing it here would
 		// break the script that already holds the wide one.
-		if ( ! wp_verify_nonce( (string) $request['nonce'], 'wp_postviews_nonce' ) ) {
+		if ( ! wp_verify_nonce( (string) $request['nonce'], WP_PostViews_Counter::AJAX_NONCE ) ) {
 			return new WP_Error(
 				'wp_postviews_bad_nonce',
 				__( 'Failed To Verify Referrer', 'wp-postviews' ),
