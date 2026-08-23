@@ -142,7 +142,7 @@ class WP_PostViews_Metadata_Test extends Plugin_Metadata_TestCase {
 	 * @return void
 	 */
 	protected function register_plugin_assets() {
-		WP_PostViews_Admin::enqueue_scripts();
+		WP_PostViews_Admin::enqueue();
 
 		add_filter( 'wp_postviews_should_count', '__return_true' );
 

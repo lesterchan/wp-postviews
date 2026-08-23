@@ -151,16 +151,16 @@ class WP_PostViews_Admin {
 			array( __CLASS__, 'render_page' )
 		);
 
-		add_action( 'load-' . $hook, array( __CLASS__, 'enqueue' ) );
+		add_action( 'load-' . $hook, array( __CLASS__, 'screen_loaded' ) );
 	}
 
 	/**
-	 * Load the screen's script.
+	 * Arm the enqueue for the plugin's own screen only.
 	 *
 	 * @return void
 	 */
-	public static function enqueue() {
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
+	public static function screen_loaded() {
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 	}
 
 	/**
@@ -174,7 +174,7 @@ class WP_PostViews_Admin {
 	 *
 	 * @return void
 	 */
-	public static function enqueue_scripts() {
+	public static function enqueue() {
 		wp_enqueue_script(
 			'wp-postviews-admin',
 			WP_POSTVIEWS_URL . 'js/wp-postviews-admin.js',

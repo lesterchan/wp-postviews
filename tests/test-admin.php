@@ -344,7 +344,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_admin_script_is_enqueued_and_localised() {
-		WP_PostViews_Admin::enqueue_scripts();
+		WP_PostViews_Admin::enqueue();
 
 		$this->assertTrue( wp_script_is( 'wp-postviews-admin', 'enqueued' ), 'The admin script is enqueued on this screen.' );
 		$this->assertSame( array(), wp_scripts()->registered['wp-postviews-admin']->deps, 'The admin script declares no dependencies, so nothing is pulled in behind it.' );
@@ -361,7 +361,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 	 * @return void
 	 */
 	public function test_localised_defaults_match_the_option_defaults() {
-		WP_PostViews_Admin::enqueue_scripts();
+		WP_PostViews_Admin::enqueue();
 
 		$data = (string) wp_scripts()->get_data( 'wp-postviews-admin', 'data' );
 		preg_match( '/wpPostViewsL10n = (\{.*\});/', $data, $matches );
