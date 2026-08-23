@@ -65,7 +65,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		global $submenu;
 		$submenu = array();
 
-		WP_PostViews_Admin::add_menu();
+		WP_PostViews_Admin::add_page();
 
 		$slugs = wp_list_pluck( $submenu['options-general.php'] ?? array(), 2 );
 		$this->assertContains( WP_PostViews_Admin::PAGE, $slugs, 'The screen is registered under its own slug.' );
@@ -261,7 +261,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		global $submenu;
 		$submenu = array();
 
-		WP_PostViews_Admin::add_menu();
+		WP_PostViews_Admin::add_page();
 
 		$entry = null;
 		foreach ( $submenu['options-general.php'] ?? array() as $row ) {
@@ -458,7 +458,7 @@ class WP_PostViews_Admin_Test extends WP_PostViews_TestCase {
 		global $submenu;
 		$submenu = array();
 
-		WP_PostViews_Admin::add_menu();
+		WP_PostViews_Admin::add_page();
 
 		$entry = null;
 		foreach ( $submenu['options-general.php'] ?? array() as $row ) {

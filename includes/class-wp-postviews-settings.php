@@ -68,6 +68,29 @@ class WP_PostViews_Settings {
 	 */
 	public static function init() {
 		add_action( 'admin_init', array( __CLASS__, 'register' ) );
+		add_filter(
+			'plugin_action_links_' . plugin_basename( WP_POSTVIEWS_MAIN_FILE ),
+			array( __CLASS__, 'action_links' )
+		);
+	}
+
+	/**
+	 * Add a Settings link on the Plugins screen row.
+	 *
+	 * @param string[] $links Existing action links.
+	 * @return string[]
+	 */
+	public static function action_links( $links ) {
+		array_unshift(
+			$links,
+			sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( add_query_arg( 'page', WP_PostViews_Admin::PAGE, admin_url( 'options-general.php' ) ) ),
+				esc_html__( 'Settings', 'wp-postviews' )
+			)
+		);
+
+		return $links;
 	}
 
 	/**

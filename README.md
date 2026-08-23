@@ -232,6 +232,7 @@ add_filter( 'wp_postviews_capability', function () {
 ## Changelog
 
 ### 2.0.1
+* NEW: A Settings link on the plugin's row on the Plugins screen
 * FIXED: "Count Views From" was only honoured while the page rendered. On a cached site the counting happens through a separate AJAX or REST call instead, and that path never asked the setting — so with "Registered Users Only" a guest hitting a cached page was still counted, and the bot exclusion never applied there either. Both endpoints now check the setting against the actual visitor's login state
 
 ### 2.0.0

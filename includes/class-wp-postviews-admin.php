@@ -41,7 +41,7 @@ class WP_PostViews_Admin {
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ) );
+		add_action( 'admin_menu', array( __CLASS__, 'add_page' ) );
 
 		add_filter( 'manage_posts_columns', array( __CLASS__, 'add_column' ) );
 		add_filter( 'manage_pages_columns', array( __CLASS__, 'add_column' ) );
@@ -134,7 +134,7 @@ class WP_PostViews_Admin {
 		 * @param string $capability The required capability.
 		 * @param string $context    What is being gated.
 		 */
-		return apply_filters( 'wp_postviews_capability', self::CAPABILITY, $context );
+		return (string) apply_filters( 'wp_postviews_capability', self::CAPABILITY, $context );
 	}
 
 	/**
@@ -142,7 +142,7 @@ class WP_PostViews_Admin {
 	 *
 	 * @return void
 	 */
-	public static function add_menu() {
+	public static function add_page() {
 		$hook = add_options_page(
 			__( 'Post Views Settings', 'wp-postviews' ),
 			__( 'WP-PostViews', 'wp-postviews' ),
