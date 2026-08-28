@@ -1,10 +1,7 @@
 /**
- * Settings > PostViews.
- *
- * One delegated listener for the "Restore Default Template" buttons, replacing
- * the inline onclick handlers and the jQuery call they used up to 1.78.1. The
- * defaults arrive as data from wp_localize_script() rather than being written
- * into an attribute, so no escaping happens in a JavaScript string literal.
+ * Settings > PostViews. One delegated listener for the Restore Default Template
+ * buttons; the defaults arrive from wp_localize_script(), so nothing is escaped
+ * into a JavaScript string literal.
  */
 ( function() {
 	'use strict';
