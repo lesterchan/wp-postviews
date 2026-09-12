@@ -25,7 +25,7 @@ if ( ! function_exists( 'the_views' ) ) {
 	 * @param string $prefix  Prepended to the rendered template.
 	 * @param string $postfix Appended to the rendered template.
 	 * @param bool   $always  Ignore the display options.
-	 * @return string|void
+	 * @return ($display is true ? null : string)
 	 */
 	function the_views( $display = true, $prefix = '', $postfix = '', $always = false ) {
 		return WP_PostViews_Display::the_views( $display, $prefix, $postfix, $always );
@@ -52,7 +52,7 @@ if ( ! function_exists( 'get_most_viewed' ) ) {
 	 * @param int          $limit   Maximum number of posts.
 	 * @param int          $chars   Truncate titles to this length. 0 disables.
 	 * @param bool         $display Echo when true, return when false.
-	 * @return string|void
+	 * @return ($display is true ? null : string)
 	 */
 	function get_most_viewed( $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		return WP_PostViews_Query::output(
@@ -75,7 +75,7 @@ if ( ! function_exists( 'get_least_viewed' ) ) {
 	 * @param int          $limit   Maximum number of posts.
 	 * @param int          $chars   Truncate titles to this length. 0 disables.
 	 * @param bool         $display Echo when true, return when false.
-	 * @return string|void
+	 * @return ($display is true ? null : string)
 	 */
 	function get_least_viewed( $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		return WP_PostViews_Query::output(
@@ -99,7 +99,7 @@ if ( ! function_exists( 'get_most_viewed_category' ) ) {
 	 * @param int          $limit       Maximum number of posts.
 	 * @param int          $chars       Truncate titles to this length. 0 disables.
 	 * @param bool         $display     Echo when true, return when false.
-	 * @return string|void
+	 * @return ($display is true ? null : string)
 	 */
 	function get_most_viewed_category( $category_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		return WP_PostViews_Query::output(
@@ -124,7 +124,7 @@ if ( ! function_exists( 'get_least_viewed_category' ) ) {
 	 * @param int          $limit       Maximum number of posts.
 	 * @param int          $chars       Truncate titles to this length. 0 disables.
 	 * @param bool         $display     Echo when true, return when false.
-	 * @return string|void
+	 * @return ($display is true ? null : string)
 	 */
 	function get_least_viewed_category( $category_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		return WP_PostViews_Query::output(
@@ -149,7 +149,7 @@ if ( ! function_exists( 'get_most_viewed_tag' ) ) {
 	 * @param int          $limit   Maximum number of posts.
 	 * @param int          $chars   Truncate titles to this length. 0 disables.
 	 * @param bool         $display Echo when true, return when false.
-	 * @return string|void
+	 * @return ($display is true ? null : string)
 	 */
 	function get_most_viewed_tag( $tag_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		return WP_PostViews_Query::output(
@@ -174,7 +174,7 @@ if ( ! function_exists( 'get_least_viewed_tag' ) ) {
 	 * @param int          $limit   Maximum number of posts.
 	 * @param int          $chars   Truncate titles to this length. 0 disables.
 	 * @param bool         $display Echo when true, return when false.
-	 * @return string|void
+	 * @return ($display is true ? null : string)
 	 */
 	function get_least_viewed_tag( $tag_id = 0, $mode = '', $limit = 10, $chars = 0, $display = true ) {
 		return WP_PostViews_Query::output(

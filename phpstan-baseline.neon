@@ -1,0 +1,409 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method WP_PostViews_Admin\:\:add_column\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-admin.php
+
+		-
+			message: '#^Method WP_PostViews_Admin\:\:add_column\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-admin.php
+
+		-
+			message: '#^Method WP_PostViews_Admin\:\:sortable_column\(\) has parameter \$columns with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-admin.php
+
+		-
+			message: '#^Method WP_PostViews_Admin\:\:sortable_column\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-admin.php
+
+		-
+			message: '#^Method WP_PostViews_Blocks\:\:render_views\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-blocks.php
+
+		-
+			message: '#^Method WP_PostViews_Command\:\:get\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-command.php
+
+		-
+			message: '#^Method WP_PostViews_Command\:\:get\(\) has parameter \$assoc_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-command.php
+
+		-
+			message: '#^Method WP_PostViews_Command\:\:list_\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-command.php
+
+		-
+			message: '#^Method WP_PostViews_Command\:\:list_\(\) has parameter \$assoc_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-command.php
+
+		-
+			message: '#^Method WP_PostViews_Command\:\:print_rows\(\) has parameter \$fields with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-command.php
+
+		-
+			message: '#^Method WP_PostViews_Command\:\:print_rows\(\) has parameter \$rows with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-command.php
+
+		-
+			message: '#^Method WP_PostViews_Core\:\:query_vars\(\) has parameter \$public_query_vars with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-core.php
+
+		-
+			message: '#^Method WP_PostViews_Core\:\:query_vars\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-core.php
+
+		-
+			message: '#^Method WP_PostViews_Core\:\:rest_get_views\(\) has parameter \$post with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-core.php
+
+		-
+			message: '#^Method WP_PostViews_Counter\:\:bots\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-counter.php
+
+		-
+			message: '#^Parameter \#1 \$hook_name of function do_action expects non\-empty\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-counter.php
+
+		-
+			message: '#^Method WP_PostViews_Display\:\:shortcode\(\) has parameter \$atts with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-display.php
+
+		-
+			message: '#^Parameter \#1 \$id of static method WP_PostViews_Display\:\:render_views\(\) expects int, int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-display.php
+
+		-
+			message: '#^Parameter \#1 \$post_id of static method WP_PostViews_Display\:\:render_count_template\(\) expects int, int\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: includes/class-wp-postviews-display.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:all\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:all_option_names\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:defaults\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:filter_templates\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:filter_templates\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:markers\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:migrate_stats_settings\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:migrate_stats_settings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:migrate_template_slashes\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:migrate_template_slashes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:retired_keys\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Options\:\:save\(\) has parameter \$values with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Property WP_PostViews_Options\:\:\$cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-options.php
+
+		-
+			message: '#^Method WP_PostViews_Query\:\:output\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-query.php
+
+		-
+			message: '#^Method WP_PostViews_Query\:\:render\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-query.php
+
+		-
+			message: '#^Parameter \#1 \$post_id of function get_post_meta expects int, int\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-query.php
+
+		-
+			message: '#^Parameter \#1 \$url of function esc_url expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-query.php
+
+		-
+			message: '#^Parameter \#2 \$replace of function str_replace expects array\<string\>\|string, array\<int, int\|string\|false\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-query.php
+
+		-
+			message: '#^Method WP_PostViews_Settings\:\:field_select\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Method WP_PostViews_Settings\:\:field_template\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Method WP_PostViews_Settings\:\:sanitize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Method WP_PostViews_Settings\:\:tabs\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Method WP_PostViews_Settings\:\:token_list\(\) has parameter \$tokens with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Method WP_PostViews_Settings\:\:yes_no_choices\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Parameter \#3 \$callback of function add_settings_section expects callable\(\)\: mixed, '''' given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-settings.php
+
+		-
+			message: '#^Method WP_PostViews_Widget\:\:defaults\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Method WP_PostViews_Widget\:\:form\(\) has parameter \$instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Method WP_PostViews_Widget\:\:update\(\) has parameter \$new_instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Method WP_PostViews_Widget\:\:update\(\) has parameter \$old_instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Method WP_PostViews_Widget\:\:update\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Method WP_PostViews_Widget\:\:widget\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Method WP_PostViews_Widget\:\:widget\(\) has parameter \$instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Return type \(void\) of method WP_PostViews_Widget\:\:form\(\) should be compatible with return type \(string\|null\) of method WP_Widget\<array\<string, mixed\>\>\:\:form\(\)$#'
+			identifier: method.childReturnType
+			count: 1
+			path: includes/class-wp-postviews-widget.php
+
+		-
+			message: '#^Method WP_PostViews_WPStats\:\:register_section\(\) has parameter \$sections with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-wpstats.php
+
+		-
+			message: '#^Method WP_PostViews_WPStats\:\:register_section\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-postviews-wpstats.php
+
+		-
+			message: '#^Parameter \#1 \$number of function number_format_i18n expects float, int\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-wpstats.php
+
+		-
+			message: '#^Parameter \#3 \$number of function _n expects int, int\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-postviews-wpstats.php
+
+		-
+			message: '#^Function get_least_viewed\(\) has parameter \$mode with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_least_viewed_category\(\) has parameter \$category_id with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_least_viewed_category\(\) has parameter \$mode with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_least_viewed_tag\(\) has parameter \$mode with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_least_viewed_tag\(\) has parameter \$tag_id with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_most_viewed\(\) has parameter \$mode with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_most_viewed_category\(\) has parameter \$category_id with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_most_viewed_category\(\) has parameter \$mode with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_most_viewed_tag\(\) has parameter \$mode with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_most_viewed_tag\(\) has parameter \$tag_id with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/template-tags.php
+
+		-
+			message: '#^Function get_totalviews\(\) never returns void so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: includes/template-tags.php

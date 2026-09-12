@@ -156,7 +156,7 @@ class WP_PostViews_Query {
 	 *
 	 * @param array $args    Arguments for self::render().
 	 * @param bool  $display Echo when true, return when false.
-	 * @return string|void
+	 * @return ($display is true ? void : string)
 	 */
 	public static function output( $args, $display ) {
 		$output = self::render( $args );

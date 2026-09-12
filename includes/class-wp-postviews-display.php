@@ -30,7 +30,7 @@ class WP_PostViews_Display {
 	 * @param string $prefix  Prepended to the rendered template.
 	 * @param string $postfix Appended to the rendered template.
 	 * @param bool   $always  Ignore the display gate. Used by the admin column.
-	 * @return string|void
+	 * @return ($display is true ? void : string)
 	 */
 	public static function the_views( $display = true, $prefix = '', $postfix = '', $always = false ) {
 		if ( ! $always && ! self::should_be_displayed() ) {
